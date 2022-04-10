@@ -7,7 +7,7 @@ import { send } from "process";
 
 
 console.log(location.host);
-const ws = new WebSocket('ws://' + location.host);
+const ws = new WebSocket('wss://' + location.host);
 
 ws.onopen = function() {
     console.log('WebSocketClient Connected');

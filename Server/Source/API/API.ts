@@ -6,8 +6,6 @@ import { TestWorld } from "../World/TestWorld"
 import { WorldSerializer } from "../Serialization/Serializer"
 import { World } from '../World/World'
 import { send } from 'process'
-import * as fs from 'fs'
-import * as https from 'https';
 
 
 
@@ -41,11 +39,7 @@ console.log(clientOutputPath);
 app.use(express.static(clientOutputPath));
 
 const activePort = process.env.PORT || 8000;
-const key = fs.readFileSync(path.resolve(__dirname + "../../../SSL/key-rsa.pem"));
-const cert = fs.readFileSync(path.resolve(__dirname + "../../../SSL/cert.pem"));
-const server = https.createServer({ key, cert }, app);
-
-server.listen(activePort, () => {
+const server = app.listen(activePort, () => {
     console.log("Application started and listening on port: " + activePort);
 })
 
