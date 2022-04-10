@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "@types/node": "^17.0.23",
+    "assert": "^2.0.0",
+    "gl-matrix": "^3.4.3",
+    "node": "^17.7.2"
+  },
+  "devDependencies": {
+    "process": "^0.11.10",
+    "webpack": "^5.72.0",
+    "webpack-cli": "^4.9.2"
+  }
+}

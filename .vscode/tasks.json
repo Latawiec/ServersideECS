@@ -1,0 +1,35 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "process",
+			"command": "tsc.cmd",
+			"options": {
+				"cwd": "${workspaceFolder}\\Client"
+			},
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build",
+			"label": "Build Client"
+		},
+		{
+			"type": "process",
+			"command": "npx",
+			"args": [
+				"webpack"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}\\Client"
+			},
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build",
+			"dependsOn":[
+				"Build Client"
+			],
+			"label": "Build and Pack Client"
+		}
+	]
+}
