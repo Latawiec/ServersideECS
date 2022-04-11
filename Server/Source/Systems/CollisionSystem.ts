@@ -39,7 +39,7 @@ export namespace CollisionSystem {
         get metaName(): Readonly<string> {
             return Component.staticMetaName();
         }
-        get systemMetaname(): string {
+        get systemMetaName(): string {
             return System.staticMetaName();
         }
         get ownerEntity(): Entity {

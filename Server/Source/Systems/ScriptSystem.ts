@@ -18,7 +18,7 @@ export namespace ScriptSystem {
             this._ownerEntity = owner;
         }
 
-        get systemMetaname(): string {
+        get systemMetaName(): string {
             return System.staticMetaName();
         }
     

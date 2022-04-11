@@ -63,28 +63,22 @@ class TestPlayerInitializer extends ScriptSystem.Component
         const world = entity.getWorld();
 
         const transform = new TransformSystem.Component(entity);
-        world.transformSystem.registerComponent(transform);
-        entity.registerComponent(transform);
+        world.registerComponent(entity, transform);
 
         const drawable = new AABBDrawableComponent(entity,"C:\\User\\Latawiec");
-        world.drawableSystem.registerComponent(drawable);
-        entity.registerComponent(drawable);
+        world.registerComponent(entity, drawable);
 
         const playerInputController = new PlayerInputController(entity);
-        world.scriptSystem.registerComponent(playerInputController);
-        entity.registerComponent(playerInputController);
+        world.registerComponent(entity, playerInputController);
 
         const playerIdentity = new PlayerIdentity(entity, name);
-        world.scriptSystem.registerComponent(playerIdentity);
-        entity.registerComponent(playerIdentity);
+        world.registerComponent(entity, playerIdentity);
 
         const movement = new BasicMovement(entity);
-        world.scriptSystem.registerComponent(movement);
-        entity.registerComponent(movement);
+        world.registerComponent(entity, movement);
 
         // Remove self. My work is done.
-        world.scriptSystem.unregisterComponent(this);
-        entity.unregisterComponent(this);
+        world.unregisterComponent(this);
     }
 }
 
@@ -116,12 +110,10 @@ export class TestWorld extends World {
                 const playerEntity = this.createEntity();
 
                 const connectionComponent = new ClientConnectionSystem.Component(playerEntity, regConnection);
-                this.clientConnectionSystem.registerComponent(connectionComponent);
-                playerEntity.registerComponent(connectionComponent);
+                this.registerComponent(playerEntity, connectionComponent);
 
                 const initializationComponent = new TestPlayerInitializer(playerEntity);
-                this.scriptSystem.registerComponent(initializationComponent);
-                playerEntity.registerComponent(initializationComponent);
+                this.registerComponent(playerEntity, initializationComponent);
 
                 connection.on('message', (message) => {
                     console.log('Received Message: ', message);

@@ -82,7 +82,7 @@ export namespace ClientConnectionSystem {
             this._connection.addListener(this._connectionListener);    
         }
     
-        get systemMetaname(): string {
+        get systemMetaName(): string {
             return System.staticMetaName();
         }
     

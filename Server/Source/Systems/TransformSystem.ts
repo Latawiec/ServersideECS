@@ -26,7 +26,7 @@ export namespace TransformSystem {
             this._scale = [0, 0, 0];
         }
 
-        get systemMetaname(): string {
+        get systemMetaName(): string {
             return System.staticMetaName();
         }
     

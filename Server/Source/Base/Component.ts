@@ -12,5 +12,5 @@ export interface ComponentBase extends MetaClass {
     get ownerEntity(): Entity;
     get systemAsignedId(): Uuid | undefined;
     set systemAsignedId(value: Uuid | undefined);
-    get systemMetaname(): MetaName;
+    get systemMetaName(): MetaName;
 }
