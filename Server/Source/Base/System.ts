@@ -1,13 +1,17 @@
 import { Entity } from "./Entity"
-import { Component } from "./Component";
+import { ComponentBase } from "./Component";
 import { UuidGenerator, Uuid } from "./UuidGenerator"
 
-export abstract class System<Type extends Component> {
+export type MetaName = string;
+
+export abstract class SystemBase<Type extends ComponentBase> {
     private _IdComponentMap: Map<Readonly<Uuid>, Type> = new Map<Readonly<Uuid>, Type>()
     private _uuidGenerator: UuidGenerator = new UuidGenerator();
 
     abstract registerComponent(component: Type): Type;
     abstract unregisterComponent(component: Type): Type;
+
+    abstract get metaName(): MetaName;
 
     protected _registerComponent(component: Type): void {
         const componentId = this._uuidGenerator.getNext();

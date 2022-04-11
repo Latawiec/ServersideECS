@@ -7,9 +7,10 @@ export interface MetaClass {
     get metaName(): MetaName
 }
 
-export interface Component extends MetaClass {
+export interface ComponentBase extends MetaClass {
     get isActive(): boolean;
     get ownerEntity(): Entity;
     get systemAsignedId(): Uuid | undefined;
     set systemAsignedId(value: Uuid | undefined);
+    get systemMetaname(): MetaName;
 }

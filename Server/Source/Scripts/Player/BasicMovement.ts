@@ -1,24 +1,27 @@
 import { throws } from "assert";
 import { Entity } from "../../Base/Entity";
-import { ScriptComponent } from "../../Systems/ScriptSystem";
-import { TransformComponent } from "../../Systems/TransformSystem";
+import { ScriptSystem } from "../../Systems/ScriptSystem";
+import { TransformSystem } from "../../Systems/TransformSystem";
 import { PlayerInputController } from "./PlayerInputController";
 import { vec3 } from "gl-matrix"
 
 
 
-export class BasicMovement extends ScriptComponent {
+export class BasicMovement extends ScriptSystem.Component {
+    // Metadata
+    
+
     private _playerInput: PlayerInputController | undefined = undefined;
-    private _transform: TransformComponent | undefined = undefined;
+    private _transform: TransformSystem.Component | undefined = undefined;
 
     constructor(owner: Entity) {
         super(owner);
 
-        const playerInputControllers = owner.getComponentsByType(PlayerInputController.name);
+        const playerInputControllers = owner.getComponentsByType(PlayerInputController.staticMetaName());
         if (playerInputControllers.length === 0) {
             console.log('%s could not be initialized. %s component required.',
-                BasicMovement.name,
-                PlayerInputController.name
+                BasicMovement.staticMetaName(),
+                PlayerInputController.staticMetaName()
             );
             this.isActive = false;
             return;
@@ -26,17 +29,17 @@ export class BasicMovement extends ScriptComponent {
         // Assume one
         this._playerInput = playerInputControllers[0] as PlayerInputController;
 
-        const transformComponents = owner.getComponentsByType(TransformComponent.name);
+        const transformComponents = owner.getComponentsByType(TransformSystem.Component.staticMetaName());
         if (transformComponents.length === 0) {
             console.log('%s could not be initialized. %s component required.',
-                BasicMovement.name,
-                TransformComponent.name
+                BasicMovement.staticMetaName(),
+                TransformSystem.Component.staticMetaName()
             );
             this.isActive = false;
             return;
         }
         // Assume one
-        this._transform = transformComponents[0] as TransformComponent;
+        this._transform = transformComponents[0] as TransformSystem.Component;
     }
 
     preUpdate(): void {

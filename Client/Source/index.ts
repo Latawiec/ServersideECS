@@ -7,15 +7,11 @@ import { send } from "process";
 
 
 console.log(location.host);
-const ws = new WebSocket('wss://' + location.host);
+const ws = new WebSocket('ws://' + location.host);
 
 ws.onopen = function() {
     console.log('WebSocketClient Connected');
     //ws.send('Hi this is web client.');
-}
-
-ws.onmessage = function(e) {
-    console.log ('Received: %s', e.data);
 }
 
 document.addEventListener('keyup', function(event) {
@@ -182,12 +178,7 @@ const squareDraw = new DrawSquareRequest(canvas.glContext);
 const sleep = async (ms: number) => new Promise(r => setTimeout(r, ms));
 var entitiesToDraw = new Map<string, DrawSquareRequest>();
 
-async function render() {
-    var xmlHTTP = new XMLHttpRequest();
-    xmlHTTP.open("GET", "/world", false);
-    xmlHTTP.send(null);
-
-    const world = JSON.parse(xmlHTTP.responseText);
+async function render(world: any) {
 
     // We'll be swaping DrawRequests and asigning to currently existing names lol. Kinda makes it easier to implement.
     const newToDraw = new Map<string, DrawSquareRequest>();
@@ -212,8 +203,14 @@ async function render() {
     //await sleep(16);
     // canvas.requestDraw(Layer.Background, squareDraw);
     canvas.executeDraw();
-    requestAnimationFrame(render);
+    // requestAnimationFrame(render);
 }
 
+ws.onmessage = function(e) {
+    console.log("Got: " + e.data);
+    const worldMostLikely = JSON.parse(e.data);
+    render(worldMostLikely);
+}
 
-requestAnimationFrame(render);
+// requestAnimationFrame(render);
+

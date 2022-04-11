@@ -1,7 +1,7 @@
 import { World } from "../World/World"
 import { Entity } from "../Base/Entity"
-import { TransformComponent } from "../Systems/TransformSystem";
-import { DrawableComponent, DrawableTypes } from "../Systems/DrawableSystem";
+import { TransformSystem } from "../Systems/TransformSystem";
+import { DrawingSystem } from "../Systems/DrawingSystem";
 import { throws } from "assert";
 import { Recoverable } from "repl";
 import { stringify } from "querystring";
@@ -23,9 +23,9 @@ export class WorldSerializer
     }
 
     static serializableComponentsMapping = new Map<string, any>([
-        [ TransformComponent.name, this.serializeTransformComponent ],
-        [ DrawableComponent.name, this.serializeDrawableComponent ],
-        [ PlayerIdentity.name, this.serializePlayerIdentityComponent ]
+        [ TransformSystem.Component.staticMetaName(), this.serializeTransformComponent ],
+        [ DrawingSystem.Component.staticMetaName(), this.serializeDrawableComponent ],
+        [ PlayerIdentity.staticMetaName(), this.serializePlayerIdentityComponent ]
     ]);
 
     static serializeEntity(entity: Readonly<Entity>): Record<string, any> {
@@ -49,15 +49,15 @@ export class WorldSerializer
         return output;
     }
 
-    static serializeTransformComponent(output: Record<string, any>, component: Readonly<TransformComponent>) {
+    static serializeTransformComponent(output: Record<string, any>, component: Readonly<TransformSystem.Component>) {
         output.transform = component.position;
         return output;
     }
 
-    static serializeDrawableComponent(output: Record<string, any>, component: Readonly<DrawableComponent>) {
+    static serializeDrawableComponent(output: Record<string, any>, component: Readonly<DrawingSystem.Component>) {
         output.drawing = {
             assetPaths: component.getAssetsPaths(),
-            type: DrawableTypes[component.getType()]
+            type: DrawingSystem.Types[component.getType()]
         }
     }
 

@@ -4,25 +4,25 @@ import { UuidGenerator } from "../Base/UuidGenerator"
 import { TransformSystem } from "../Systems/TransformSystem"
 import { ScriptSystem } from "../Systems/ScriptSystem";
 import { Script } from "vm";
-import { DrawableSystem } from "../Systems/DrawableSystem";
+import { DrawingSystem } from "../Systems/DrawingSystem";
 import { ClientConnectionSystem } from "../Systems/ClientConnectionSystem";
 
 export class World {
     private _rootNode: Entity;
     private _entities: Entity[];
     private _entityUuidGenerator: UuidGenerator;
-    private _transformSystem: TransformSystem;
-    private _scriptSystem: ScriptSystem;
-    private _drawableSystem: DrawableSystem;
-    private _clientConnectionSystem: ClientConnectionSystem;
+    private _transformSystem: TransformSystem.System;
+    private _scriptSystem: ScriptSystem.System;
+    private _drawableSystem: DrawingSystem.System;
+    private _clientConnectionSystem: ClientConnectionSystem.System;
 
 
     constructor() {
         this._entityUuidGenerator = new UuidGenerator();
-        this._transformSystem = new TransformSystem();
-        this._scriptSystem = new ScriptSystem();
-        this._drawableSystem = new DrawableSystem();
-        this._clientConnectionSystem = new ClientConnectionSystem();
+        this._transformSystem = new TransformSystem.System();
+        this._scriptSystem = new ScriptSystem.System();
+        this._drawableSystem = new DrawingSystem.System();
+        this._clientConnectionSystem = new ClientConnectionSystem.System();
 
         this._rootNode = new Entity(this, undefined, this._entityUuidGenerator.getNext());
         this._entities = [ this._rootNode ];
@@ -46,19 +46,19 @@ export class World {
         this._scriptSystem.onUpdate();
     }
     
-    get scriptSystem(): ScriptSystem {
+    get scriptSystem(): ScriptSystem.System {
         return this._scriptSystem;
     }
 
-    get transformSystem(): TransformSystem {
+    get transformSystem(): TransformSystem.System {
         return this._transformSystem;
     }
     
-    get drawableSystem(): DrawableSystem {
+    get drawableSystem(): DrawingSystem.System {
         return this._drawableSystem;
     }
 
-    get clientConnectionSystem(): ClientConnectionSystem {
+    get clientConnectionSystem(): ClientConnectionSystem.System {
         return this._clientConnectionSystem;
     }
 }

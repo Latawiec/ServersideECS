@@ -7,30 +7,6 @@ import { WorldSerializer } from "../Serialization/Serializer"
 import { World } from '../World/World'
 import { send } from 'process'
 
-
-
-// import * as https from 'https';
-// import * as fs from 'fs';
-
-// var path = require('path');
-
-// const app = express();
-// const clientOutputPath = path.resolve(__dirname + "/../../../" + "Client/build")
-// console.log(clientOutputPath);
-// app.use(express.static(clientOutputPath));
-
-// console.log('asdf1');
-
-// const key = fs.readFileSync(path.resolve(__dirname, "\\key-rsa.pem"));
-// const cert = fs.readFileSync(path.resolve(__dirname, "\\cert.pem"));
-
-// const server = https.createServer({key, cert}, app);
-
-// server.listen(8000, () => {
-//     console.log("Application started and listening on port 8000");
-// })
-
-
 var path = require('path');
 
 const app = express();
@@ -73,27 +49,3 @@ async function run() {
 }
 
 run();
-
-
-
-
-
-
-
-// wsServer.on('request', (req) => {
-//     const connection = req.accept(null, req.origin);
-
-//     connection.on('message', (message) => {
-//         console.log('Received Message: ', message);
-//         //connection.sendUTF("Hi this is WebSocket server!");
-//         connection.send(JSON.stringify(WorldSerializer.serializeWorld(world)));
-//     })
-
-//     console.log(JSON.stringify(req.socket.remoteAddress));
-    
-    
-
-//     connection.on('close', (reasonCode, description) => {
-//         console.log('Client has disconnected.')
-//     }) 
-// });

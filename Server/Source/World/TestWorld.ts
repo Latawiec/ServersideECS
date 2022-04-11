@@ -1,28 +1,30 @@
 import { World } from "./World"
 import { PlayerInputController } from "../Scripts/Player/PlayerInputController"
 import { Entity } from "../Base/Entity"
-import { TransformComponent } from "../Systems/TransformSystem";
-import { AABBDrawableComponent } from "../Systems/DrawableSystem";
-import { ClientConnectionComponent } from "../Systems/ClientConnectionSystem";
+import { TransformSystem } from "../Systems/TransformSystem";
+import { AABBDrawableComponent } from "../Systems/DrawingSystem";
+import { ClientConnectionSystem } from "../Systems/ClientConnectionSystem";
 import * as WebSocket from 'websocket'
-import { ScriptComponent } from "../Systems/ScriptSystem";
+import { WorldSerializer } from "../Serialization/Serializer"
+import { ScriptSystem } from "../Systems/ScriptSystem";
 import { PlayerIdentity } from "../Scripts/Player/PlayerIdentity";
 import { BasicMovement } from "../Scripts/Player/BasicMovement";
+import { throws } from "assert";
 
-class TestPlayerInitializer extends ScriptComponent
+class TestPlayerInitializer extends ScriptSystem.Component
 {
-    private _connection: ClientConnectionComponent | undefined = undefined;
+    private _connection: ClientConnectionSystem.Component | undefined = undefined;
 
     constructor(owner: Entity) {
         super(owner);
 
-        const connectionComponents = owner.getComponentsByType(ClientConnectionComponent.name);
+        const connectionComponents = owner.getComponentsByType(ClientConnectionSystem.Component.staticMetaName());
         if (connectionComponents.length === 0) {
-            console.log(`%s could not be initialized. %s component required.`, TestPlayerInitializer.name, ClientConnectionComponent.name);
+            console.log(`%s could not be initialized. %s component required.`, TestPlayerInitializer.staticMetaName(), ClientConnectionSystem.Component.staticMetaName());
         }
 
         // Assume one.
-        this._connection = connectionComponents[0] as ClientConnectionComponent;
+        this._connection = connectionComponents[0] as ClientConnectionSystem.Component;
 
         var _this = this;
         this._connection.onMessage = function (message: any) {
@@ -60,7 +62,7 @@ class TestPlayerInitializer extends ScriptComponent
         const entity = this.ownerEntity;
         const world = entity.getWorld();
 
-        const transform = new TransformComponent(entity);
+        const transform = new TransformSystem.Component(entity);
         world.transformSystem.registerComponent(transform);
         entity.registerComponent(transform);
 
@@ -88,6 +90,11 @@ class TestPlayerInitializer extends ScriptComponent
 
 export class TestWorld extends World {
 
+    update() {
+        super.update();
+        this.clientConnectionSystem.broadcastMessage(JSON.stringify(WorldSerializer.serializeWorld(this)));
+    }
+
     constructor(wsServer: WebSocket.server)
     {
         super()
@@ -108,7 +115,7 @@ export class TestWorld extends World {
 
                 const playerEntity = this.createEntity();
 
-                const connectionComponent = new ClientConnectionComponent(playerEntity, regConnection);
+                const connectionComponent = new ClientConnectionSystem.Component(playerEntity, regConnection);
                 this.clientConnectionSystem.registerComponent(connectionComponent);
                 playerEntity.registerComponent(connectionComponent);
 
@@ -118,7 +125,7 @@ export class TestWorld extends World {
 
                 connection.on('message', (message) => {
                     console.log('Received Message: ', message);
-                    regConnection.pushMessage(message);
+                    regConnection.receiveMessage(message);
                 })
 
                 connection.on('close', (reasonCode, desc) => {

@@ -1,27 +1,31 @@
-import { throws } from "assert";
-import { Entity } from "../../Base/Entity";
-import { ClientConnectionComponent, OnMessage } from "../../Systems/ClientConnectionSystem";
-import { ScriptComponent } from "../../Systems/ScriptSystem"
-import { TransformComponent } from "../../Systems/TransformSystem"
+import { throws } from "assert"
+import { Entity } from "../../Base/Entity"
+import { ClientConnectionSystem } from "../../Systems/ClientConnectionSystem"
+import { ScriptSystem } from "../../Systems/ScriptSystem"
+import { TransformSystem } from "../../Systems/TransformSystem"
 
-export class PlayerInputController extends ScriptComponent {
-    private _connection: ClientConnectionComponent | undefined = undefined; 
+
+export class PlayerInputController extends ScriptSystem.Component {
+    // Metadata
+    static staticMetaName(): string { return 'PlayerInputController' }
+
+    private _connection: ClientConnectionSystem.Component | undefined = undefined; 
     private _keyStates: Map<string, boolean>;
     
     constructor(owner: Entity) {
         super(owner);
         this._keyStates = new Map<string, boolean>();
 
-        const connectionComponents = owner.getComponentsByType(ClientConnectionComponent.name);
+        const connectionComponents = owner.getComponentsByType(ClientConnectionSystem.Component.staticMetaName());
         if (connectionComponents.length === 0) {
             console.log('%s could not be initialized. %s component required.',
-                PlayerInputController.name,
-                ClientConnectionComponent.name
+                PlayerInputController.staticMetaName(),
+                ClientConnectionSystem.Component.staticMetaName()
             );
             return;
         }
         // Assume one.
-        this._connection = connectionComponents[0] as ClientConnectionComponent;
+        this._connection = connectionComponents[0] as ClientConnectionSystem.Component;
 
         
         var _this = this;
@@ -31,7 +35,7 @@ export class PlayerInputController extends ScriptComponent {
     }
 
     get metaName(): string {
-        return PlayerInputController.name;
+        return PlayerInputController.staticMetaName();
     }
 
 
@@ -44,7 +48,7 @@ export class PlayerInputController extends ScriptComponent {
     }
 
     onUpdate(): void {
-        var enityTransforms = this.ownerEntity.getComponentsByType(TransformComponent.name);
+        var enityTransforms = this.ownerEntity.getComponentsByType(TransformSystem.Component.staticMetaName());
         if (enityTransforms.length == 0) {
             // well?
             return;

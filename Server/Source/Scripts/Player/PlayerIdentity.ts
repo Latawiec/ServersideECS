@@ -1,10 +1,8 @@
 import { Entity } from "../../Base/Entity";
-import { ScriptComponent } from "../../Systems/ScriptSystem";
+import { ScriptSystem } from "../../Systems/ScriptSystem";
 
-
-
-
-export class PlayerIdentity extends ScriptComponent {
+export class PlayerIdentity extends ScriptSystem.Component {
+    static staticMetaName(): string { return 'PlayerIdentity' }
     private _name: string;
 
     constructor(owner: Entity, name: string) {
@@ -17,7 +15,7 @@ export class PlayerIdentity extends ScriptComponent {
     }
 
     get metaName(): string {
-        return PlayerIdentity.name;
+        return PlayerIdentity.staticMetaName();
     }
 
     preUpdate(): void {
