@@ -15,7 +15,7 @@ export namespace SDF {
 
     // The box is NOT rotated yet... But should be simple to pass the point in transformed space to have axis-aligned box.
     // I'll have to test at what level I should do it.
-    function BoxSDF(point: Readonly<vec3>, boxCenter: Readonly<vec3>, boxDimensions: Readonly<vec3>):  number {
+    function AABoxSDF(point: Readonly<vec3>, boxCenter: Readonly<vec3>, boxDimensions: Readonly<vec3>):  number {
         var boxHalfDimensions: vec3 = vec3.create();
         vec3.div(boxHalfDimensions, boxDimensions, [2.0, 2.0, 2.0]);
 
