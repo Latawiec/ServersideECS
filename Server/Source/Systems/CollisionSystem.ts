@@ -6,18 +6,6 @@ import { SystemBase } from "../Base/System"
 
 export namespace CollisionSystem {
 
-    function abs(vector: Readonly<vec3>): vec3 {
-        return vec3.fromValues(
-            Math.abs(vector[0]),
-            Math.abs(vector[1]),
-            Math.abs(vector[2])
-        );
-    }
-
-    function maxcomp(vector: Readonly<vec3>): number {
-        return Math.max(vector[0], vector[1], vector[2]);
-    }
-
     export interface CollisionListener {
         onCollision(): void;
     }
@@ -90,54 +78,4 @@ export namespace CollisionSystem {
     }
 } // namespace CollisionSystem
 
-
-
-
-
-
-
-
-
-
-// class BoxCollisionComponent extends CollisionComponent {
-//     private _extents: vec3 = [1.0, 1.0, 1.0]
-//     private _position: vec3 = [0.0, 0.0, 0.0];
-
-//     distance(point: Readonly<vec3>): number {
-//         let diff!: vec3;
-//         vec3.subtract(diff, abs(point), this._extents);
-
-//         // this is [0, +inf] ranged
-//         let outsideDist: number = vec3.length(vec3.max(vec3.create(), diff, [0, 0, 0]));
-//         // this is [-inf, 0] ranged
-//         let insideDist: number = Math.min(maxcomp(diff), 0);
-
-//         return outsideDist + insideDist;
-//     }
-
-//     get position(): Readonly<vec3> {
-//         return this._position
-//     }
-
-//     get extents(): Readonly<vec3> {
-//         return this._extents;
-//     }
-// }
-
-// class SphereCollisionComponent extends CollisionComponent {
-//     private _radius: number = 1.0;
-//     private _position: vec3 = [0.0, 0.0, 0.0];
-
-//     distance(point: Readonly<vec3>): number {
-//         return vec3.length(point) - this._radius;
-//     }
-
-//     get position(): Readonly<vec3> {
-//         return this._position
-//     }
-
-//     get radius(): Readonly<number> {
-//         return this._radius
-//     }
-// }
 

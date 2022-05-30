@@ -68,6 +68,7 @@ export namespace TransformSystem {
             this._registerComponent(component);
             return component;
         }
+        
         unregisterComponent(component: Component): Component {
             this._unregisterComponent(component);
             return component;
