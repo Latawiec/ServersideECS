@@ -1,13 +1,12 @@
 import * as http from 'http'
 import * as WebSocket from 'websocket'
 import express from 'express'
+import * as path from 'path'
 
 import { TestWorld } from "../World/TestWorld"
 import { WorldSerializer } from "../Serialization/Serializer"
 import { World } from '../World/World'
 import { send } from 'process'
-
-var path = require('path');
 
 const app = express();
 const clientOutputPath = path.resolve(__dirname + "/../../../" + "Client/build")
@@ -33,6 +32,22 @@ app.get("/", (req, res) => {
 
 app.get("/world", (req, res) => {
     res.send(JSON.stringify(WorldSerializer.serializeWorld(world)));
+})
+
+app.get("/asset", (req, res) => {
+    var assetPath = req.query.path;
+    if (assetPath) {
+        var stringAssetPath = assetPath as string
+
+        world.getAsset(stringAssetPath,
+            (asset) => {
+                res.write(asset.Data);
+                res.send();
+            },
+            (error) => {
+                console.log("Couldn't find asset: %s", assetPath);
+            });
+    }
 })
 
 

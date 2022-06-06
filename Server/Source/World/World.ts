@@ -7,6 +7,7 @@ import { Script } from "vm";
 import { DrawingSystem } from "../Systems/DrawingSystem";
 import { ClientConnectionSystem } from "../Systems/ClientConnectionSystem";
 import { ComponentBase } from "../Base/Component";
+import * as AssetManager from "../Assets/AssetManager";
 
 export class World {
     private _rootNode: Entity;
@@ -16,6 +17,7 @@ export class World {
     private _scriptSystem: ScriptSystem.System;
     private _drawableSystem: DrawingSystem.System;
     private _clientConnectionSystem: ClientConnectionSystem.System;
+    private _assetManager: AssetManager.AssetManager;
 
     constructor() {
         this._entityUuidGenerator = new UuidGenerator();
@@ -23,9 +25,14 @@ export class World {
         this._scriptSystem = new ScriptSystem.System();
         this._drawableSystem = new DrawingSystem.System();
         this._clientConnectionSystem = new ClientConnectionSystem.System();
+        this._assetManager = new AssetManager.AssetManager("");
 
         this._rootNode = new Entity(this, undefined, this._entityUuidGenerator.getNext());
         this._entities = [ this._rootNode ];
+    }
+
+    protected setAssetPath(assetPath: Readonly<string>) {
+        this._assetManager = new AssetManager.AssetManager(assetPath);
     }
 
     createEntity(parent?: Readonly<Entity>): Entity {
@@ -86,6 +93,10 @@ export class World {
                 throw "Tried to get system that doesn't exist";
         }
         component.ownerEntity?.unregisterComponent(component);
+    }
+
+    getAsset(assetPath: Readonly<string>, onSuccess: (asset: AssetManager.Asset)=>void, onError: (error: AssetManager.AssetError)=>void ): any {
+        this._assetManager.getAsset(assetPath, onSuccess, onError);
     }
 
     getRoot(): Readonly<Entity> {

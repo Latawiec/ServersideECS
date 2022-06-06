@@ -92,7 +92,7 @@ export class TestWorld extends World {
     constructor(wsServer: WebSocket.server)
     {
         super()
-
+        this.setAssetPath("D:\\Programming\\FFXIVSavagePlayground\\Server\\TestAssets");
         // 
         {
             wsServer.on('request', (req) => {
