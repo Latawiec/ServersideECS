@@ -1,17 +1,41 @@
 import { PerspectiveCamera } from "./Rendering/Basic/Camera";
-import { CommonShapes } from "./Rendering/Basic/CommonShapes";
+import { DrawSquareRequest } from "./DrawSquareRequest";
 import { Layer, Canvas, DrawRequest } from "./Rendering/Canvas";
 import { Shader, ShaderProgram, ShaderType } from "./Rendering/Materials/ShaderProgram";
-import { mat4, vec4, vec3 } from "gl-matrix";
+import { mat4, vec4, vec3, vec2 } from "gl-matrix";
 import { send } from "process";
+import { DrawSpriteSegmentRequest } from "./DrawSpriteSegmentRequest";
+import PNG from 'png-ts';
 
 
 console.log(location.host);
 const ws = new WebSocket('ws://' + location.host);
 
+function httpGet(theUrl: string)
+{
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "GET", theUrl, true ); // false for synchronous request
+    xmlHttp.responseType = "arraybuffer";
+    xmlHttp.onload = function() {
+        var arrayBuffer = xmlHttp.response;
+        console.log(arrayBuffer);
+        var byteArray = new Uint8Array(arrayBuffer);
+        console.log(byteArray);
+        const tmp = PNG.load(byteArray);
+        console.log(tmp);
+        redMage = tmp.decodePixels();
+        redMageDim = [tmp.width, tmp.height];
+    }
+    xmlHttp.send( null );
+}
+
+let redMage: Uint8Array;
+let redMageDim = [1, 1];
+
 ws.onopen = function() {
     console.log('WebSocketClient Connected');
     //ws.send('Hi this is web client.');
+    httpGet("asset?path=WOL/RedMage.png");
 }
 
 document.addEventListener('keyup', function(event) {
@@ -59,137 +83,54 @@ const camera = new PerspectiveCamera(
     0.1,
     100.0);
 
-class DrawSquareRequest implements DrawRequest {
-    private _gl: WebGLRenderingContext;
-    private _vertexBuffer: WebGLBuffer;
-    private _indexBuffer: WebGLBuffer;
-    private _elementsCount: number;
-    private _shaderProgram: ShaderProgram;
-    private _transform: mat4 = mat4.create();
-    private _color: vec4 = vec4.create();
 
-    private vertexShaderCode: string = `
-        attribute vec4 aVertexPosition;
-
-        uniform mat4 uModelViewMatrix;
-        uniform mat4 uProjectionMatrix;
-
-        uniform vec4 uColor;
-
-        varying lowp vec4 vColor;
-
-        void main(void) {
-            gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aVertexPosition.xyz, 1);
-            vColor = uColor;
-        }
-    `;
-    private pixelShaderCode: string = `
-        varying lowp vec4 vColor;
-
-        void main(void) {
-            gl_FragColor = vColor;
-        }
-    `;
-
-    constructor(glContext: WebGLRenderingContext) {
-        this._gl = glContext
-
-        const squareMesh = new CommonShapes.Square();
-        this._elementsCount = squareMesh.indices.length;
-        this._vertexBuffer = glContext.createBuffer()!;
-        glContext.bindBuffer(glContext.ARRAY_BUFFER, this._vertexBuffer);
-        glContext.bufferData(glContext.ARRAY_BUFFER, squareMesh.vertices, glContext.STATIC_DRAW);
-
-        this._indexBuffer = glContext.createBuffer()!;
-        glContext.bindBuffer(glContext.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-        glContext.bufferData(glContext.ELEMENT_ARRAY_BUFFER, squareMesh.indices, glContext.STATIC_DRAW);
-
-        const pixelShader = new Shader(glContext, ShaderType.PIXEL, this.pixelShaderCode);
-        const vertexShader = new Shader(glContext, ShaderType.VERTEX, this.vertexShaderCode);
-        
-        this._shaderProgram = new ShaderProgram(glContext, pixelShader, vertexShader);
-
-        this._color = [Math.random(), Math.random(), Math.random(), 1.0];
-    }
-
-    draw(): void {
-        const gl = this._gl;
-        
-        const vertexPositionAttribLoc = gl.getAttribLocation(this._shaderProgram.glShaderProgram, 'aVertexPosition');
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
-        gl.vertexAttribPointer(
-            vertexPositionAttribLoc,
-            3,
-            gl.FLOAT,
-            false,
-            0,
-            0
-        );
-        gl.enableVertexAttribArray(vertexPositionAttribLoc);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-        gl.useProgram(this._shaderProgram.glShaderProgram);
-
-        const projectionMatrixUniformLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uProjectionMatrix');
-        const modelViewMatrixUniformLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uModelViewMatrix');
-        const colorUniformLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uColor');
-
-        let dateTime = new Date();
-        var ms = dateTime.getMilliseconds();
-        const view = mat4.create();
-        mat4.lookAt(view, [0, 0., -9], [0, 0, 0.0], [0, 1, 0]);
-        const model = this._transform;
-        const viewModel = mat4.create();
-
-        mat4.multiply(viewModel, view, model);
-
-        const identity = mat4.create();
-        mat4.identity(identity);
-        const translated = mat4.create();
-        // mat4.translate(translated, identity, [-0.0, 1.0, 0.0]);
-        
-        gl.uniformMatrix4fv(
-            modelViewMatrixUniformLoc,
-            false,
-            viewModel
-        );
-
-        gl.uniformMatrix4fv(
-            projectionMatrixUniformLoc,
-            false,
-            camera.transform
-        );
-
-        gl.uniform4fv(
-            colorUniformLoc,
-            this._color
-        );
-
-        gl.drawElements(gl.TRIANGLES, this._elementsCount, gl.UNSIGNED_SHORT, 0);
-    }
-
-    set transform(newTransform: mat4) {
-        this._transform = newTransform;
-    } 
-}
 
 const squareDraw = new DrawSquareRequest(canvas.glContext);
-
+const spriteDraw = new DrawSpriteSegmentRequest(canvas.glContext, new Uint8Array([1, 1, 1]), 1, 1);
 
 const sleep = async (ms: number) => new Promise(r => setTimeout(r, ms));
-var entitiesToDraw = new Map<string, DrawSquareRequest>();
+var entitiesToDraw = new Map<string, DrawRequest>();
 
 async function render(world: any) {
 
     // We'll be swaping DrawRequests and asigning to currently existing names lol. Kinda makes it easier to implement.
-    const newToDraw = new Map<string, DrawSquareRequest>();
+    const newToDraw = new Map<string, DrawRequest>();
     world.entities?.forEach((entity: any) => {
         const name: string = entity.components.playerIdentity?.name;
         const transform: vec3 = entity.components.transform;
         if (name) {
-            const request = entitiesToDraw.has(name) ? entitiesToDraw.get(name)! : new DrawSquareRequest(canvas.glContext);
-            const newTransform = mat4.create();
-            mat4.translate(newTransform, newTransform, transform);
-            request.transform = newTransform;
+            let request: DrawRequest;
+            const type: number = entity.components.drawing?.type;
+
+            if (entitiesToDraw.has(name)) 
+            {
+                request = entitiesToDraw.get(name)!;
+            } else {
+                if (type === 1)
+                {
+                    request = new DrawSpriteSegmentRequest(canvas.glContext, redMage, redMageDim[0], redMageDim[1]);
+                } else {
+                    request = new DrawSquareRequest(canvas.glContext);
+                }
+            }
+
+            // TODO: Get rid of this type-specific thing. Disgusting.
+            if (type === 0) {
+                let squareRequest = request as DrawSquareRequest;
+                const newTransform = mat4.create();
+                mat4.translate(newTransform, newTransform, transform);
+                squareRequest.transform = newTransform;
+            } else
+            if (type === 1) {
+                let spriteRequest = request as DrawSpriteSegmentRequest;
+                const spriteSelect = entity.components.drawing!.selectedSegment;
+                const newTransform = mat4.create();
+                mat4.translate(newTransform, newTransform, transform);
+                spriteRequest.transform = newTransform;
+                spriteRequest.spriteSelect = vec2.fromValues(spriteSelect[0], spriteSelect[1]);
+                console.log("width: %d height: %d", spriteSelect[0], spriteSelect[1]);
+                newToDraw.set(name, spriteRequest);
+            }
             newToDraw.set(name, request);
         }
     });
@@ -202,7 +143,7 @@ async function render(world: any) {
 
     //await sleep(16);
     // canvas.requestDraw(Layer.Background, squareDraw);
-    canvas.executeDraw();
+    canvas.executeDraw(camera);
     // requestAnimationFrame(render);
 }
 

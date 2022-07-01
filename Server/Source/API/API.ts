@@ -36,6 +36,7 @@ app.get("/world", (req, res) => {
 
 app.get("/asset", (req, res) => {
     var assetPath = req.query.path;
+    console.log("Asked for: ", req.query);
     if (assetPath) {
         var stringAssetPath = assetPath as string
 
@@ -46,6 +47,7 @@ app.get("/asset", (req, res) => {
             },
             (error) => {
                 console.log("Couldn't find asset: %s", assetPath);
+                res.statusCode = 404;
             });
     }
 })

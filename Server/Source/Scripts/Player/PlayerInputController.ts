@@ -44,7 +44,7 @@ export class PlayerInputController extends ScriptSystem.Component {
     }
 
     preUpdate(): void {
-        throw new Error("Method not implemented.");
+        // throw new Error("Method not implemented.");
     }
 
     onUpdate(): void {
@@ -57,7 +57,7 @@ export class PlayerInputController extends ScriptSystem.Component {
 
     }
     postUpdate(): void {
-        throw new Error("Method not implemented.");
+        // throw new Error("Method not implemented.");
     }
 
     filterMessage(message: any): any | undefined {

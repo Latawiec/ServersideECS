@@ -1,3 +1,4 @@
+import { Camera } from "./Basic/Camera";
 
 export enum Layer {
     Background, 
@@ -7,7 +8,7 @@ export enum Layer {
 };
 
 export interface DrawRequest {
-    draw(): void;
+    draw(camera: Readonly<Camera>): void;
 };
 
 export class Canvas {
@@ -21,7 +22,7 @@ export class Canvas {
         this._gl = canvas.getContext('webgl')!;
     }
 
-    executeDraw(): void {
+    executeDraw(camera: Readonly<Camera>): void {
         this._gl.clearColor(0.0, 1.0, 0.0, 1.0);
         this._gl.clearDepth(1.0);
         this._gl.enable(this._gl.DEPTH_TEST);
@@ -31,25 +32,25 @@ export class Canvas {
 
         if (this._drawRequests.get(Layer.Background) !== undefined && this._drawRequests.get(Layer.Background)!.length !== 0) {
             this._drawRequests.get(Layer.Background)!.forEach(request => {
-                request.draw();
+                request.draw(camera);
             })
         }
 
         if (this._drawRequests.get(Layer.Layer0) !== undefined && this._drawRequests.get(Layer.Layer0)!.length !== 0) {
             this._drawRequests.get(Layer.Layer0)!.forEach(request => {
-                request.draw();
+                request.draw(camera);
             })
         }
 
         if (this._drawRequests.get(Layer.Layer1) !== undefined && this._drawRequests.get(Layer.Layer1) !.length !== 0) {
             this._drawRequests.get(Layer.Layer1)!.forEach(request => {
-                request.draw();
+                request.draw(camera);
             })
         }
 
         if (this._drawRequests.get(Layer.Foreground) !== undefined && this._drawRequests.get(Layer.Foreground)!.length !== 0) {
             this._drawRequests.get(Layer.Foreground)!.forEach(request => {
-                request.draw();
+                request.draw(camera);
             })
         }
 

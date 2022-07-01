@@ -9,10 +9,11 @@ import { vec3 } from "gl-matrix"
 
 export class BasicMovement extends ScriptSystem.Component {
     // Metadata
-    
 
     private _playerInput: PlayerInputController | undefined = undefined;
     private _transform: TransformSystem.Component | undefined = undefined;
+
+    private _movementDirection: vec3 = [0, 0, 0];
 
     constructor(owner: Entity) {
         super(owner);
@@ -43,7 +44,7 @@ export class BasicMovement extends ScriptSystem.Component {
     }
 
     preUpdate(): void {
-        throw new Error("Method not implemented.");
+        // throw new Error("Method not implemented.");
     }
     onUpdate(): void {
         if (this.isActive) {
@@ -66,6 +67,7 @@ export class BasicMovement extends ScriptSystem.Component {
             }
 
             vec3.normalize(movementDirection, movementDirection);
+            this._movementDirection = movementDirection;
 
             const currentPosition = this._transform!.position;
             const scaling: vec3 = [0.1, 0.1, 0.1];
@@ -76,7 +78,11 @@ export class BasicMovement extends ScriptSystem.Component {
         }
     }
     postUpdate(): void {
-        throw new Error("Method not implemented.");
+        // throw new Error("Method not implemented.");
+    }
+
+    get direction() {
+        return this._movementDirection;
     }
     
 }

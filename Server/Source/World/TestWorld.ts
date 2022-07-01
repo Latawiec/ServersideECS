@@ -2,7 +2,7 @@ import { World } from "./World"
 import { PlayerInputController } from "../Scripts/Player/PlayerInputController"
 import { Entity } from "../Base/Entity"
 import { TransformSystem } from "../Systems/TransformSystem";
-import { AABBDrawableComponent } from "../Systems/DrawingSystem";
+import { AABBDrawableComponent, DrawingSystem, SpriteTexture } from "../Systems/DrawingSystem";
 import { ClientConnectionSystem } from "../Systems/ClientConnectionSystem";
 import * as WebSocket from 'websocket'
 import { WorldSerializer } from "../Serialization/Serializer"
@@ -10,6 +10,81 @@ import { ScriptSystem } from "../Systems/ScriptSystem";
 import { PlayerIdentity } from "../Scripts/Player/PlayerIdentity";
 import { BasicMovement } from "../Scripts/Player/BasicMovement";
 import { throws } from "assert";
+import { vec2 } from "gl-matrix"
+
+class TestPlayer extends ScriptSystem.Component
+{
+    private _transform: TransformSystem.Component;
+    private _drawable: SpriteTexture;
+    private _playerInputController: PlayerInputController;
+    private _movement: BasicMovement;
+
+    private _spriteDirectionMap: any = {
+        left: [0, 0],
+        right: [1, 0],
+        top: [1, 1],
+        bottom: [0, 1]
+    }
+
+    constructor(owner: Entity, name: string) {
+        super(owner);
+
+        const entity = this.ownerEntity;
+        const world = entity.getWorld();
+
+        this._transform = new TransformSystem.Component(entity);
+        world.registerComponent(entity, this._transform);
+
+        this._drawable = new SpriteTexture(entity,"WOL\\RedMage.png", 2, 2);
+        world.registerComponent(entity, this._drawable);
+
+        this._playerInputController = new PlayerInputController(entity);
+        world.registerComponent(entity, this._playerInputController);
+
+        const playerIdentity = new PlayerIdentity(entity, name);
+        world.registerComponent(entity, playerIdentity);
+
+        this._movement = new BasicMovement(entity);
+        world.registerComponent(entity, this._movement);
+
+        world.registerComponent(entity, this);
+    }
+
+    preUpdate(): void {
+        
+    }
+    onUpdate(): void {
+
+    }
+    postUpdate(): void {
+        const direction = this._movement.direction;
+        if (direction[0] == 0 && direction[1] == 0) {
+            return;
+        }
+        let spriteSelect = [0, 0];
+
+        if (direction[1] < 0 ) {
+            spriteSelect = this._spriteDirectionMap.bottom;
+        } else
+
+        if (direction[1] > 0) {
+            spriteSelect = this._spriteDirectionMap.top;
+        } else
+
+        if (direction[0] < 0) {
+            spriteSelect = this._spriteDirectionMap.right;
+        } else
+
+        if (direction[0] > 0) {
+            spriteSelect = this._spriteDirectionMap.left;
+        }
+
+        this._drawable.selectedWidthSegment = spriteSelect[0];
+        this._drawable.selectedHeightSegment = spriteSelect[1];
+
+        console.log("width: %d height: %d", spriteSelect[0], spriteSelect[1]);
+    }
+}
 
 class TestPlayerInitializer extends ScriptSystem.Component
 {
@@ -60,22 +135,9 @@ class TestPlayerInitializer extends ScriptSystem.Component
     initializePlayerEntity(name: string) {
 
         const entity = this.ownerEntity;
+        const player = new TestPlayer(entity, name);
+
         const world = entity.getWorld();
-
-        const transform = new TransformSystem.Component(entity);
-        world.registerComponent(entity, transform);
-
-        const drawable = new AABBDrawableComponent(entity,"C:\\User\\Latawiec");
-        world.registerComponent(entity, drawable);
-
-        const playerInputController = new PlayerInputController(entity);
-        world.registerComponent(entity, playerInputController);
-
-        const playerIdentity = new PlayerIdentity(entity, name);
-        world.registerComponent(entity, playerIdentity);
-
-        const movement = new BasicMovement(entity);
-        world.registerComponent(entity, movement);
 
         // Remove self. My work is done.
         world.unregisterComponent(this);
@@ -92,7 +154,7 @@ export class TestWorld extends World {
     constructor(wsServer: WebSocket.server)
     {
         super()
-        this.setAssetPath("D:\\Programming\\FFXIVSavagePlayground\\Server\\TestAssets");
+        this.setAssetPath("D:\\Programming\\FFXIVSavagePlayground\\Server\\Assets");
         // 
         {
             wsServer.on('request', (req) => {

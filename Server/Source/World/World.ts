@@ -102,13 +102,15 @@ export class World {
     getRoot(): Readonly<Entity> {
         return this._rootNode
     }
-
+    
     getEntites(): Readonly<Entity[]> {
         return this._entities;
     }
-
+    
     update() {
+        this._scriptSystem.preUpdate();
         this._scriptSystem.onUpdate();
+        this._scriptSystem.postUpdate();
     }
     
     get scriptSystem(): ScriptSystem.System {

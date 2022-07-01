@@ -3,12 +3,14 @@ import { ComponentBase } from "../Base/Component"
 import { Entity } from "../Base/Entity";
 import { SystemBase } from "../Base/System"
 import { Uuid } from "../Base/UuidGenerator"
+import { assert } from "console";
 
 
 export namespace DrawingSystem {
 
     export enum Types {
-        AABBRect
+        AABBRect,
+        SpriteTexture
     }
 
     export abstract class Component implements ComponentBase {
@@ -95,6 +97,49 @@ export class AABBDrawableComponent extends DrawingSystem.Component {
 
     getType(): DrawingSystem.Types {
         return DrawingSystem.Types.AABBRect;
+    }
+}
+
+export class SpriteTexture extends AABBDrawableComponent {
+
+    private _widthSegments: number = 1;
+    private _heightSegments: number = 1;
+
+    private _selectedWidthSegment: number = 0;
+    private _selectedHeightSegment: number = 0;
+
+    constructor(entity: Entity, texturePath: string, spriteWidthSegments: number, spriteHeightSegments: number) {
+         super(entity, texturePath);
+         this._widthSegments = spriteWidthSegments;
+         this._heightSegments = spriteHeightSegments;
+    }
+
+    getType(): DrawingSystem.Types {
+        return DrawingSystem.Types.SpriteTexture;
+    }
+
+    get widthSegments() {
+        return this._widthSegments;
+    }
+
+    get heightSegments() {
+        return this._heightSegments;
+    }
+
+    get selectedWidthSegment() {
+        return this._selectedWidthSegment;
+    }
+    set selectedWidthSegment(newWidthSegment: number) {
+        assert(newWidthSegment < this._widthSegments, "Selected segment exceeding defined limits.");
+        this._selectedWidthSegment = newWidthSegment;
+    }
+
+    get selectedHeightSegment() {
+        return this._selectedHeightSegment;
+    }
+    set selectedHeightSegment(newHeightSegment: number) {
+        assert(newHeightSegment < this._heightSegments, "Selected segment exceeding defined limits.");
+        this._selectedHeightSegment = newHeightSegment;
     }
 }
 
