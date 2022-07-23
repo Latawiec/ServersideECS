@@ -1,4 +1,4 @@
-import { ReadonlyVec3, vec3, vec4 } from "gl-matrix"
+import { ReadonlyVec3, vec3, vec4, mat4 } from "gl-matrix"
 
 export namespace SDF {
 
@@ -10,14 +10,65 @@ export namespace SDF {
 
     function vec3tovec4(inVec: vec3, isTransformable = true): vec4 {
         return vec4.fromValues(inVec[0], inVec[1], inVec[2], isTransformable ? 1 : 0);
-    }   
+    }
+
+    function vec4tovec3(inVec: vec4): vec3 {
+        return vec3.fromValues(inVec[0], inVec[1], inVec[2]);
+    }
 
     function clamp(value: number, min: number, max: number) : number {
         return Math.min(Math.max(value, min), max);
     }
 
-    function vec3maxcomp(a: ReadonlyVec3): number {
-        return Math.max(Math.max(a[1], a[2]), a[3]);
+    function reflectVec3(vector: Readonly<vec3>, axis: Readonly<vec3>) : vec3 {
+        const axisNorm = vec3.normalize(vec3.create(), axis);
+        const projLength = vec3.dot(vector, axisNorm);
+        const projection = vec3.scale(vec3.create(), axisNorm, projLength);
+
+        const rejection = vec3.sub(vec3.create(), vector, projection);
+
+        return vec3.subtract(vec3.create(), projection, rejection);
+    }
+
+    function vec3clampNegative(out: vec3, a: ReadonlyVec3): vec3 {
+        var result = vec3.create();
+        result[0] = Math.max(a[0], 0);
+        result[1] = Math.max(a[1], 0);
+        result[2] = Math.max(a[2], 0);
+        return result;
+    }
+
+    // Creates a space transform that has box center at (0,0,0) and xyz axis are aligned with box sides.
+    export function transformToBoxAlignedSpace(boxCenter: Readonly<vec3>, widthVec: Readonly<vec3>, heightVec: Readonly<vec3>, depthVec: Readonly<vec3>) : mat4 {
+        
+        const widthNorm = vec3.normalize(vec3.create(), widthVec);
+        const heightNorm = vec3.normalize(vec3.create(), heightVec);
+        const depthNorm = vec3.normalize(vec3.create(), depthVec);
+
+        const xAxis = vec3.normalize(vec3.create(), reflectVec3(widthNorm, vec3.fromValues(1, 0, 0)));
+        const yAxis = vec3.normalize(vec3.create(), reflectVec3(heightNorm, vec3.fromValues(0, 1, 0)));
+        const zAxis = vec3.normalize(vec3.create(), reflectVec3(depthNorm, vec3.fromValues(0, 0, 1)));
+        const qNegative = vec3.negate(vec3.create(), boxCenter );
+
+        var result = mat4.create();
+        mat4.translate(result, result, qNegative);
+
+        const rotate = mat4.fromValues(
+            xAxis[0],     xAxis[1],     xAxis[2],     0,
+            yAxis[0],     yAxis[1],     yAxis[2],     0,
+            zAxis[0],     zAxis[1],     zAxis[2],     0,
+            0, 0, 0, 1
+        );
+
+        return mat4.multiply(mat4.create(), rotate, result);
+    }
+
+    function vec3maxcomp(a: Readonly<vec3>): number {
+        return Math.max(a[0], a[1], a[2]);
+    }
+
+    function vec3mincomp(a: Readonly<vec3>): number {
+        return Math.min(a[0], a[1], a[2]);
     }
 
     function PlaneSDF(point: Readonly<vec3>, plane: Readonly<vec4>): number {
@@ -60,33 +111,35 @@ export namespace SDF {
         return distance;
     }
 
-    // The box is NOT rotated yet... But should be simple to pass the point in transformed space to have axis-aligned box.
-    // I'll have to test at what level I should do it.
-    function AABoxSDF(point: Readonly<vec3>, boxCenter: Readonly<vec3>, boxDimensions: Readonly<vec3>):  number {
-        var boxHalfDimensions: vec3 = vec3.create();
-        vec3.div(boxHalfDimensions, boxDimensions, [2.0, 2.0, 2.0]);
+    export function BoxSDF(point: Readonly<vec4>, boxCenter: Readonly<vec3>, widthSpan: Readonly<vec3>, heightSpan: Readonly<vec3>, depthSpan: Readonly<vec3>) : number {
+        const boxAlignedSpaceTransform = transformToBoxAlignedSpace(boxCenter, widthSpan, heightSpan, depthSpan);
+        const transformedPoint = vec4.transformMat4(vec4.create(), point, boxAlignedSpaceTransform);
 
-        // First do the outside of the box
-        var pointToBox = vec3.create();
-        vec3.sub(pointToBox, point, boxCenter);
-        vec3abs(pointToBox, pointToBox);
-        vec3.sub(pointToBox, pointToBox, boxHalfDimensions);
+        const halfWidth = vec3.distance(vec3.create(), widthSpan);
+        const halfHeight = vec3.distance(vec3.create(), heightSpan);
+        const halfDepth = vec3.distance(vec3.create(), depthSpan);
 
-        var outsideClamped = vec3.create();
-        vec3.max(outsideClamped, pointToBox, [0, 0, 0]);
-        var outsideDistance = vec3.length(outsideClamped);
+        const dimensions = vec3.fromValues(halfWidth, halfHeight, halfDepth);
 
-        // Now to the inside.
-        var insideDistance = Math.min(vec3maxcomp(pointToBox), 0);
+        // Outside of the box
+        const absPoint = vec3abs(vec3.create(), vec4tovec3(transformedPoint));
+        const distanceVector = vec3.subtract(vec3.create(), absPoint, dimensions);
+        const clampedDistanceVector = vec3clampNegative(vec3.create(), distanceVector);
+
+        const outsideDistance = vec3.distance(vec3.create(), clampedDistanceVector);
         
+        // Inside of the box
+        const insideDistance = Math.min(vec3maxcomp(distanceVector), 0);
+
         return outsideDistance + insideDistance;
     }
 
     function SphereSDF(point: Readonly<vec3>, sphereCenter: Readonly<vec3>, sphereRadius: number): number {
+        
         var pointToSphereCenter = vec3.create();
         vec3.sub(pointToSphereCenter, sphereCenter, point);
         var distance = vec3.length(pointToSphereCenter) - sphereRadius;
-        ``
+        
         return distance;
     }
 }

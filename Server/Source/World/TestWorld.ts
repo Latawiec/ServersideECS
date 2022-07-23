@@ -10,7 +10,7 @@ import { ScriptSystem } from "../Systems/ScriptSystem";
 import { PlayerIdentity } from "../Scripts/Player/PlayerIdentity";
 import { BasicMovement } from "../Scripts/Player/BasicMovement";
 import { throws } from "assert";
-import { vec2 } from "gl-matrix"
+import { vec2, mat4 } from "gl-matrix"
 
 class TestPlayer extends ScriptSystem.Component
 {
@@ -58,31 +58,62 @@ class TestPlayer extends ScriptSystem.Component
     }
     postUpdate(): void {
         const direction = this._movement.direction;
-        if (direction[0] == 0 && direction[1] == 0) {
+        if (direction[0] == 0 && direction[2] == 0) {
             return;
         }
+
         let spriteSelect = [0, 0];
-
-        if (direction[1] < 0 ) {
-            spriteSelect = this._spriteDirectionMap.bottom;
-        } else
-
-        if (direction[1] > 0) {
-            spriteSelect = this._spriteDirectionMap.top;
-        } else
-
+        
         if (direction[0] < 0) {
             spriteSelect = this._spriteDirectionMap.right;
-        } else
-
+        }
+        
         if (direction[0] > 0) {
             spriteSelect = this._spriteDirectionMap.left;
         }
-
+        
+        if (direction[2] < 0 ) {
+            spriteSelect = this._spriteDirectionMap.bottom;
+        }
+        
+        if (direction[2] > 0) {
+            spriteSelect = this._spriteDirectionMap.top;
+        }
+        
         this._drawable.selectedWidthSegment = spriteSelect[0];
         this._drawable.selectedHeightSegment = spriteSelect[1];
+    }
+}
 
-        console.log("width: %d height: %d", spriteSelect[0], spriteSelect[1]);
+class Platform extends ScriptSystem.Component
+{
+    private _drawable: AABBDrawableComponent;
+    private _transform: TransformSystem.Component;
+
+    constructor(owner: Entity, name: string) {
+        super(owner);
+
+        const entity = this.ownerEntity;
+        const world = entity.getWorld();
+
+        this._drawable = new AABBDrawableComponent(entity, "");
+        world.registerComponent(entity, this._drawable);
+
+        this._transform = new TransformSystem.Component(entity);
+        this._transform.setScale([7, 7, 7]);
+        this._transform.setRotation([Math.PI/2.0, 0, Math.PI/4.0]);
+        this._transform.setPosition([0, 0, 0.2]);
+        world.registerComponent(entity, this._transform); 
+    }
+
+    preUpdate(): void {
+        
+    }
+    onUpdate(): void {
+
+    }
+    postUpdate(): void {
+
     }
 }
 
@@ -169,6 +200,7 @@ export class TestWorld extends World {
 
                 const regConnection = this.clientConnectionSystem.registerConnection(connection);
 
+                const platform = this.createEntity();
                 const playerEntity = this.createEntity();
 
                 const connectionComponent = new ClientConnectionSystem.Component(playerEntity, regConnection);
@@ -176,6 +208,9 @@ export class TestWorld extends World {
 
                 const initializationComponent = new TestPlayerInitializer(playerEntity);
                 this.registerComponent(playerEntity, initializationComponent);
+
+                const platformComponent = new Platform(platform, "");
+                this.registerComponent(platform, platformComponent);
 
                 connection.on('message', (message) => {
                     console.log('Received Message: ', message);

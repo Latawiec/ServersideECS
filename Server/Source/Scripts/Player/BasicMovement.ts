@@ -51,11 +51,11 @@ export class BasicMovement extends ScriptSystem.Component {
             const movementDirection: vec3 = [0, 0, 0];
 
             if (this._playerInput?.isKeyPressed('w')) {
-                movementDirection[1] += 1;
+                movementDirection[2] += 1;
             }
 
             if (this._playerInput?.isKeyPressed('s')) {
-                movementDirection[1] -= 1;
+                movementDirection[2] -= 1;
             }
 
             if (this._playerInput?.isKeyPressed('a')) {

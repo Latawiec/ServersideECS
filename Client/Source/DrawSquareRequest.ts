@@ -82,8 +82,8 @@ export class DrawSquareRequest implements DrawRequest {
 
         let dateTime = new Date();
         var ms = dateTime.getMilliseconds();
-        const view = mat4.create();
-        mat4.lookAt(view, [0, 0., -9], [0, 0, 0.0], [0, 1, 0]);
+        const view = camera.viewTransform;
+        //mat4.lookAt(view, [0, 0., -9], [0, 0, 0.0], [0, 1, 0]);
         const model = this._transform;
         const viewModel = mat4.create();
 

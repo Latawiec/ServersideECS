@@ -8,6 +8,7 @@ import { stringify } from "querystring";
 import { PlayerIdentity } from "../Scripts/Player/PlayerIdentity";
 import { PlayerInputController } from "../Scripts/Player/PlayerInputController";
 import { assert } from "console";
+import { mat4 } from "gl-matrix"
 
 export class WorldSerializer
 {
@@ -35,7 +36,6 @@ export class WorldSerializer
         output.components = {};
         const components = entity.getComponents();
 
-        //console.log(this.serializableComponentsMapping);
         let i=0;
         this.serializableComponentsMapping.forEach((func: any, key: string) => {
             const components = entity.getComponentsByType(key);
@@ -51,7 +51,7 @@ export class WorldSerializer
     }
 
     static serializeTransformComponent(output: Record<string, any>, component: Readonly<TransformSystem.Component>) {
-        output.transform = component.position;
+        output.transform = component.worldTransform;
         return output;
     }
 

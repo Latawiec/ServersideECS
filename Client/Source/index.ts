@@ -18,11 +18,8 @@ function httpGet(theUrl: string)
     xmlHttp.responseType = "arraybuffer";
     xmlHttp.onload = function() {
         var arrayBuffer = xmlHttp.response;
-        console.log(arrayBuffer);
         var byteArray = new Uint8Array(arrayBuffer);
-        console.log(byteArray);
         const tmp = PNG.load(byteArray);
-        console.log(tmp);
         redMage = tmp.decodePixels();
         redMageDim = [tmp.width, tmp.height];
     }
@@ -83,8 +80,6 @@ const camera = new PerspectiveCamera(
     0.1,
     100.0);
 
-
-
 const squareDraw = new DrawSquareRequest(canvas.glContext);
 const spriteDraw = new DrawSpriteSegmentRequest(canvas.glContext, new Uint8Array([1, 1, 1]), 1, 1);
 
@@ -97,8 +92,9 @@ async function render(world: any) {
     const newToDraw = new Map<string, DrawRequest>();
     world.entities?.forEach((entity: any) => {
         const name: string = entity.components.playerIdentity?.name;
-        const transform: vec3 = entity.components.transform;
-        if (name) {
+        const transform: mat4 = entity.components.transform;
+
+        if (entity.components.drawing !== undefined) {
             let request: DrawRequest;
             const type: number = entity.components.drawing?.type;
 
@@ -117,16 +113,12 @@ async function render(world: any) {
             // TODO: Get rid of this type-specific thing. Disgusting.
             if (type === 0) {
                 let squareRequest = request as DrawSquareRequest;
-                const newTransform = mat4.create();
-                mat4.translate(newTransform, newTransform, transform);
-                squareRequest.transform = newTransform;
+                squareRequest.transform = transform;
             } else
             if (type === 1) {
                 let spriteRequest = request as DrawSpriteSegmentRequest;
                 const spriteSelect = entity.components.drawing!.selectedSegment;
-                const newTransform = mat4.create();
-                mat4.translate(newTransform, newTransform, transform);
-                spriteRequest.transform = newTransform;
+                spriteRequest.transform = transform;
                 spriteRequest.spriteSelect = vec2.fromValues(spriteSelect[0], spriteSelect[1]);
                 console.log("width: %d height: %d", spriteSelect[0], spriteSelect[1]);
                 newToDraw.set(name, spriteRequest);

@@ -36,8 +36,10 @@ export class World {
     }
 
     createEntity(parent?: Readonly<Entity>): Entity {
-        var result = new Entity(this, parent ? parent : this._rootNode , this._entityUuidGenerator.getNext());
+        const parentEntity = parent ? parent : this._rootNode;
+        var result = new Entity(this, parentEntity , this._entityUuidGenerator.getNext());
         this._entities.push(result);
+        parentEntity.addChild(result);
         return result;
     }
 
@@ -108,6 +110,7 @@ export class World {
     }
     
     update() {
+        this._transformSystem.updateWorldTransforms(this._rootNode);
         this._scriptSystem.preUpdate();
         this._scriptSystem.onUpdate();
         this._scriptSystem.postUpdate();

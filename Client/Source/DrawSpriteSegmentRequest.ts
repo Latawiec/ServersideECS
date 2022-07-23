@@ -49,7 +49,10 @@ export class DrawSpriteSegmentRequest implements DrawRequest {
 
         void main(void) {
             lowp vec2 spriteUv = uvCoord / vec2(sprite.spriteSegments) + vec2(sprite.selectionOffset) / vec2(sprite.spriteSegments);
-            gl_FragColor = texture2D(sprite.texSampler, spriteUv);
+            highp vec4 color = texture2D(sprite.texSampler, spriteUv);
+
+            if (color.a != 1.0) discard;
+            gl_FragColor = color;
         }
     `;
 
@@ -128,8 +131,8 @@ export class DrawSpriteSegmentRequest implements DrawRequest {
 
         let dateTime = new Date();
         var ms = dateTime.getMilliseconds();
-        const view = mat4.create();
-        mat4.lookAt(view, [0, 0., -9], [0, 0, 0.0], [0, 1, 0]);
+        const view = camera.viewTransform;
+        //mat4.lookAt(view, [0, 0., -9], [0, 0, 0.0], [0, 1, 0]);
         const model = this._transform;
         const viewModel = mat4.create();
 

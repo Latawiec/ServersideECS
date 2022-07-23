@@ -51,6 +51,10 @@ export class Entity {
         return this._children;
     }
 
+    addChild(entity: Entity) {
+        this._children.push(entity);
+    }
+
     getParent(): Readonly<Entity> | undefined {
         return this._parent ? this._parent : undefined;
     }
