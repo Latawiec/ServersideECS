@@ -12,7 +12,7 @@ export namespace SDF {
         return vec4.fromValues(inVec[0], inVec[1], inVec[2], isTransformable ? 1 : 0);
     }
 
-    function vec4tovec3(inVec: vec4): vec3 {
+    function vec4tovec3(inVec: Readonly<vec4>): vec3 {
         return vec3.fromValues(inVec[0], inVec[1], inVec[2]);
     }
 
@@ -50,17 +50,18 @@ export namespace SDF {
         const zAxis = vec3.normalize(vec3.create(), reflectVec3(depthNorm, vec3.fromValues(0, 0, 1)));
         const qNegative = vec3.negate(vec3.create(), boxCenter );
 
-        var result = mat4.create();
-        mat4.translate(result, result, qNegative);
+        const xTranslate = vec3.dot(qNegative, vec3.fromValues(xAxis[0], yAxis[0], zAxis[0]));
+        const yTranslate = vec3.dot(qNegative, vec3.fromValues(xAxis[1], yAxis[1], zAxis[1]));
+        const zTranslate = vec3.dot(qNegative, vec3.fromValues(xAxis[2], yAxis[2], zAxis[2]));
 
-        const rotate = mat4.fromValues(
+        const transform = mat4.fromValues(
             xAxis[0],     xAxis[1],     xAxis[2],     0,
             yAxis[0],     yAxis[1],     yAxis[2],     0,
             zAxis[0],     zAxis[1],     zAxis[2],     0,
-            0, 0, 0, 1
+            xTranslate,   yTranslate,   zTranslate,   1
         );
 
-        return mat4.multiply(mat4.create(), rotate, result);
+        return transform;
     }
 
     function vec3maxcomp(a: Readonly<vec3>): number {
@@ -134,12 +135,55 @@ export namespace SDF {
         return outsideDistance + insideDistance;
     }
 
-    function SphereSDF(point: Readonly<vec3>, sphereCenter: Readonly<vec3>, sphereRadius: number): number {
+    export function SphereSDF(point: Readonly<vec4>, sphereCenter: Readonly<vec3>, sphereRadius: number): number {
         
         var pointToSphereCenter = vec3.create();
-        vec3.sub(pointToSphereCenter, sphereCenter, point);
-        var distance = vec3.length(pointToSphereCenter) - sphereRadius;
+        vec3.sub(pointToSphereCenter, sphereCenter, vec4tovec3(point));
+        const distance = vec3.length(pointToSphereCenter) - sphereRadius;
         
         return distance;
+    }
+
+    export function CapsuleSDF(point: Readonly<vec4>, capsuleBase: Readonly<vec3>, capsuleExtension: Readonly<vec3>, radius: number) : number {
+        const halfExtension = vec3.scale(vec3.create(), capsuleExtension, 0.5);
+        const pointFromBase = vec3.sub(vec3.create(), vec4tovec3(point), capsuleBase);
+        const pointFromMiddle = vec3.sub(vec3.create(), pointFromBase, halfExtension);
+        
+        const extensionLength = vec3.length(capsuleExtension);
+        const halfExtensionLength = extensionLength / 2.0;
+        const normExtension = vec3.normalize(vec3.create(), capsuleExtension);
+        const fromMiddleProjLength = vec3.dot(pointFromMiddle, normExtension);
+        const fromMiddleProj = vec3.scale(vec3.create(), normExtension, fromMiddleProjLength);
+        const fromMiddleReject = vec3.sub(vec3.create(), pointFromMiddle, fromMiddleProj);
+
+        // -1 at the bottom, 1 at the top. < -1 below bottom, > 1 above top.
+        const fromMiddleScaled = fromMiddleProjLength / halfExtensionLength;
+
+        const extensionDistance = vec3.length(fromMiddleReject);
+        const pointFromCap = vec3.sub(vec3.create(), pointFromMiddle, vec3.scale(vec3.create(), normExtension, Math.sign(fromMiddleProjLength) * halfExtensionLength));
+        const capsDistance = vec3.length(pointFromCap);
+
+        // 0 if point is on extension, 1 if it's on the cap.
+        const capsFlag = clamp(Math.ceil(Math.abs(fromMiddleScaled) - 1), 0, 1);
+        const extensionFlag = 1 - capsFlag;
+        
+        return extensionFlag * extensionDistance + capsFlag * capsDistance - radius;
+    }
+
+    // I don't think I need SDF for cone?
+    export function ConeCollision(point: Readonly<vec4>, coneBase: Readonly<vec3>, coneDirection: Readonly<vec3>, coneHalfAngle: number) : boolean {
+        const pointFromBase = vec3.sub(vec3.create(), vec4tovec3(point), coneBase);
+        const coneAngleCos = Math.cos(coneHalfAngle);
+        const directionNorm = vec3.normalize(vec3.create(), coneDirection);
+        const coneLength = vec3.len(coneDirection);
+        const pointFromBaseLength = vec3.len(pointFromBase);
+
+        const pointDirectionProjLength = vec3.dot(pointFromBase, directionNorm);
+        const pointDirectionAngleCos = pointDirectionProjLength / pointFromBaseLength;
+
+        const distanceDiff = pointFromBaseLength - coneLength;
+        const anglediff = coneAngleCos - pointDirectionAngleCos;
+
+        return distanceDiff < 0 && anglediff < 0;
     }
 }

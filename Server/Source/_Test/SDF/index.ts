@@ -35,10 +35,20 @@ while ( true )  {
     const boxHeight = vec3.fromValues(50*-Math.cos(5), 50*Math.sin(2), 0);
     const boxDepth = vec3.fromValues(0, 0, Number.MAX_SAFE_INTEGER);
 
-    for (var x = itCount % 4; x<c.width; x+=4) {
-        for (var y = itCount % 4; y<c.height; y+=4) {
+    const capsuleBase = vec3.fromValues(400, 400, 0);
+    const capsuleExtension = vec3.fromValues(100*-Math.cos(0.1*itCount), 100*Math.sin(0.1*itCount), 0);
+    const capsuleBaseRadius = 50;
+
+    const coneBase = vec3.fromValues(500, 500, 0);
+    const coneDirection = vec3.fromValues(500*-Math.cos(0.1*itCount), -500*Math.sin(0.1*itCount), 0);
+
+
+    for (var x = itCount % 2; x<c.width; x+=2) {
+        for (var y = itCount % 2; y<c.height; y+=2) {
             const pos = vec4.fromValues(x, y, 0, 1);
-            const dist = SDF.BoxSDF(pos, boxCenter, boxWidth, boxHeight, boxDepth);
+            // const dist = SDF.BoxSDF(pos, boxCenter, boxWidth, boxHeight, boxDepth);
+            //const dist = SDF.CapsuleSDF(pos, capsuleBase, capsuleExtension, capsuleBaseRadius);
+            const dist = SDF.ConeCollision(pos, coneBase, coneDirection, Math.PI / 8) ? 0.0 : 500.0;
             if (dist > 50) {
                 if (x % 3 != 0 && y % 3 != 0) continue;
             }
@@ -52,7 +62,7 @@ while ( true )  {
             if (dist > 400) {
                 if (x % 9 != 0 && y % 9 != 0) continue;
             }
-            const val = (1.0 - dist/500) * Math.sin((dist + itCount)/2);///500;
+            const val = (1.0 - dist/500);///500;
 
             setPixel(imgData, x, y, 0, 0, 0, 255*val);
             // console.log("Set: ", x, " ", y);
@@ -63,18 +73,21 @@ while ( true )  {
 
     itCount += 1;
 
+    // Draw box axis
+    if (false) {
     ctx.beginPath();
-    ctx.strokeStyle = "#000000";
-    ctx.moveTo(boxCenter[0] - 50 * boxWidth[0], boxCenter[1] - 50 * boxWidth[1]);
-    ctx.lineTo(boxCenter[0] + 50 * boxWidth[0], boxCenter[1] + 50 * boxWidth[1]);
-    ctx.stroke();
-    ctx.closePath();
+        ctx.strokeStyle = "#000000";
+        ctx.moveTo(boxCenter[0] - 50 * boxWidth[0], boxCenter[1] - 50 * boxWidth[1]);
+        ctx.lineTo(boxCenter[0] + 50 * boxWidth[0], boxCenter[1] + 50 * boxWidth[1]);
+        ctx.stroke();
+        ctx.closePath();
 
-    ctx.beginPath();
-    ctx.moveTo(boxCenter[0] - 50 * boxHeight[0], boxCenter[1] - 50 * boxHeight[1]);
-    ctx.lineTo(boxCenter[0] + 50 * boxHeight[0], boxCenter[1] + 50 * boxHeight[1]);
-    ctx.stroke();
-    ctx.closePath();
+        ctx.beginPath();
+        ctx.moveTo(boxCenter[0] - 50 * boxHeight[0], boxCenter[1] - 50 * boxHeight[1]);
+        ctx.lineTo(boxCenter[0] + 50 * boxHeight[0], boxCenter[1] + 50 * boxHeight[1]);
+        ctx.stroke();
+        ctx.closePath();
+    }
 
     var circlePos = vec4.fromValues(500, 500, 0, 1);
     const transform = SDF.transformToBoxAlignedSpace(boxCenter, boxWidth, boxHeight, boxDepth);
@@ -113,6 +126,8 @@ while ( true )  {
     ctx.arc(afterInverse[0], afterInverse[1], 50, 0, 2 * Math.PI);
     ctx.stroke();
 
+    // Draw box
+    if (false) {
     ctx.beginPath();
     ctx.fillStyle = "#000000";
     ctx.strokeStyle = "#000000";
@@ -127,6 +142,7 @@ while ( true )  {
     ctx.lineTo(topLeft[0], topLeft[1]);
     ctx.lineTo(topRight[0], topRight[1]);
     ctx.fill();
+    }
 
     const mouseVec4 = vec4.fromValues(mousePos[0], mousePos[1], 0, 1);
     
