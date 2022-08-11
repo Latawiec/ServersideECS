@@ -1,41 +1,10 @@
-import { ReadonlyVec3, vec3, vec4, mat4 } from "gl-matrix"
+import { ReadonlyVec3, vec2, vec3, vec4, mat3, mat4 } from "gl-matrix"
+import { vec2abs, vec3abs, vec3tovec4, vec4tovec3, vec3clampNegative, vec2clampNegative, reflectVec3, reflectVec2, vec3maxcomp, vec2maxcomp } from "./gl-extensions"
 
 export namespace SDF {
 
-    
-    function vec3abs(out: vec3, a: ReadonlyVec3): vec3 {
-        out = vec3.fromValues(Math.abs(a[0]), Math.abs(a[1]),  Math.abs(a[2]));
-        return out;
-    }
-
-    function vec3tovec4(inVec: vec3, isTransformable = true): vec4 {
-        return vec4.fromValues(inVec[0], inVec[1], inVec[2], isTransformable ? 1 : 0);
-    }
-
-    function vec4tovec3(inVec: Readonly<vec4>): vec3 {
-        return vec3.fromValues(inVec[0], inVec[1], inVec[2]);
-    }
-
     function clamp(value: number, min: number, max: number) : number {
         return Math.min(Math.max(value, min), max);
-    }
-
-    function reflectVec3(vector: Readonly<vec3>, axis: Readonly<vec3>) : vec3 {
-        const axisNorm = vec3.normalize(vec3.create(), axis);
-        const projLength = vec3.dot(vector, axisNorm);
-        const projection = vec3.scale(vec3.create(), axisNorm, projLength);
-
-        const rejection = vec3.sub(vec3.create(), vector, projection);
-
-        return vec3.subtract(vec3.create(), projection, rejection);
-    }
-
-    function vec3clampNegative(out: vec3, a: ReadonlyVec3): vec3 {
-        var result = vec3.create();
-        result[0] = Math.max(a[0], 0);
-        result[1] = Math.max(a[1], 0);
-        result[2] = Math.max(a[2], 0);
-        return result;
     }
 
     // Creates a space transform that has box center at (0,0,0) and xyz axis are aligned with box sides.
@@ -62,14 +31,6 @@ export namespace SDF {
         );
 
         return transform;
-    }
-
-    function vec3maxcomp(a: Readonly<vec3>): number {
-        return Math.max(a[0], a[1], a[2]);
-    }
-
-    function vec3mincomp(a: Readonly<vec3>): number {
-        return Math.min(a[0], a[1], a[2]);
     }
 
     function PlaneSDF(point: Readonly<vec3>, plane: Readonly<vec4>): number {
@@ -112,9 +73,30 @@ export namespace SDF {
         return distance;
     }
 
-    export function BoxSDF(point: Readonly<vec4>, boxCenter: Readonly<vec3>, widthSpan: Readonly<vec3>, heightSpan: Readonly<vec3>, depthSpan: Readonly<vec3>) : number {
+    // Same as transformToBoxAlignedSpace but 2D.
+    export function transformToRectangleAlignedSpace(rectCenter: Readonly<vec2>, widthVec: Readonly<vec2>, heightVec: Readonly<vec2>) : mat3 {
+        const widthNorm = vec2.normalize(vec2.create(), widthVec);
+        const heightNorm = vec2.normalize(vec2.create(), heightVec);
+
+        const xAxis = vec2.normalize(vec2.create(), reflectVec2(widthNorm, vec2.fromValues(1, 0)));
+        const yAxis = vec2.normalize(vec2.create(), reflectVec2(heightNorm, vec2.fromValues(0, 1)));
+        const qNegative = vec2.negate(vec2.create(), rectCenter );
+
+        const xTranslate = vec2.dot(qNegative, vec2.fromValues(xAxis[0], yAxis[0]));
+        const yTranslate = vec2.dot(qNegative, vec2.fromValues(xAxis[1], yAxis[1]));
+
+        const transform = mat3.fromValues(
+            xAxis[0],     xAxis[1],     0,
+            yAxis[0],     yAxis[1],     0,
+            xTranslate,   yTranslate,   1
+        );
+
+        return transform;
+    }
+
+    export function BoxSDF(point: Readonly<vec3>, boxCenter: Readonly<vec3>, widthSpan: Readonly<vec3>, heightSpan: Readonly<vec3>, depthSpan: Readonly<vec3>) : number {
         const boxAlignedSpaceTransform = transformToBoxAlignedSpace(boxCenter, widthSpan, heightSpan, depthSpan);
-        const transformedPoint = vec4.transformMat4(vec4.create(), point, boxAlignedSpaceTransform);
+        const transformedPoint = vec4.transformMat4(vec4.create(), vec3tovec4(point, true), boxAlignedSpaceTransform);
 
         const halfWidth = vec3.distance(vec3.create(), widthSpan);
         const halfHeight = vec3.distance(vec3.create(), heightSpan);
@@ -135,12 +117,42 @@ export namespace SDF {
         return outsideDistance + insideDistance;
     }
 
-    export function SphereSDF(point: Readonly<vec4>, sphereCenter: Readonly<vec3>, sphereRadius: number): number {
+    export function RectangleSDF(point: Readonly<vec2>, rectCenter: Readonly<vec2>, widthSpan: Readonly<vec2>, heightSpan: Readonly<vec2>) : number {
+        const rectAlignedSpaceTransform = transformToRectangleAlignedSpace(rectCenter, widthSpan, heightSpan);
+        const transformedPoint = vec3.transformMat3(vec3.create(), vec3.fromValues(point[0], point[1], 1), rectAlignedSpaceTransform);
+
+        const halfWidth = vec2.distance(vec2.create(), widthSpan);
+        const halfHeight = vec2.distance(vec2.create(), heightSpan);
+
+        const dimensions = vec2.fromValues(halfWidth, halfHeight);
+
+        // Outside of the box
+        const absPoint = vec2abs(vec2.create(), vec2.fromValues(transformedPoint[0], transformedPoint[1]));
+        const distanceVector = vec2.subtract(vec2.create(), absPoint, dimensions);
+        const clampedDistanceVector = vec2clampNegative(vec2.create(), distanceVector);
+
+        const outsideDistance = vec2.distance(vec2.create(), clampedDistanceVector);
+        
+        // Inside of the box
+        const insideDistance = Math.min(vec2maxcomp(distanceVector), 0);
+
+        return outsideDistance + insideDistance;
+    }
+
+    export function SphereSDF(point: Readonly<vec3>, sphereCenter: Readonly<vec3>, sphereRadius: number): number {
         
         var pointToSphereCenter = vec3.create();
-        vec3.sub(pointToSphereCenter, sphereCenter, vec4tovec3(point));
+        vec3.sub(pointToSphereCenter, sphereCenter, point);
         const distance = vec3.length(pointToSphereCenter) - sphereRadius;
         
+        return distance;
+    }
+
+    export function CircleSDF(point: Readonly<vec2>, circleCenter: Readonly<vec2>, circleRadius: number): number {
+        var pointToCircleCenter = vec2.create();
+        vec2.sub(pointToCircleCenter, circleCenter, point);
+        const distance = vec2.length(pointToCircleCenter) - circleRadius;
+
         return distance;
     }
 
@@ -170,6 +182,10 @@ export namespace SDF {
         return extensionFlag * extensionDistance + capsFlag * capsDistance - radius;
     }
 
+    export function CapsuleCollision(point: Readonly<vec4>, capsuleBase: Readonly<vec3>, capsuleExtension: Readonly<vec3>, radius: number) : boolean {
+        return CapsuleSDF(point, capsuleBase, capsuleExtension, radius) <= 0;
+    }
+
     // I don't think I need SDF for cone?
     export function ConeCollision(point: Readonly<vec4>, coneBase: Readonly<vec3>, coneDirection: Readonly<vec3>, coneHalfAngle: number) : boolean {
         const pointFromBase = vec3.sub(vec3.create(), vec4tovec3(point), coneBase);
@@ -185,5 +201,26 @@ export namespace SDF {
         const anglediff = coneAngleCos - pointDirectionAngleCos;
 
         return distanceDiff < 0 && anglediff < 0;
+    }
+
+    export function BoxCollision(point: Readonly<vec4>, boxCenter: Readonly<vec3>, widthSpan: Readonly<vec3>, heightSpan: Readonly<vec3>, depthSpan: Readonly<vec3>) : boolean {
+        const boxAlignedSpaceTransform = transformToBoxAlignedSpace(boxCenter, widthSpan, heightSpan, depthSpan);
+        const transformedPoint = vec4.transformMat4(vec4.create(), point, boxAlignedSpaceTransform);
+
+        const halfWidth = vec3.distance(vec3.create(), widthSpan);
+        const halfHeight = vec3.distance(vec3.create(), heightSpan);
+        const halfDepth = vec3.distance(vec3.create(), depthSpan);
+
+        const dimensions = vec3.fromValues(halfWidth, halfHeight, halfDepth);
+        
+        const absPoint = vec3abs(vec3.create(), vec4tovec3(transformedPoint));
+        const distanceVector = vec3.subtract(vec3.create(), absPoint, dimensions);
+
+        return vec3maxcomp(distanceVector) <= 0;
+    }
+
+    export function SphereCollision(point: Readonly<vec3>, sphereCenter: Readonly<vec3>, sphereRadius: number): boolean {
+        // No optimization here really.
+        return SphereSDF(point, sphereCenter, sphereRadius) <= 0;
     }
 }

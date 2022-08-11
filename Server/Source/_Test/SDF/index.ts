@@ -1,5 +1,7 @@
 import { SDF } from "../../Common/Math/SDF";
 import { ReadonlyVec3, vec3, vec2, vec4, mat4 } from "gl-matrix"
+import { Collisions } from "../../Common/Math/Collisions"
+import { Shapes } from "../../Common/Math/Shapes"
 
 var c = document.getElementById("myCanvas") as HTMLCanvasElement
 var ctx = c!.getContext("2d")!;
@@ -22,6 +24,19 @@ function setPixel(imageData: any, x: number, y: number, r: number, g: number, b:
 
 //var imgData = ctx.createImageData(c.width, c.height);
 
+// Collision testing
+var staticBox = new Shapes.D2.Rectangle();
+staticBox.position = vec2.fromValues(250, 250);
+staticBox.xExtension = vec2.fromValues(210, 0);
+staticBox.yExtension = vec2.fromValues(0, 90);
+
+var dynamicBox = new Shapes.D2.Rectangle();
+dynamicBox.xExtension = vec2.fromValues(210/2, -90/2);
+dynamicBox.yExtension = vec2.fromValues(-90 * 1.5, -210 * 1.5);
+//dynamicBox.xExtension = vec2.fromValues(210, 0);
+//dynamicBox.yExtension = vec2.fromValues(0, 90);
+
+
 async function asdf() {
 
 var itCount = 0;
@@ -29,6 +44,8 @@ while ( true )  {
     await new Promise(r => setTimeout(r, 0));
     ctx.clearRect(0, 0, 1000, 1000);
     var imgData = ctx.createImageData(c.width, c.height);
+
+    dynamicBox.position = vec2.fromValues(mousePos[0], mousePos[1]);
 
     const boxCenter = vec3.fromValues(450, 450, 0);
     const boxWidth = vec3.fromValues(150*Math.sin(2), 150*Math.cos(5), 0);
@@ -128,26 +145,65 @@ while ( true )  {
 
     // Draw box
     if (false) {
-    ctx.beginPath();
-    ctx.fillStyle = "#000000";
-    ctx.strokeStyle = "#000000";
-    const topRight = vec3.add(vec3.create(), boxCenter, vec3.add(vec3.create(), boxWidth, boxHeight));
-    const bottomRight = vec3.add(vec3.create(), boxCenter, vec3.add(vec3.create(), boxWidth, vec3.negate(vec3.create(), boxHeight)));
-    const bottomLeft = vec3.add(vec3.create(), boxCenter, vec3.add(vec3.create(), vec3.negate(vec3.create(), boxWidth), vec3.negate(vec3.create(), boxHeight)));
-    const topLeft = vec3.add(vec3.create(), boxCenter, vec3.add(vec3.create(), vec3.negate(vec3.create(), boxWidth), boxHeight));
+        ctx.beginPath();
+        ctx.fillStyle = "#000000";
+        ctx.strokeStyle = "#000000";
+        const topRight = vec3.add(vec3.create(), boxCenter, vec3.add(vec3.create(), boxWidth, boxHeight));
+        const bottomRight = vec3.add(vec3.create(), boxCenter, vec3.add(vec3.create(), boxWidth, vec3.negate(vec3.create(), boxHeight)));
+        const bottomLeft = vec3.add(vec3.create(), boxCenter, vec3.add(vec3.create(), vec3.negate(vec3.create(), boxWidth), vec3.negate(vec3.create(), boxHeight)));
+        const topLeft = vec3.add(vec3.create(), boxCenter, vec3.add(vec3.create(), vec3.negate(vec3.create(), boxWidth), boxHeight));
 
-    ctx.moveTo(topRight[0], topRight[1]);
-    ctx.lineTo(bottomRight[0], bottomRight[1]);
-    ctx.lineTo(bottomLeft[0], bottomLeft[1]);
-    ctx.lineTo(topLeft[0], topLeft[1]);
-    ctx.lineTo(topRight[0], topRight[1]);
-    ctx.fill();
+        ctx.moveTo(topRight[0], topRight[1]);
+        ctx.lineTo(bottomRight[0], bottomRight[1]);
+        ctx.lineTo(bottomLeft[0], bottomLeft[1]);
+        ctx.lineTo(topLeft[0], topLeft[1]);
+        ctx.lineTo(topRight[0], topRight[1]);
+        ctx.fill();
     }
 
-    const mouseVec4 = vec4.fromValues(mousePos[0], mousePos[1], 0, 1);
+    // Draw colisions {
+    if (true) {
+        ctx.beginPath();
+        if (Collisions.D2.CheckRectangleRectangle(staticBox, dynamicBox) && Collisions.D2.CheckRectangleRectangle(dynamicBox, staticBox)) {
+        //if (Collisions.D2.CheckRectanglePoint(staticBox, mousePos)) {
+            ctx.fillStyle = "#FF0000";
+        } else {
+            ctx.fillStyle = "#000000";
+        }
+
+        ctx.moveTo(staticBox.position[0], staticBox.position[1]);
+        ctx.lineTo(staticBox.position[0] + staticBox.xExtension[0], staticBox.position[1] + staticBox.xExtension[1]);
+        ctx.lineTo(staticBox.position[0] + staticBox.xExtension[0] + staticBox.yExtension[0], staticBox.position[1] + staticBox.xExtension[1] + staticBox.yExtension[1]);
+        ctx.lineTo(staticBox.position[0] + staticBox.yExtension[0], staticBox.position[1] + staticBox.yExtension[1]);
+        ctx.lineTo(staticBox.position[0], staticBox.position[1]);
+        ctx.fill();
+
+        ctx.strokeStyle = "#FFFF00";
+        ctx.moveTo(staticBox.position[0], staticBox.position[1]);
+        ctx.lineTo(staticBox.position[0] + staticBox.xExtension[0] + staticBox.yExtension[0], staticBox.position[1] + staticBox.xExtension[1] + staticBox.yExtension[1]);
+        ctx.moveTo(staticBox.position[0] + staticBox.xExtension[0], staticBox.position[1] + staticBox.xExtension[1]);
+        ctx.lineTo(staticBox.position[0] + staticBox.yExtension[0], staticBox.position[1] + staticBox.yExtension[1]);
+        ctx.stroke();
+
+        ctx.moveTo(dynamicBox.position[0], dynamicBox.position[1]);
+        ctx.lineTo(dynamicBox.position[0] + dynamicBox.xExtension[0], dynamicBox.position[1] + dynamicBox.xExtension[1]);
+        ctx.lineTo(dynamicBox.position[0] + dynamicBox.xExtension[0] + dynamicBox.yExtension[0], dynamicBox.position[1] + dynamicBox.xExtension[1] + dynamicBox.yExtension[1]);
+        ctx.lineTo(dynamicBox.position[0] + dynamicBox.yExtension[0], dynamicBox.position[1] + dynamicBox.yExtension[1]);
+        ctx.lineTo(dynamicBox.position[0], dynamicBox.position[1]);
+        ctx.fill();
+
+        ctx.strokeStyle = "#FFFF00";
+        ctx.moveTo(dynamicBox.position[0], dynamicBox.position[1]);
+        ctx.lineTo(dynamicBox.position[0] + dynamicBox.xExtension[0] + dynamicBox.yExtension[0], dynamicBox.position[1] + dynamicBox.xExtension[1] + dynamicBox.yExtension[1]);
+        ctx.moveTo(dynamicBox.position[0] + dynamicBox.xExtension[0], dynamicBox.position[1] + dynamicBox.xExtension[1]);
+        ctx.lineTo(dynamicBox.position[0] + dynamicBox.yExtension[0], dynamicBox.position[1] + dynamicBox.yExtension[1]);
+        ctx.stroke();
+    }
+
+    const mouseVec3 = vec3.fromValues(mousePos[0], mousePos[1], 0);
     
     console.log("Distance: ", 
-        SDF.BoxSDF(mouseVec4, boxCenter, boxWidth, boxHeight, boxDepth)
+        SDF.BoxSDF(mouseVec3, boxCenter, boxWidth, boxHeight, boxDepth)
     );
 
 

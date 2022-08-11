@@ -84,7 +84,7 @@ export namespace TransformSystem {
             mat4.rotateZ(this._worldTransform, this._worldTransform, this._rotation[2]);
             mat4.translate(this._worldTransform, this._worldTransform, this._position);
             
-            this._worldTransform = mat4.mul(this._worldTransform, parentWorldTransform, this._worldTransform);
+            mat4.mul(this._worldTransform, parentWorldTransform, this._worldTransform);
             return this._worldTransform;
         }
         

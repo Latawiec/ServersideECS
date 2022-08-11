@@ -1,4 +1,4 @@
-import {vec3} from "gl-matrix"
+import {mat4, vec3} from "gl-matrix"
 import { ComponentBase } from "../Base/Component"
 import { Entity } from "../Base/Entity";
 import { SystemBase } from "../Base/System"
@@ -12,10 +12,17 @@ export namespace CollisionSystem {
         onCollision(): void;
     }
 
-    export class Component implements ComponentBase {
+    export enum Type {
+        Box,
+        Sphere,
+        Capsule,
+        Cone
+    };
+
+    export abstract class Component implements ComponentBase {
         // Metadata
         static staticMetaName(): string { return 'CollisionSystem.Component' }
-        
+
         private _ownerEntity: Entity;
         private _transform: TransformSystem.Component;
         private _isActive: boolean = true;
@@ -35,21 +42,29 @@ export namespace CollisionSystem {
         get isActive(): Readonly<boolean> {
             return this._isActive
         }
+
         get metaName(): Readonly<string> {
             return Component.staticMetaName();
         }
+
         get systemMetaName(): string {
             return System.staticMetaName();
         }
+
         get ownerEntity(): Entity {
             return this._ownerEntity;
         }
+
         get systemAsignedId(): Uuid | undefined {
             return this._systemAsignedId;
         }
+
+        abstract get type(): Type;
+
         set systemAsignedId(value: Uuid | undefined) {
             this._systemAsignedId = value;
         }
+
     }
 
     export class System extends SystemBase<Component> {
@@ -89,18 +104,28 @@ export namespace CollisionSystem {
     }
 } // namespace CollisionSystem
 
-export class PlaneCollisionComponent extends CollisionSystem.Component {
+export class CapsuleCollisionComponent extends CollisionSystem.Component {
     
+    get type(): CollisionSystem.Type {
+        return CollisionSystem.Type.Capsule;
+    }
 }
 
 export class BoxCollisionComponent extends CollisionSystem.Component {
-
+    
     private _width: number = 1.0;
     private _height: number = 1.0;
-
+    private _depth: number = 1.0;
+    
+    get type(): CollisionSystem.Type {
+        return CollisionSystem.Type.Box;
+    }
 }
 
-export class CircleCollisionComponent extends CollisionSystem.Component {
+export class SphereCollisionComponent extends CollisionSystem.Component {
     private _radius: number = 1.0;
-
+    
+    get type(): CollisionSystem.Type {
+        return CollisionSystem.Type.Sphere;
+    }
 }
