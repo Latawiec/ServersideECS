@@ -26,13 +26,15 @@ function setPixel(imageData: any, x: number, y: number, r: number, g: number, b:
 
 // Collision testing
 var staticBox = new Shapes.D2.Rectangle();
-staticBox.position = vec2.fromValues(250, 250);
-staticBox.xExtension = vec2.fromValues(210, 0);
-staticBox.yExtension = vec2.fromValues(0, 90);
+staticBox.position = vec2.fromValues(525, 625);
+staticBox.xExtension = vec2.fromValues(105, 0);
+staticBox.yExtension = vec2.fromValues(0, 45);
 
 var dynamicBox = new Shapes.D2.Rectangle();
-dynamicBox.xExtension = vec2.fromValues(210/2, -90/2);
-dynamicBox.yExtension = vec2.fromValues(-90 * 1.5, -210 * 1.5);
+dynamicBox.xExtension = vec2.fromValues(105 * Math.sin(Math.PI/4), 105 * Math.cos(Math.PI/4));
+dynamicBox.yExtension = vec2.fromValues(-45 * Math.cos(Math.PI/4), 45 * Math.sin(Math.PI/4));
+// dynamicBox.xExtension = vec2.fromValues(105/2, -45/2);
+// dynamicBox.yExtension = vec2.fromValues(-45 * 1.5, -105 * 1.5);
 //dynamicBox.xExtension = vec2.fromValues(210, 0);
 //dynamicBox.yExtension = vec2.fromValues(0, 90);
 
@@ -171,32 +173,32 @@ while ( true )  {
             ctx.fillStyle = "#000000";
         }
 
-        ctx.moveTo(staticBox.position[0], staticBox.position[1]);
-        ctx.lineTo(staticBox.position[0] + staticBox.xExtension[0], staticBox.position[1] + staticBox.xExtension[1]);
+        ctx.moveTo(staticBox.position[0] - staticBox.xExtension[0] - staticBox.yExtension[0], staticBox.position[1] - staticBox.xExtension[1] - staticBox.yExtension[1]);
+        ctx.lineTo(staticBox.position[0] - staticBox.xExtension[0] + staticBox.yExtension[0], staticBox.position[1] - staticBox.xExtension[1] + staticBox.yExtension[1]);
         ctx.lineTo(staticBox.position[0] + staticBox.xExtension[0] + staticBox.yExtension[0], staticBox.position[1] + staticBox.xExtension[1] + staticBox.yExtension[1]);
-        ctx.lineTo(staticBox.position[0] + staticBox.yExtension[0], staticBox.position[1] + staticBox.yExtension[1]);
-        ctx.lineTo(staticBox.position[0], staticBox.position[1]);
+        ctx.lineTo(staticBox.position[0] + staticBox.xExtension[0] - staticBox.yExtension[0], staticBox.position[1] + staticBox.xExtension[1] - staticBox.yExtension[1]);
+        ctx.lineTo(staticBox.position[0] - staticBox.xExtension[0] - staticBox.yExtension[0], staticBox.position[1] - staticBox.xExtension[1] - staticBox.yExtension[1]);
         ctx.fill();
 
         ctx.strokeStyle = "#FFFF00";
-        ctx.moveTo(staticBox.position[0], staticBox.position[1]);
+        ctx.moveTo(staticBox.position[0] - staticBox.xExtension[0] - staticBox.yExtension[0], staticBox.position[1] - staticBox.xExtension[1] - staticBox.yExtension[1]);
         ctx.lineTo(staticBox.position[0] + staticBox.xExtension[0] + staticBox.yExtension[0], staticBox.position[1] + staticBox.xExtension[1] + staticBox.yExtension[1]);
-        ctx.moveTo(staticBox.position[0] + staticBox.xExtension[0], staticBox.position[1] + staticBox.xExtension[1]);
-        ctx.lineTo(staticBox.position[0] + staticBox.yExtension[0], staticBox.position[1] + staticBox.yExtension[1]);
+        ctx.moveTo(staticBox.position[0] - staticBox.xExtension[0] + staticBox.yExtension[0], staticBox.position[1] - staticBox.xExtension[1] + staticBox.yExtension[1]);
+        ctx.lineTo(staticBox.position[0] + staticBox.xExtension[0] - staticBox.yExtension[0], staticBox.position[1] + staticBox.xExtension[1] - staticBox.yExtension[1]);
         ctx.stroke();
 
-        ctx.moveTo(dynamicBox.position[0], dynamicBox.position[1]);
-        ctx.lineTo(dynamicBox.position[0] + dynamicBox.xExtension[0], dynamicBox.position[1] + dynamicBox.xExtension[1]);
+        ctx.moveTo(dynamicBox.position[0] - dynamicBox.xExtension[0] - dynamicBox.yExtension[0], dynamicBox.position[1] - dynamicBox.xExtension[1] - dynamicBox.yExtension[1]);
+        ctx.lineTo(dynamicBox.position[0] - dynamicBox.xExtension[0] + dynamicBox.yExtension[0], dynamicBox.position[1] - dynamicBox.xExtension[1] + dynamicBox.yExtension[1]);
         ctx.lineTo(dynamicBox.position[0] + dynamicBox.xExtension[0] + dynamicBox.yExtension[0], dynamicBox.position[1] + dynamicBox.xExtension[1] + dynamicBox.yExtension[1]);
-        ctx.lineTo(dynamicBox.position[0] + dynamicBox.yExtension[0], dynamicBox.position[1] + dynamicBox.yExtension[1]);
-        ctx.lineTo(dynamicBox.position[0], dynamicBox.position[1]);
+        ctx.lineTo(dynamicBox.position[0] + dynamicBox.xExtension[0] - dynamicBox.yExtension[0], dynamicBox.position[1] + dynamicBox.xExtension[1] - dynamicBox.yExtension[1]);
+        ctx.lineTo(dynamicBox.position[0] - dynamicBox.xExtension[0] - dynamicBox.yExtension[0], dynamicBox.position[1] - dynamicBox.xExtension[1] - dynamicBox.yExtension[1]);
         ctx.fill();
 
         ctx.strokeStyle = "#FFFF00";
-        ctx.moveTo(dynamicBox.position[0], dynamicBox.position[1]);
+        ctx.moveTo(dynamicBox.position[0] - dynamicBox.xExtension[0] - dynamicBox.yExtension[0], dynamicBox.position[1] - dynamicBox.xExtension[1] - dynamicBox.yExtension[1]);
         ctx.lineTo(dynamicBox.position[0] + dynamicBox.xExtension[0] + dynamicBox.yExtension[0], dynamicBox.position[1] + dynamicBox.xExtension[1] + dynamicBox.yExtension[1]);
-        ctx.moveTo(dynamicBox.position[0] + dynamicBox.xExtension[0], dynamicBox.position[1] + dynamicBox.xExtension[1]);
-        ctx.lineTo(dynamicBox.position[0] + dynamicBox.yExtension[0], dynamicBox.position[1] + dynamicBox.yExtension[1]);
+        ctx.moveTo(dynamicBox.position[0] - dynamicBox.xExtension[0] + dynamicBox.yExtension[0], dynamicBox.position[1] - dynamicBox.xExtension[1] + dynamicBox.yExtension[1]);
+        ctx.lineTo(dynamicBox.position[0] + dynamicBox.xExtension[0] - dynamicBox.yExtension[0], dynamicBox.position[1] + dynamicBox.xExtension[1] - dynamicBox.yExtension[1]);
         ctx.stroke();
     }
 

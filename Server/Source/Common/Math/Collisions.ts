@@ -22,40 +22,46 @@ export namespace Collisions {
 
     export namespace D2 {
         export function CheckRectangleRectangle(rectOne: Readonly<Shapes.D2.Rectangle>, rectTwo: Readonly<Shapes.D2.Rectangle>) : boolean {
-            // Using rectOne as reference point.
-            const rectsOffset = vec2.sub(vec2.create(), rectTwo.position, rectOne.position);
             
-            // rectOne extensions decomposition.
-            const xExtensionDecomposed = new vec2decomposed(rectOne.xExtension);
-            const yExtensionDecomposed = new vec2decomposed(rectOne.yExtension);
+            const rectOneDim = {
+                widthVecDecomp: new vec2decomposed(vec2.scale(vec2.create(), rectOne.xExtension, 2)),
+                heightVecDecomp: new vec2decomposed(vec2.scale(vec2.create(), rectOne.yExtension, 2)),
+                cornerPos: vec2.sub(vec2.create(), vec2.sub(vec2.create(), rectOne.position, rectOne.xExtension), rectOne.yExtension)
+            };
 
-            // find rectTwo diagonals.
-            const diagonalOne = vec2.add(vec2.create(), rectTwo.xExtension, rectTwo.yExtension);
-            const diagonalOneOffset = rectsOffset;
-            const diagonalTwo = vec2.add(vec2.create(), vec2.negate(vec2.create(), rectTwo.xExtension),  rectTwo.yExtension);
-            const diagonalTwoOffest = vec2.add(vec2.create(), rectTwo.xExtension, rectsOffset);
+            const rectTwoDim = {
+                cornerPos: vec2.sub(vec2.create(), vec2.sub(vec2.create(), rectTwo.position, rectTwo.xExtension), rectTwo.yExtension)
+            }
 
-            const xOverlap = function() {
-                const diagOneCast = vec2.dot(diagonalOne, xExtensionDecomposed.unitVector);
-                const diagOneOffsetCast = vec2.dot(diagonalOneOffset, xExtensionDecomposed.unitVector);
-                const diagTwoCast = vec2.dot(diagonalTwo, xExtensionDecomposed.unitVector);
-                const diagTwoOffsetCast = vec2.dot(diagonalTwoOffest, xExtensionDecomposed.unitVector);
+            const rectTwoDiagonals = {
+                diagonalOne: vec2.scale(vec2.create(), vec2.add(vec2.create(), rectTwo.yExtension, rectTwo.xExtension), 2),
+                diagonalTwo: vec2.scale(vec2.create(), vec2.sub(vec2.create(), rectTwo.yExtension, rectTwo.xExtension), 2),
+                // Distance from corner of rectOne (being our 0, 0) to diagonals
+                diagonalOneOffset: vec2.sub(vec2.create(), rectTwoDim.cornerPos, rectOneDim.cornerPos),
+                diagonalTwoOffset: vec2.add(vec2.create(), vec2.sub(vec2.create(), rectTwoDim.cornerPos, rectOneDim.cornerPos), vec2.scale(vec2.create(), rectTwo.xExtension, 2))
+            }
 
-                return doesOverlap( 0, xExtensionDecomposed.length, diagOneOffsetCast, diagOneCast)
-                    || doesOverlap( 0, xExtensionDecomposed.length, diagTwoOffsetCast, diagTwoCast);
+            const widthOverlap = function() {
+                const diagOneCast = vec2.dot(rectTwoDiagonals.diagonalOne, rectOneDim.widthVecDecomp.unitVector);
+                const diagOneOffsetCast = vec2.dot(rectTwoDiagonals.diagonalOneOffset, rectOneDim.widthVecDecomp.unitVector);
+                const diagTwoCast = vec2.dot(rectTwoDiagonals.diagonalTwo, rectOneDim.widthVecDecomp.unitVector);
+                const diagTwoOffsetCast = vec2.dot(rectTwoDiagonals.diagonalTwoOffset, rectOneDim.widthVecDecomp.unitVector);
+
+                return doesOverlap( 0, rectOneDim.widthVecDecomp.length, diagOneOffsetCast, diagOneCast)
+                    || doesOverlap( 0, rectOneDim.widthVecDecomp.length, diagTwoOffsetCast, diagTwoCast);
             }();
 
-            const yOverlap = function() {
-                const diagOneCast = vec2.dot(diagonalOne, yExtensionDecomposed.unitVector);
-                const diagOneOffsetCast = vec2.dot(diagonalOneOffset, yExtensionDecomposed.unitVector);
-                const diagTwoCast = vec2.dot(diagonalTwo, yExtensionDecomposed.unitVector);
-                const diagTwoOffsetCast = vec2.dot(diagonalTwoOffest, yExtensionDecomposed.unitVector);
+            const heightOverlap = function() {
+                const diagOneCast = vec2.dot(rectTwoDiagonals.diagonalOne, rectOneDim.heightVecDecomp.unitVector);
+                const diagOneOffsetCast = vec2.dot(rectTwoDiagonals.diagonalOneOffset, rectOneDim.heightVecDecomp.unitVector);
+                const diagTwoCast = vec2.dot(rectTwoDiagonals.diagonalTwo, rectOneDim.heightVecDecomp.unitVector);
+                const diagTwoOffsetCast = vec2.dot(rectTwoDiagonals.diagonalTwoOffset, rectOneDim.heightVecDecomp.unitVector);
 
-                return doesOverlap( 0, yExtensionDecomposed.length, diagOneOffsetCast, diagOneCast)
-                    || doesOverlap( 0, yExtensionDecomposed.length, diagTwoOffsetCast, diagTwoCast);
+                return doesOverlap( 0, rectOneDim.heightVecDecomp.length, diagOneOffsetCast, diagOneCast)
+                    || doesOverlap( 0, rectOneDim.heightVecDecomp.length, diagTwoOffsetCast, diagTwoCast);
             }();
 
-            return xOverlap && yOverlap;
+            return widthOverlap && heightOverlap;
         }
 
         export function CheckRectangleCircle(rect: Readonly<Shapes.D2.Rectangle>, circle: Readonly<Shapes.D2.Circle>) : boolean {
