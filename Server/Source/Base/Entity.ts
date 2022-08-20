@@ -2,6 +2,7 @@ import { MetaName, ComponentBase } from "./Component"
 import { UuidGenerator, Uuid } from "./UuidGenerator";
 import { World } from "../World/World"
 import { throws } from "assert";
+import { Transform } from "./Transform";
 
 export class Entity {
     private _world: World;
@@ -10,12 +11,19 @@ export class Entity {
     private _children: Entity[];
     private _uuid: Uuid;
 
+// Easier to just merge Transform and hierarchy into here.
+    private _transform: Transform = new Transform();
+
     constructor(world: World, parent: Readonly<Entity> | undefined, uuid: Uuid) {
         this._componentsMap = new Map<MetaName, ComponentBase[]>();
         this._world = world;
         this._parent = parent;
         this._children = [];
         this._uuid = uuid;
+    }
+
+    getTransform() : Transform {
+        return this._transform;
     }
 
     getComponents() : Readonly<Map<MetaName, ComponentBase[]>> {

@@ -1,7 +1,6 @@
 import { World } from "./World"
 import { PlayerInputController } from "../Scripts/Player/PlayerInputController"
 import { Entity } from "../Base/Entity"
-import { TransformSystem } from "../Systems/TransformSystem";
 import { AABBDrawableComponent, DrawingSystem, SpriteTexture } from "../Systems/DrawingSystem";
 import { ClientConnectionSystem } from "../Systems/ClientConnectionSystem";
 import * as WebSocket from 'websocket'
@@ -14,7 +13,6 @@ import { vec2, mat4 } from "gl-matrix"
 
 class TestPlayer extends ScriptSystem.Component
 {
-    private _transform: TransformSystem.Component;
     private _drawable: SpriteTexture;
     private _playerInputController: PlayerInputController;
     private _movement: BasicMovement;
@@ -31,9 +29,6 @@ class TestPlayer extends ScriptSystem.Component
 
         const entity = this.ownerEntity;
         const world = entity.getWorld();
-
-        this._transform = new TransformSystem.Component(entity);
-        world.registerComponent(entity, this._transform);
 
         this._drawable = new SpriteTexture(entity,"WOL\\RedMage.png", 2, 2);
         world.registerComponent(entity, this._drawable);
@@ -88,7 +83,6 @@ class TestPlayer extends ScriptSystem.Component
 class Platform extends ScriptSystem.Component
 {
     private _drawable: AABBDrawableComponent;
-    private _transform: TransformSystem.Component;
 
     constructor(owner: Entity, name: string) {
         super(owner);
@@ -99,11 +93,10 @@ class Platform extends ScriptSystem.Component
         this._drawable = new AABBDrawableComponent(entity, "");
         world.registerComponent(entity, this._drawable);
 
-        this._transform = new TransformSystem.Component(entity);
-        this._transform.setScale([7, 7, 7]);
-        this._transform.setRotation([Math.PI/2.0, 0, Math.PI/4.0]);
-        this._transform.setPosition([0, 0, 0.2]);
-        world.registerComponent(entity, this._transform); 
+        const transform = this.ownerEntity.getTransform();
+        transform.scale = [7, 7, 7];
+        transform.rotation = [Math.PI/2.0, 0, Math.PI/4.0];
+        transform.position = [0, 0, 0.2];
     }
 
     preUpdate(): void {

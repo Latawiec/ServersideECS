@@ -1,6 +1,5 @@
 import { World } from "../World/World"
 import { Entity } from "../Base/Entity"
-import { TransformSystem } from "../Systems/TransformSystem";
 import { AABBDrawableComponent, DrawingSystem, SpriteTexture } from "../Systems/DrawingSystem";
 import { throws } from "assert";
 import { Recoverable } from "repl";
@@ -25,7 +24,6 @@ export class WorldSerializer
     }
 
     static serializableComponentsMapping = new Map<string, any>([
-        [ TransformSystem.Component.staticMetaName(), this.serializeTransformComponent ],
         [ DrawingSystem.Component.staticMetaName(), this.serializeDrawableComponent ],
         [ PlayerIdentity.staticMetaName(), this.serializePlayerIdentityComponent ]
     ]);
@@ -34,6 +32,7 @@ export class WorldSerializer
         var output: Record<string, any> = {};
         output.name = entity.getUuid();
         output.components = {};
+        output.components.transform = entity.getTransform().worldTransform;
         const components = entity.getComponents();
 
         let i=0;
@@ -47,11 +46,6 @@ export class WorldSerializer
             i++;
         })
 
-        return output;
-    }
-
-    static serializeTransformComponent(output: Record<string, any>, component: Readonly<TransformSystem.Component>) {
-        output.transform = component.worldTransform;
         return output;
     }
 

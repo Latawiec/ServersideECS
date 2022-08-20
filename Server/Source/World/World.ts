@@ -1,9 +1,8 @@
 import { throws } from "assert";
 import { Entity } from "../Base/Entity"
 import { UuidGenerator } from "../Base/UuidGenerator"
-import { TransformSystem } from "../Systems/TransformSystem"
 import { ScriptSystem } from "../Systems/ScriptSystem";
-import { Script } from "vm";
+import { mat4 } from "gl-matrix"
 import { DrawingSystem } from "../Systems/DrawingSystem";
 import { ClientConnectionSystem } from "../Systems/ClientConnectionSystem";
 import { ComponentBase } from "../Base/Component";
@@ -13,7 +12,6 @@ export class World {
     private _rootNode: Entity;
     private _entities: Entity[];
     private _entityUuidGenerator: UuidGenerator;
-    private _transformSystem: TransformSystem.System;
     private _scriptSystem: ScriptSystem.System;
     private _drawableSystem: DrawingSystem.System;
     private _clientConnectionSystem: ClientConnectionSystem.System;
@@ -21,7 +19,6 @@ export class World {
 
     constructor() {
         this._entityUuidGenerator = new UuidGenerator();
-        this._transformSystem = new TransformSystem.System();
         this._scriptSystem = new ScriptSystem.System();
         this._drawableSystem = new DrawingSystem.System();
         this._clientConnectionSystem = new ClientConnectionSystem.System();
@@ -48,9 +45,6 @@ export class World {
 
         // Maybe TypeScript has better way to take care of this... But I don't know it yet.
         switch (systemAsignmentMetaName) {
-            case TransformSystem.System.staticMetaName():
-                this._transformSystem.registerComponent(component as TransformSystem.Component);
-                break;
 
             case ScriptSystem.System.staticMetaName():
                 this._scriptSystem.registerComponent(component as ScriptSystem.Component);
@@ -75,9 +69,6 @@ export class World {
 
         // Maybe TypeScript has better way to take care of this... But I don't know it yet.
         switch (systemAsignmentMetaName) {
-            case TransformSystem.System.staticMetaName():
-                this._transformSystem.unregisterComponent(component as TransformSystem.Component);
-                break;
 
             case ScriptSystem.System.staticMetaName():
                 this._scriptSystem.unregisterComponent(component as ScriptSystem.Component);
@@ -110,18 +101,21 @@ export class World {
     }
     
     update() {
-        this._transformSystem.updateWorldTransforms(this._rootNode);
+        this.updateWorldTransforms(this._rootNode);
         this._scriptSystem.preUpdate();
         this._scriptSystem.onUpdate();
         this._scriptSystem.postUpdate();
     }
+
+    updateWorldTransforms(entity: Readonly<Entity>, parentTransform: Readonly<mat4> = mat4.create()) {
+        entity.getTransform().updateWorldTransform(parentTransform);
+        for(const child of entity.getChildren()) {
+            this.updateWorldTransforms(child, entity.getTransform().worldTransform);
+        }
+    }
     
     get scriptSystem(): ScriptSystem.System {
         return this._scriptSystem;
-    }
-
-    get transformSystem(): TransformSystem.System {
-        return this._transformSystem;
     }
     
     get drawableSystem(): DrawingSystem.System {

@@ -21,6 +21,7 @@ export namespace TransformSystem {
         private _rotation: vec3;
         private _scale: vec3;
 
+
         private _worldTransform: mat4;
     
         constructor(owner: Entity) {

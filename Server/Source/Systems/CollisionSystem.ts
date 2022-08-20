@@ -3,7 +3,6 @@ import { ComponentBase } from "../Base/Component"
 import { Entity } from "../Base/Entity";
 import { SystemBase } from "../Base/System"
 import { Uuid } from "../Base/UuidGenerator"
-import { TransformSystem } from "../Systems/TransformSystem";
 
 
 export namespace CollisionSystem {
@@ -24,19 +23,11 @@ export namespace CollisionSystem {
         static staticMetaName(): string { return 'CollisionSystem.Component' }
 
         private _ownerEntity: Entity;
-        private _transform: TransformSystem.Component;
         private _isActive: boolean = true;
         private _systemAsignedId: Uuid | undefined = undefined;
         
         constructor(owner: Entity) {
             this._ownerEntity = owner
-            
-            const ownerTransforms = owner.getComponentsByType(TransformSystem.Component.staticMetaName());
-            if (ownerTransforms.length == 0) {
-                throw("To make collision component, entity needs to have a transform component first.");
-            }
-
-            this._transform = ownerTransforms[0] as TransformSystem.Component;
         }
     
         get isActive(): Readonly<boolean> {

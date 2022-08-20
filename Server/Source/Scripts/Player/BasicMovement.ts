@@ -1,9 +1,9 @@
 import { throws } from "assert";
 import { Entity } from "../../Base/Entity";
 import { ScriptSystem } from "../../Systems/ScriptSystem";
-import { TransformSystem } from "../../Systems/TransformSystem";
 import { PlayerInputController } from "./PlayerInputController";
 import { vec3 } from "gl-matrix"
+import { Transform } from "../../Base/Transform";
 
 
 
@@ -11,12 +11,13 @@ export class BasicMovement extends ScriptSystem.Component {
     // Metadata
 
     private _playerInput: PlayerInputController | undefined = undefined;
-    private _transform: TransformSystem.Component | undefined = undefined;
+    private _playerTransform: Transform;
 
     private _movementDirection: vec3 = [0, 0, 0];
 
     constructor(owner: Entity) {
         super(owner);
+        this._playerTransform = owner.getTransform();
 
         const playerInputControllers = owner.getComponentsByType(PlayerInputController.staticMetaName());
         if (playerInputControllers.length === 0) {
@@ -30,17 +31,6 @@ export class BasicMovement extends ScriptSystem.Component {
         // Assume one
         this._playerInput = playerInputControllers[0] as PlayerInputController;
 
-        const transformComponents = owner.getComponentsByType(TransformSystem.Component.staticMetaName());
-        if (transformComponents.length === 0) {
-            console.log('%s could not be initialized. %s component required.',
-                BasicMovement.staticMetaName(),
-                TransformSystem.Component.staticMetaName()
-            );
-            this.isActive = false;
-            return;
-        }
-        // Assume one
-        this._transform = transformComponents[0] as TransformSystem.Component;
     }
 
     preUpdate(): void {
@@ -69,12 +59,12 @@ export class BasicMovement extends ScriptSystem.Component {
             vec3.normalize(movementDirection, movementDirection);
             this._movementDirection = movementDirection;
 
-            const currentPosition = this._transform!.position;
+            const currentPosition = this._playerTransform.position;
             const scaling: vec3 = [0.1, 0.1, 0.1];
             const newPosition = vec3.create();
             vec3.multiply(newPosition, movementDirection, scaling);
             vec3.add(newPosition, newPosition, currentPosition);
-            this._transform?.setPosition(newPosition);
+            this._playerTransform.position = newPosition;
         }
     }
     postUpdate(): void {

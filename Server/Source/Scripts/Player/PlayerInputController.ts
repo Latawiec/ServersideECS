@@ -2,7 +2,6 @@ import { throws } from "assert"
 import { Entity } from "../../Base/Entity"
 import { ClientConnectionSystem } from "../../Systems/ClientConnectionSystem"
 import { ScriptSystem } from "../../Systems/ScriptSystem"
-import { TransformSystem } from "../../Systems/TransformSystem"
 
 
 export class PlayerInputController extends ScriptSystem.Component {
@@ -48,11 +47,6 @@ export class PlayerInputController extends ScriptSystem.Component {
     }
 
     onUpdate(): void {
-        var enityTransforms = this.ownerEntity.getComponentsByType(TransformSystem.Component.staticMetaName());
-        if (enityTransforms.length == 0) {
-            // well?
-            return;
-        } 
 
 
     }
