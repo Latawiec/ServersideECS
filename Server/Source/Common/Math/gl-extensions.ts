@@ -17,6 +17,10 @@ export class vec2decomposed {
         this.length = vec2.length(vector);
     }
 
+    get vec2() : vec2 {
+        return vec2.scale(vec2.create(), this.unitVector, this.length);
+    }
+
     unitVector: Readonly<vec2> = [0,0];
     length: Readonly<number> = 0;
 }

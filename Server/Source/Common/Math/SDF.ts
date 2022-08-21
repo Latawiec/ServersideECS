@@ -1,5 +1,5 @@
 import { ReadonlyVec3, vec2, vec3, vec4, mat3, mat4 } from "gl-matrix"
-import { vec2abs, vec3abs, vec3tovec4, vec4tovec3, vec3clampNegative, vec2clampNegative, reflectVec3, reflectVec2, vec3maxcomp, vec2maxcomp } from "./gl-extensions"
+import { vec2abs, vec3abs, vec3tovec4, vec4tovec3, vec3clampNegative, vec2clampNegative, reflectVec3, reflectVec2, vec3maxcomp, vec2maxcomp, vec2decomposed, vec3decomposed } from "./gl-extensions"
 
 export namespace SDF {
 
@@ -139,6 +139,35 @@ export namespace SDF {
         return outsideDistance + insideDistance;
     }
 
+    export function RectangleDistance(point: Readonly<vec2>, rectCenter: Readonly<vec2>, widthSpan: Readonly<vec2>, heightSpan: Readonly<vec2>) : vec2decomposed {
+        const boxToPoint = vec2.sub(vec2.create(), point, rectCenter);
+
+        const widthSpanDecomp = new vec2decomposed(widthSpan);
+        const heightSpanDecomp = new vec2decomposed(heightSpan);
+
+        const widthCast = vec2.dot(boxToPoint, widthSpanDecomp.unitVector);
+        const heightCast = vec2.dot(boxToPoint, heightSpanDecomp.unitVector);
+        
+        // Forget about directions for now. We only care about one quadrant case.
+        const absWidthCast = Math.abs(widthCast);
+        const absHeightCast = Math.abs(heightCast);
+
+        const fromSideWidth = absWidthCast - widthSpanDecomp.length;
+        const fromSideHeight = absHeightCast - heightSpanDecomp.length;
+
+        const widthOffsetVec = vec2.scale(vec2.create(), widthSpanDecomp.unitVector, -fromSideWidth * Math.sign(widthCast) );
+        const heightOffsetVec = vec2.scale(vec2.create(), heightSpanDecomp.unitVector, -fromSideHeight * Math.sign(heightCast) );
+
+        const maxSideVec = fromSideWidth > fromSideHeight ? widthOffsetVec : heightOffsetVec;
+        const minSideVec = fromSideWidth <= fromSideHeight ? widthOffsetVec : heightOffsetVec;
+
+        const isCornerFlag = (Math.sign(fromSideWidth) + Math.sign(fromSideHeight)) == 2 ? 1 : 0;
+
+        const resultVec = vec2.add(vec2.create(), maxSideVec, vec2.scale(vec2.create(), minSideVec, isCornerFlag));
+
+        return new vec2decomposed(resultVec);
+    }
+
     export function SphereSDF(point: Readonly<vec3>, sphereCenter: Readonly<vec3>, sphereRadius: number): number {
         
         var pointToSphereCenter = vec3.create();
@@ -154,6 +183,10 @@ export namespace SDF {
         const distance = vec2.length(pointToCircleCenter) - circleRadius;
 
         return distance;
+    }
+
+    export function CircleNormal(point: Readonly<vec2>, circleCenter: Readonly<vec2>, circleRadius: number): vec2 {
+        return vec2.normalize(vec2.create(), vec2.sub(vec2.create(), point, circleCenter));
     }
 
     export function CapsuleSDF(point: Readonly<vec4>, capsuleBase: Readonly<vec3>, capsuleExtension: Readonly<vec3>, radius: number) : number {

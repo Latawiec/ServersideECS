@@ -201,9 +201,16 @@ while ( true )  {
         ctx.lineTo(dynamicBox.position[0] + dynamicBox.xExtension[0] - dynamicBox.yExtension[0], dynamicBox.position[1] + dynamicBox.xExtension[1] - dynamicBox.yExtension[1]);
         ctx.stroke();
     }
-
+    const mouseVec2 = vec2.fromValues(mousePos[0], mousePos[1]);
     const mouseVec3 = vec3.fromValues(mousePos[0], mousePos[1], 0);
-    
+
+    const mouseToStaticRect = SDF.RectangleDistance(mouseVec2, staticBox.position, staticBox.xExtension, staticBox.yExtension).vec2;
+
+    ctx.moveTo(mouseVec2[0], mouseVec2[1]);
+    ctx.lineTo(mouseVec2[0] + mouseToStaticRect[0], mouseVec2[1] + mouseToStaticRect[1]);
+    ctx.strokeStyle = "#000000";
+    ctx.stroke();
+
     console.log("Distance: ", 
         SDF.BoxSDF(mouseVec3, boxCenter, boxWidth, boxHeight, boxDepth)
     );
