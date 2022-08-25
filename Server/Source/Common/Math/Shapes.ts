@@ -13,7 +13,11 @@ export namespace Shapes {
         export class Circle {
             position : vec2 = [ 0, 0 ];
             radius : number = 1.0;
-        }
+        };
+
+        export class Point {
+            position: vec2 = [ 0, 0 ];
+        };
     };
 
     export namespace D3 {
