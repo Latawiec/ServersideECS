@@ -21,15 +21,15 @@ export class Transform {
         this._scale = vec3.clone(value);
     }
 
-    get position() : Readonly<vec3> {
+    get position() : vec3 {
         return this._position;
     }
 
-    get rotation() : Readonly<vec3> {
+    get rotation() : vec3 {
         return this._rotation;
     }
 
-    get scale() : Readonly<vec3> {
+    get scale() : vec3 {
         return this._scale;
     }
 

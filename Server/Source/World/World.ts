@@ -7,6 +7,7 @@ import { DrawingSystem } from "../Systems/DrawingSystem";
 import { ClientConnectionSystem } from "../Systems/ClientConnectionSystem";
 import { ComponentBase } from "../Base/Component";
 import * as AssetManager from "../Assets/AssetManager";
+import { TriggerCollisionSystem2D } from "../Systems/TriggerCollisionSystem2D";
 
 export class World {
     private _rootNode: Entity;
@@ -15,6 +16,7 @@ export class World {
     private _scriptSystem: ScriptSystem.System;
     private _drawableSystem: DrawingSystem.System;
     private _clientConnectionSystem: ClientConnectionSystem.System;
+    private _triggerCollisionSystem2D: TriggerCollisionSystem2D.System;
     private _assetManager: AssetManager.AssetManager;
 
     constructor() {
@@ -22,6 +24,7 @@ export class World {
         this._scriptSystem = new ScriptSystem.System();
         this._drawableSystem = new DrawingSystem.System();
         this._clientConnectionSystem = new ClientConnectionSystem.System();
+        this._triggerCollisionSystem2D = new TriggerCollisionSystem2D.System();
         this._assetManager = new AssetManager.AssetManager("");
 
         this._rootNode = new Entity(this, undefined, this._entityUuidGenerator.getNext());
@@ -57,6 +60,10 @@ export class World {
             case ClientConnectionSystem.System.staticMetaName():
                 this._clientConnectionSystem.registerComponent(component as ClientConnectionSystem.Component);
                 break;
+            
+            case TriggerCollisionSystem2D.System.staticMetaName():
+                this._triggerCollisionSystem2D.registerComponent(component as TriggerCollisionSystem2D.Component);
+                break;
 
             default:
                 throw "Tried to get system that doesn't exist";
@@ -81,6 +88,10 @@ export class World {
             case ClientConnectionSystem.System.staticMetaName():
                 this._clientConnectionSystem.unregisterComponent(component as ClientConnectionSystem.Component);
                 break;
+            
+            case TriggerCollisionSystem2D.System.staticMetaName():
+                this._triggerCollisionSystem2D.unregisterComponent(component as TriggerCollisionSystem2D.Component);
+                break;
 
             default:
                 throw "Tried to get system that doesn't exist";
@@ -104,6 +115,7 @@ export class World {
         this.updateWorldTransforms(this._rootNode);
         this._scriptSystem.preUpdate();
         this._scriptSystem.onUpdate();
+        this._triggerCollisionSystem2D.update();
         this._scriptSystem.postUpdate();
     }
 

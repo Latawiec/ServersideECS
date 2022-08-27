@@ -1,11 +1,10 @@
 import { Layer, Canvas, DrawRequest } from "./Rendering/Canvas";
 import { Shader, ShaderProgram, ShaderType } from "./Rendering/Materials/ShaderProgram";
-import { mat4, vec4, vec3, vec2 } from "gl-matrix";
+import { mat4, vec4, vec3 } from "gl-matrix";
 import { CommonShapes } from "./Rendering/Basic/CommonShapes";
 import { Camera } from "./Rendering/Basic/Camera";
-import { throws } from "assert";
 
-export class DrawSpriteSegmentRequest implements DrawRequest {
+export class DrawTextureSquareRequest implements DrawRequest {
     private _gl: WebGLRenderingContext;
     private _vertexBuffer: WebGLBuffer;
     private _indexBuffer: WebGLBuffer;
@@ -15,8 +14,6 @@ export class DrawSpriteSegmentRequest implements DrawRequest {
     private _transform: mat4 = mat4.create();
     private _color: vec4 = vec4.create();
     private _texture: WebGLTexture;
-    private _spriteSelect: vec2 = vec2.create();
-    private _spriteSegments: vec2 = vec2.fromValues(2, 2);
 
     private vertexShaderCode: string = `
         attribute vec4 aVertexPosition;
@@ -39,20 +36,14 @@ export class DrawSpriteSegmentRequest implements DrawRequest {
     private pixelShaderCode: string = `
         varying lowp vec4 vColor;
         varying highp vec2 uvCoord;
-    
-        struct SpriteData {
-            sampler2D texSampler;
-            ivec2 spriteSegments;
-            ivec2 selectionOffset;
-        };
-        uniform SpriteData sprite;
+
+        uniform sampler2D texSampler;
 
         void main(void) {
-            lowp vec2 spriteUv = uvCoord / vec2(sprite.spriteSegments) + vec2(sprite.selectionOffset) / vec2(sprite.spriteSegments);
-            highp vec4 color = texture2D(sprite.texSampler, spriteUv);
-
+            highp vec4 color = texture2D(texSampler, uvCoord);
             if (color.a != 1.0) discard;
-            gl_FragColor = color;
+
+            gl_FragColor = vColor;
         }
     `;
 
@@ -72,7 +63,7 @@ export class DrawSpriteSegmentRequest implements DrawRequest {
         this._uvBuffer = glContext.createBuffer()!;
         glContext.bindBuffer(glContext.ARRAY_BUFFER, this._uvBuffer);
         glContext.bufferData(glContext.ARRAY_BUFFER, squareMesh.uv, glContext.STATIC_DRAW);
-        
+
         const pixelShader = new Shader(glContext, ShaderType.PIXEL, this.pixelShaderCode);
         const vertexShader = new Shader(glContext, ShaderType.VERTEX, this.vertexShaderCode);
         
@@ -85,15 +76,13 @@ export class DrawSpriteSegmentRequest implements DrawRequest {
         glContext.texParameteri(glContext.TEXTURE_2D, glContext.TEXTURE_MIN_FILTER, glContext.NEAREST);
         glContext.texParameteri(glContext.TEXTURE_2D, glContext.TEXTURE_WRAP_S, glContext.CLAMP_TO_EDGE);
         glContext.texParameteri(glContext.TEXTURE_2D, glContext.TEXTURE_WRAP_T, glContext.CLAMP_TO_EDGE);
-
-        this._color = [Math.random(), Math.random(), Math.random(), 1.0];
     }
 
     draw(camera: Readonly<Camera>): void {
         const gl = this._gl;
         
         const vertexPositionAttribLoc = gl.getAttribLocation(this._shaderProgram.glShaderProgram, 'aVertexPosition');
-        const uvCoordAttribLoc        = gl.getAttribLocation(this._shaderProgram.glShaderProgram, 'aTextureCoord');
+        const uvCoordAttribLoc = gl.getAttribLocation(this._shaderProgram.glShaderProgram, 'aTextureCoord');
         
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
         gl.enableVertexAttribArray(vertexPositionAttribLoc);
@@ -117,7 +106,6 @@ export class DrawSpriteSegmentRequest implements DrawRequest {
             0
         );
 
-        
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
         gl.useProgram(this._shaderProgram.glShaderProgram);
 
@@ -125,8 +113,6 @@ export class DrawSpriteSegmentRequest implements DrawRequest {
         const modelViewMatrixUniformLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uModelViewMatrix');
         const colorUniformLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uColor');
         const textureSamplerUniformLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'sprite.texSampler');
-        const spriteSegmentsUniformLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'sprite.spriteSegments');
-        const selectionOffsetUniformLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'sprite.selectionOffset');
 
         let dateTime = new Date();
         var ms = dateTime.getMilliseconds();
@@ -163,26 +149,10 @@ export class DrawSpriteSegmentRequest implements DrawRequest {
         gl.bindTexture(gl.TEXTURE_2D, this._texture);
         gl.uniform1i(textureSamplerUniformLoc, 0);
 
-        gl.uniform2i(
-            spriteSegmentsUniformLoc,
-            this._spriteSegments[0],
-            this._spriteSegments[1]
-        );
-
-        gl.uniform2i(
-            selectionOffsetUniformLoc,
-            this._spriteSelect[0],
-            this._spriteSelect[1]
-        );
-
         gl.drawElements(gl.TRIANGLES, this._elementsCount, gl.UNSIGNED_SHORT, 0);
     }
 
     set transform(newTransform: mat4) {
         this._transform = newTransform;
-    }
-
-    set spriteSelect(selection: vec2) {
-        this._spriteSelect = vec2.fromValues(selection[0], selection[1]);
-    }
+    } 
 }

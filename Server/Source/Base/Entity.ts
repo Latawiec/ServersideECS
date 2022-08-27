@@ -3,6 +3,7 @@ import { UuidGenerator, Uuid } from "./UuidGenerator";
 import { World } from "../World/World"
 import { throws } from "assert";
 import { Transform } from "./Transform";
+import { mat4 } from "gl-matrix"
 
 export class Entity {
     private _world: World;
@@ -25,7 +26,7 @@ export class Entity {
     getTransform() : Transform {
         return this._transform;
     }
-
+    
     getComponents() : Readonly<Map<MetaName, ComponentBase[]>> {
         return this._componentsMap;
     }

@@ -69,16 +69,16 @@ export namespace Collisions {
             return circleToBoxDistance <= circle.radius;
         }
 
-        export function CheckRectanglePoint(rect: Readonly<Shapes.D2.Rectangle>, point: Readonly<vec2>) : boolean {
-            return SDF.RectangleSDF(point, rect.position, rect.xExtension, rect.yExtension) <= 0;
+        export function CheckRectanglePoint(rect: Readonly<Shapes.D2.Rectangle>, point: Readonly<Shapes.D2.Point>) : boolean {
+            return SDF.RectangleSDF(point.position, rect.position, rect.xExtension, rect.yExtension) <= 0;
         }
 
         export function CheckCircleCircle(circleOne: Readonly<Shapes.D2.Circle>, circleTwo: Readonly<Shapes.D2.Circle>) : boolean {
             return vec2.distance(circleOne.position, circleTwo.position) <= circleOne.radius + circleTwo.radius;
         }
 
-        export function CheckCirclePoint(circle: Readonly<Shapes.D2.Circle>, point: Readonly<vec2>) : boolean {
-            return SDF.CircleSDF(point, circle.position, circle.radius) <= 0;
+        export function CheckCirclePoint(circle: Readonly<Shapes.D2.Circle>, point: Readonly<Shapes.D2.Point>) : boolean {
+            return SDF.CircleSDF(point.position, circle.position, circle.radius) <= 0;
         }
     }
 

@@ -24,9 +24,11 @@ export namespace PhysicsCollisionSystem2D {
         private _ownerEntity: Entity;
         private _isActive: boolean = true;
         private _systemAsignedId: Uuid | undefined = undefined;
+        private _isStatic: boolean = false;
 
-        constructor(owner: Entity) {
+        constructor(owner: Entity, isStatic = false) {
             this._ownerEntity = owner
+            this._isStatic = isStatic
         }
 
         get isActive(): Readonly<boolean> {

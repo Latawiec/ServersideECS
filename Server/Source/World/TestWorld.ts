@@ -9,7 +9,11 @@ import { ScriptSystem } from "../Systems/ScriptSystem";
 import { PlayerIdentity } from "../Scripts/Player/PlayerIdentity";
 import { BasicMovement } from "../Scripts/Player/BasicMovement";
 import { throws } from "assert";
-import { vec2, mat4 } from "gl-matrix"
+import { vec2, vec4, mat4, vec3 } from "gl-matrix"
+import { TriggerCollisionSystem2D } from "../Systems/TriggerCollisionSystem2D";
+import { Transform } from "stream";
+import { vec3tovec4, vec4tovec3, vec3decomposed } from "../Common/Math/gl-extensions";
+
 
 class TestPlayer extends ScriptSystem.Component
 {
@@ -41,6 +45,59 @@ class TestPlayer extends ScriptSystem.Component
 
         this._movement = new BasicMovement(entity);
         world.registerComponent(entity, this._movement);
+
+        class Follower extends ScriptSystem.Component {
+            private _followed;
+            private _follower;
+            constructor(owner: Entity, entityToFollow: Entity) {
+                super(owner);
+                this._follower = owner;
+                this._followed = entityToFollow;
+            }
+
+            preUpdate(): void {
+                
+            }
+            onUpdate(): void {
+                const followerWorldPosition = vec4.transformMat4(
+                    vec4.create(),
+                    vec3tovec4(this._follower.getTransform().position, true),
+                    this._follower.getTransform().worldTransform);
+                const followedWorldPosition = vec4.transformMat4(
+                    vec4.create(),
+                    vec3tovec4(this._followed.getTransform().position, true),
+                    this._followed.getTransform().worldTransform
+                );
+                const positionDiffWorldSpace = vec4.sub(vec4.create(), followedWorldPosition, followerWorldPosition);
+                const invertFollowerTransform = mat4.invert(mat4.create(), this._follower.getTransform().worldTransform);
+                const positionDiffApply = vec4tovec3(vec4.transformMat4(vec4.create(), positionDiffWorldSpace, invertFollowerTransform));
+                vec3.add(this._follower.getTransform().position, this._follower.getTransform().position, positionDiffApply);
+            }
+            postUpdate(): void {
+                
+            }
+
+        };
+
+        const playerColliderEntity = world.createEntity();
+        
+        const trigger = new TriggerCollisionSystem2D.CircleTriggerComponent(playerColliderEntity);
+        world.registerComponent(playerColliderEntity, trigger);
+        
+        const triggerDrawableComponent = new AABBDrawableComponent(playerColliderEntity, "Test\\circle.png");
+        world.registerComponent(playerColliderEntity, triggerDrawableComponent);
+        const transform = playerColliderEntity.getTransform();
+        transform.scale = [trigger.shape.radius, trigger.shape.radius, trigger.shape.radius];
+        transform.rotation = [Math.PI/2.0, 0, Math.PI/4.0];
+
+        const triggerFollowPlayer = new Follower(playerColliderEntity, owner);
+        world.registerComponent(playerColliderEntity, triggerFollowPlayer);
+
+        trigger.triggerListener = {
+            onTriggered(triggededBy: Readonly<TriggerCollisionSystem2D.Component>) {
+                console.log("collided with:" + triggededBy.ownerEntity.getUuid());
+            }
+        }
 
         world.registerComponent(entity, this);
     }
@@ -108,6 +165,46 @@ class Platform extends ScriptSystem.Component
     postUpdate(): void {
 
     }
+}
+
+
+
+function roundAreaOfEffectInitialize(owner: Entity) {
+    const aoeComponent = new TriggerCollisionSystem2D.CircleTriggerComponent(owner);
+    aoeComponent.shape.radius = 3;
+    owner.getWorld().registerComponent(owner, aoeComponent);
+
+    const drawableComponent = new AABBDrawableComponent(owner, "Test\\circle.png");
+    owner.getWorld().registerComponent(owner, drawableComponent);
+
+    const transform = owner.getTransform();
+    transform.scale = [aoeComponent.shape.radius, aoeComponent.shape.radius, aoeComponent.shape.radius];
+    transform.rotation = [Math.PI/2.0, 0, Math.PI/4.0];
+
+    class SineMotionUpdate extends ScriptSystem.Component {
+
+        constructor(owner: Entity) {
+            super(owner);
+
+        }
+        preUpdate(): void {
+            
+        }
+        onUpdate(): void {
+            let dateTime = new Date();
+            var ms = dateTime.getTime();
+            owner.getTransform().position =  vec3.fromValues(Math.sin(ms/1000), 0, 0);
+        }
+        postUpdate(): void {
+            
+        }
+
+    };
+
+    const motion = new SineMotionUpdate(owner);
+    owner.getWorld().registerComponent(owner, motion);
+
+    transform.position = [0, 0, 0.0];
 }
 
 class TestPlayerInitializer extends ScriptSystem.Component
@@ -195,6 +292,9 @@ export class TestWorld extends World {
 
                 const platform = this.createEntity();
                 const playerEntity = this.createEntity();
+                const aoe = this.createEntity();
+                
+                roundAreaOfEffectInitialize(aoe);
 
                 const connectionComponent = new ClientConnectionSystem.Component(playerEntity, regConnection);
                 this.registerComponent(playerEntity, connectionComponent);
@@ -215,6 +315,7 @@ export class TestWorld extends World {
                     this.clientConnectionSystem.removeConnection(connection);
                 });
 
+                
 
             });
         }
