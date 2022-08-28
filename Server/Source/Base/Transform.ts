@@ -44,6 +44,7 @@ export class Transform {
     
     updateTransform() : Readonly<mat4> {
         this._transform = mat4.create();
+        // TODO: Revisit if order of operations is good.
         mat4.scale(this._transform, this._transform, this._scale);
         mat4.rotateX(this._transform, this._transform, this._rotation[0]);
         mat4.rotateY(this._transform, this._transform, this._rotation[1]);

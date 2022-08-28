@@ -5,15 +5,15 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "pwa-node",
+            "type": "node",
             "request": "launch",
             "name": "Launch Program",
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}\\src\\Server\\API\\API.ts",
+            "program": "${workspaceFolder}\\Server\\source\\API\\API.ts",
             "outFiles": [
-                "${workspaceFolder}/build/**/*.js"
+                "${workspaceFolder}\\Server\\build\\**\\*.js"
             ]
         }
     ]

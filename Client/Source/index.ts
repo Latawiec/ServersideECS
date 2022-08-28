@@ -8,6 +8,7 @@ import { DrawSpriteSegmentRequest } from "./DrawSpriteSegmentRequest";
 import { DrawTextureSquareRequest } from "./DrawTextureSquareRequest";
 import { DrawCircleAoeRequest } from "./DrawCircleAoeRequest";
 import PNG from 'png-ts';
+import { DrawRectangleAoeRequest } from "./DrawRectangleAoeRequest";
 
 
 console.log(location.host);
@@ -141,13 +142,15 @@ async function render(world: any) {
                 if (type == 2) {
                     let closedAoeCircle = request as DrawCircleAoeRequest;
                     closedAoeCircle.transform = transform;
-                    console.log(closedAoeCircle);
+                } else
+                if (type == 3) {
+                    let closedAoeRect = request as DrawRectangleAoeRequest;
+                    closedAoeRect.transform = transform;
                 }
                 newToDraw.set(name, request);
                 return;
             } else {
                 console.log("Doesn't have: " + name);
-                console.log(entitiesToDraw);
             }
 
             if (awaitedDrawRequests.has(name))
@@ -195,8 +198,14 @@ async function render(world: any) {
             if (type == 2) {
                 const aoeCircleRequest = new DrawCircleAoeRequest(canvas.glContext);
                 aoeCircleRequest.transform = transform;
-                console.log("here");
                 newToDraw.set(name, aoeCircleRequest);
+                return;
+            } else
+            if (type == 3) {
+                console.log("Got 3");
+                const aoeRectangleRequest = new DrawRectangleAoeRequest(canvas.glContext);
+                aoeRectangleRequest.transform = transform;
+                newToDraw.set(name, aoeRectangleRequest);
                 return;
             }
         }

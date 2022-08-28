@@ -12,7 +12,6 @@ export namespace PhysicsCollisionSystem2D {
     }
 
     export enum Type {
-        Point,
         Circle,
         Rectangle
     };
@@ -78,18 +77,6 @@ export namespace PhysicsCollisionSystem2D {
 
         update() {
             
-        }
-    };
-
-    export class PointCollisionComponent extends Component {
-        private _collisionShape: Shapes.D2.Point = new Shapes.D2.Point();
-
-        get type(): Readonly<Type> {
-            return Type.Point;
-        }
-
-        get shape(): Readonly<Shapes.D2.Point> {
-            return this._collisionShape;
         }
     };
 

@@ -21,7 +21,22 @@ export namespace Collisions {
     }
 
     export namespace D2 {
-        export function CheckRectangleRectangle(rectOne: Readonly<Shapes.D2.Rectangle>, rectTwo: Readonly<Shapes.D2.Rectangle>) : boolean {
+        export class RectangleCollider {
+            position: vec2 = [0, 0];
+            xExtension: vec2 = [1, 0];
+            yExtension: vec2 = [0, 1];
+        };
+
+        export class CircleCollider {
+            position: vec2 = [0, 0];
+            radius: number = 1.0;
+        }
+
+        export class PointCollider {
+            position: vec2 = [0, 0];
+        }
+
+        export function CheckRectangleRectangle(rectOne: Readonly<RectangleCollider>, rectTwo: Readonly<RectangleCollider>) : boolean {
             
             const rectOneDim = {
                 widthVecDecomp: new vec2decomposed(vec2.scale(vec2.create(), rectOne.xExtension, 2)),
@@ -64,43 +79,21 @@ export namespace Collisions {
             return widthOverlap && heightOverlap;
         }
 
-        export function CheckRectangleCircle(rect: Readonly<Shapes.D2.Rectangle>, circle: Readonly<Shapes.D2.Circle>) : boolean {
+        export function CheckRectangleCircle(rect: Readonly<RectangleCollider>, circle: Readonly<CircleCollider>) : boolean {
             const circleToBoxDistance = SDF.RectangleSDF(circle.position, rect.position, rect.xExtension, rect.yExtension);
             return circleToBoxDistance <= circle.radius;
         }
 
-        export function CheckRectanglePoint(rect: Readonly<Shapes.D2.Rectangle>, point: Readonly<Shapes.D2.Point>) : boolean {
+        export function CheckRectanglePoint(rect: Readonly<RectangleCollider>, point: Readonly<PointCollider>) : boolean {
             return SDF.RectangleSDF(point.position, rect.position, rect.xExtension, rect.yExtension) <= 0;
         }
 
-        export function CheckCircleCircle(circleOne: Readonly<Shapes.D2.Circle>, circleTwo: Readonly<Shapes.D2.Circle>) : boolean {
+        export function CheckCircleCircle(circleOne: Readonly<CircleCollider>, circleTwo: Readonly<CircleCollider>) : boolean {
             return vec2.distance(circleOne.position, circleTwo.position) <= circleOne.radius + circleTwo.radius;
         }
 
-        export function CheckCirclePoint(circle: Readonly<Shapes.D2.Circle>, point: Readonly<Shapes.D2.Point>) : boolean {
+        export function CheckCirclePoint(circle: Readonly<CircleCollider>, point: Readonly<PointCollider>) : boolean {
             return SDF.CircleSDF(point.position, circle.position, circle.radius) <= 0;
         }
     }
-
-    export function CheckBoxBox(boxOne: Readonly<Shapes.D3.Box>, boxTwo: Readonly<Shapes.D3.Box>) : boolean {
-        const boxesOffset = vec3.sub(vec3.create(), boxTwo.position, boxOne.position);
-
-        const xExtensionDecomposed = new vec3decomposed(boxOne.xExtension);
-        const yExtensionDecomposed = new vec3decomposed(boxOne.yExtension);
-        const zExtensionDecomposed = new vec3decomposed(boxOne.zExtension);
-
-        const offsetX = vec3.dot(boxesOffset, xExtensionDecomposed.unitVector);
-        const offsetY = vec3.dot(boxesOffset, yExtensionDecomposed.unitVector);
-        const offsetZ = vec3.dot(boxesOffset, zExtensionDecomposed.unitVector);
-
-        // TODO
-
-        return false;
-    }
-
-    export function CheckBoxSphere(box: Readonly<Shapes.D3.Box>, sphere: Readonly<Shapes.D3.Sphere>) : boolean {
-        const sphereToBoxDistance = SDF.BoxSDF(sphere.position, box.position, box.xExtension, box.yExtension, box.zExtension);
-        return sphereToBoxDistance <= sphere.radius;
-    }
-
 }

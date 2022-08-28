@@ -43,6 +43,10 @@ export function vec4tovec3(inVec: Readonly<vec4>): vec3 {
     return vec3.fromValues(inVec[0], inVec[1], inVec[2]);
 }
 
+export function vec3tovec2(inVec: Readonly<vec3>): vec2 {
+    return vec2.fromValues(inVec[0], inVec[1]);
+}
+
 export function reflectVec3(vector: Readonly<vec3>, axis: Readonly<vec3>) : vec3 {
     const axisNorm = vec3.normalize(vec3.create(), axis);
     const projLength = vec3.dot(vector, axisNorm);

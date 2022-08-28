@@ -1,9 +1,11 @@
 import { throws } from "assert";
+import { vec2, vec3, vec4,  mat3, mat4 } from "gl-matrix";
 import { ComponentBase } from "../Base/Component"
 import { Entity } from "../Base/Entity";
 import { SystemBase } from "../Base/System"
 import { Uuid } from "../Base/UuidGenerator"
 import { Collisions } from "../Common/Math/Collisions";
+import { vec3tovec2 } from "../Common/Math/gl-extensions";
 import { Shapes } from "../Common/Math/Shapes"
 
 export namespace TriggerCollisionSystem2D {
@@ -13,7 +15,6 @@ export namespace TriggerCollisionSystem2D {
     }
 
     export enum Type {
-        Point,
         Circle,
         Rectangle,
         Cone
@@ -26,6 +27,7 @@ export namespace TriggerCollisionSystem2D {
         private _ownerEntity: Entity;
         private _isActive: boolean = true;
         private _systemAsignedId: Uuid | undefined = undefined;
+        private _transform: mat4 = mat4.create();
         
         public triggerListener: TriggerListener | undefined;
 
@@ -57,6 +59,14 @@ export namespace TriggerCollisionSystem2D {
 
         set systemAsignedId(value: Uuid | undefined) {
             this._systemAsignedId = value;
+        }
+
+        set transform(newTransform: mat4) {
+            this._transform = newTransform;
+        }
+
+        get transform() : mat4 {
+            return mat4.mul(mat4.create(), this.ownerEntity.getTransform().worldTransform, this._transform);
         }
     }
 
@@ -101,8 +111,6 @@ export namespace TriggerCollisionSystem2D {
 
         private checkCollision(lhs: Readonly<Component>, rhs: Readonly<Component>) : boolean {
             switch (lhs.type) {
-                case Type.Point:
-                    return this.checkPointCollision(lhs as PointTriggerComponent, rhs);
                 case Type.Circle:
                     return this.checkCircleCollision(lhs as CircleTriggerComponent, rhs);
                 case Type.Rectangle:
@@ -114,8 +122,6 @@ export namespace TriggerCollisionSystem2D {
 
         private checkRectangleCollision(rectangle: Readonly<RectangleTriggerComponent>, other: Readonly<Component>) : boolean {
             switch (other.type) {
-                case Type.Point:
-                    return this.checkPointRectangleCollision(other as PointTriggerComponent, rectangle);
                 case Type.Circle:
                     return this.checkCircleRectangleCollision(other as CircleTriggerComponent, rectangle);
                 case Type.Rectangle:
@@ -127,8 +133,6 @@ export namespace TriggerCollisionSystem2D {
 
         private checkCircleCollision(circle: Readonly<CircleTriggerComponent>, other: Readonly<Component>) : boolean {
             switch (other.type) {
-                case Type.Point:
-                    return this.checkPointCircleCollision(other as PointTriggerComponent, circle);
                 case Type.Circle:
                     return this.checkCircleCircleCollision(other as CircleTriggerComponent, circle);
                 case Type.Rectangle:
@@ -138,61 +142,20 @@ export namespace TriggerCollisionSystem2D {
             }
         }
 
-        private checkPointCollision(point: Readonly<PointTriggerComponent>, other: Readonly<Component>) : boolean {
-            switch (other.type) {
-                case Type.Point:
-                    return this.checkPointPointCollision(other as PointTriggerComponent, point);
-                case Type.Circle:
-                    return this.checkPointCircleCollision(point, other as CircleTriggerComponent);
-                case Type.Rectangle:
-                    return this.checkPointRectangleCollision(point, other as RectangleTriggerComponent);
-                case Type.Cone:
-                    throw new Error("Not implemented");
-            }
-        }
-
         // Same Shape
-        private checkPointPointCollision(pointOne: Readonly<PointTriggerComponent>, pointTwo: Readonly<PointTriggerComponent>) : boolean {
-            return false;
-        }
-
         private checkCircleCircleCollision(circleOne: Readonly<CircleTriggerComponent>, circleTwo: Readonly<CircleTriggerComponent>) : boolean {
-            return Collisions.D2.CheckCircleCircle(circleOne.worldTransformedShape, circleTwo.worldTransformedShape);
+            return Collisions.D2.CheckCircleCircle(circleOne.collider, circleTwo.collider);
         }
 
         private checkRectangleRectangleCollision(rectangleOne: Readonly<RectangleTriggerComponent>, rectangleTwo: Readonly<RectangleTriggerComponent>) : boolean {
-            return Collisions.D2.CheckRectangleRectangle(rectangleOne.worldTransformedShape, rectangleTwo.worldTransformedShape);
+            return Collisions.D2.CheckRectangleRectangle(rectangleOne.collider, rectangleTwo.collider);
         }
 
         // Shuffle shapes
-        private checkPointRectangleCollision(point: Readonly<PointTriggerComponent>, rectangle: Readonly<RectangleTriggerComponent>) : boolean {
-            return Collisions.D2.CheckRectanglePoint(rectangle.worldTransformedShape, point.worldTransformedShape)
-        }
-
-        private checkPointCircleCollision(point: Readonly<PointTriggerComponent>, circle: Readonly<CircleTriggerComponent>) : boolean {
-            return Collisions.D2.CheckCirclePoint(circle.worldTransformedShape, point.worldTransformedShape);
-        }
-
         private checkCircleRectangleCollision(circle: Readonly<CircleTriggerComponent>, rectangle: Readonly<RectangleTriggerComponent>) : boolean {
-            return Collisions.D2.CheckRectangleCircle(rectangle.worldTransformedShape, circle.worldTransformedShape);
+            return Collisions.D2.CheckRectangleCircle(rectangle.collider, circle.collider);
         }
 
-    };
-
-    export class PointTriggerComponent extends Component {
-        private _collisionShape: Shapes.D2.Point = new Shapes.D2.Point();
-
-        get type(): Readonly<Type> {
-            return Type.Point;
-        }
-
-        get shape(): Readonly<Shapes.D2.Point> {
-            return this._collisionShape;
-        }
-
-        get worldTransformedShape(): Readonly<Shapes.D2.Point> {
-            return this._collisionShape.transformMat4(this.ownerEntity.getTransform().worldTransform);
-        }
     };
 
     export class CircleTriggerComponent extends Component {
@@ -206,8 +169,15 @@ export namespace TriggerCollisionSystem2D {
             return this._collisionShape;
         }
 
-        get worldTransformedShape(): Readonly<Shapes.D2.Circle> {
-            return this._collisionShape.transformMat4(this.ownerEntity.getTransform().worldTransform);
+        get collider(): Collisions.D2.CircleCollider {
+            // TODO: catche collider descriptions within the component instead of recalculating on every check.
+            const collider = new Collisions.D2.CircleCollider();
+
+            const translation = vec4.transformMat4(vec4.create(), vec4.fromValues(0, 0, 0, 1), this.transform);
+            collider.position = vec2.fromValues(translation[0], translation[2]);
+            collider.radius = this.shape.radius;
+
+            return collider;
         }
     }
 
@@ -218,12 +188,23 @@ export namespace TriggerCollisionSystem2D {
             return Type.Rectangle;
         }
 
-        get shape(): Readonly<Shapes.D2.Rectangle> {
+        get shape(): Shapes.D2.Rectangle {
             return this._collisionShape;
         }
 
-        get worldTransformedShape(): Readonly<Shapes.D2.Rectangle> {
-            return this._collisionShape.transformMat4(this.ownerEntity.getTransform().worldTransform);
+        get collider(): Collisions.D2.RectangleCollider {
+            // TODO: catche collider descriptions within the component instead of recalculating on every check.
+            const collider = new Collisions.D2.RectangleCollider();
+            const translation = vec4.transformMat4(vec4.create(), vec4.fromValues(0, 0, 0, 1), this.transform);
+            collider.position = vec2.fromValues(translation[0], translation[2]);
+
+            const widthExtensionVec = vec4.transformMat4(vec4.create(), vec4.fromValues(this.shape.width, 0, 0, 0), this.transform);
+            const heightExtensionVec = vec4.transformMat4(vec4.create(), vec4.fromValues(0, 0, this.shape.height, 0), this.transform);
+
+            collider.xExtension = vec2.fromValues(widthExtensionVec[0], widthExtensionVec[2]);
+            collider.yExtension = vec2.fromValues(heightExtensionVec[0], heightExtensionVec[2]);
+
+            return collider;
         }
     }
 }

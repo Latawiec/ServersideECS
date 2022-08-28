@@ -1,7 +1,7 @@
 import { World } from "./World"
 import { PlayerInputController } from "../Scripts/Player/PlayerInputController"
 import { Entity } from "../Base/Entity"
-import { AABBDrawableComponent, DrawableAoECircleClosed, DrawingSystem, SpriteTexture } from "../Systems/DrawingSystem";
+import { AABBDrawableComponent, DrawableAoECircleClosed, DrawableAoERectangleClosed, DrawingSystem, SpriteTexture } from "../Systems/DrawingSystem";
 import { ClientConnectionSystem } from "../Systems/ClientConnectionSystem";
 import * as WebSocket from 'websocket'
 import { WorldSerializer } from "../Serialization/Serializer"
@@ -46,9 +46,6 @@ class TestPlayer extends ScriptSystem.Component
         this._movement = new BasicMovement(entity);
         world.registerComponent(entity, this._movement);
 
-
-
-
         const playerColliderEntity = world.createEntity();
         
         const trigger = new TriggerCollisionSystem2D.CircleTriggerComponent(playerColliderEntity);
@@ -76,15 +73,15 @@ class TestPlayer extends ScriptSystem.Component
             onUpdate(): void {
                 const followerWorldPosition = vec4.transformMat4(
                     vec4.create(),
-                    vec3tovec4(this._follower.getTransform().position, true),
+                    vec4.fromValues(0, 0, 0, 1),
                     this._follower.getTransform().worldTransform);
                 const followedWorldPosition = vec4.transformMat4(
                     vec4.create(),
-                    vec3tovec4(this._followed.getTransform().position, true),
+                    vec4.fromValues(0, 0, 0, 1),
                     this._followed.getTransform().worldTransform
                 );
                 const positionDiffWorldSpace = vec4.sub(vec4.create(), followedWorldPosition, followerWorldPosition);
-                const invertFollowerTransform = mat4.invert(mat4.create(), this._follower.getTransform().worldTransform);
+                const invertFollowerTransform = mat4.invert(mat4.create(), this._follower.getTransform().transform);
                 const positionDiffApply = vec4tovec3(vec4.transformMat4(vec4.create(), positionDiffWorldSpace, invertFollowerTransform));
                 vec3.add(this._follower.getTransform().position, this._follower.getTransform().position, positionDiffApply);
                 isCollided = false;
@@ -163,7 +160,7 @@ class Platform extends ScriptSystem.Component
         const transform = this._drawable.transform;
         transform.scale = [7, 7, 7];
         transform.rotation = [Math.PI/2.0, 0, Math.PI/4.0];
-        transform.position = [0, 0, 0.2];
+        entity.getTransform().position = [0, -1.0, 0];
     }
 
     preUpdate(): void {
@@ -203,7 +200,7 @@ function roundAreaOfEffectInitialize(owner: Entity) {
         onUpdate(): void {
             let dateTime = new Date();
             var ms = dateTime.getTime();
-            owner.getTransform().position =  vec3.fromValues(Math.sin(ms/1000), 0, 0);
+            owner.getTransform().position =  vec3.fromValues(-3+3*Math.sin(ms/1000), 0, 0);
         }
         postUpdate(): void {
             
@@ -215,6 +212,49 @@ function roundAreaOfEffectInitialize(owner: Entity) {
     owner.getWorld().registerComponent(owner, motion);
 
     transform.position = [0, 0, 0.0];
+}
+
+function rectAreaOfEffectInitialize(owner: Entity) {
+    const aoeComponent = new TriggerCollisionSystem2D.RectangleTriggerComponent(owner);
+    owner.getWorld().registerComponent(owner, aoeComponent);
+    aoeComponent.shape.width = 1;
+    aoeComponent.shape.height = 1;
+
+    const drawableComponent = new DrawableAoERectangleClosed(owner, aoeComponent.shape.width, aoeComponent.shape.height);
+    owner.getWorld().registerComponent(owner, drawableComponent);
+
+    const transform = drawableComponent.transform;
+    transform.scale = [aoeComponent.shape.width, 0, aoeComponent.shape.height];
+    transform.rotation = [Math.PI/2.0, 0, 0];
+
+    class SineMotionUpdate extends ScriptSystem.Component {
+
+        constructor(owner: Entity) {
+            super(owner);
+
+        }
+        preUpdate(): void {
+            
+        }
+        onUpdate(): void {
+            let dateTime = new Date();
+            var ms = dateTime.getTime();
+            const s = (ms/1000.0) / 5.0;
+            owner.getTransform().position =  vec3.fromValues(1.5, 0, 1.5 + 1.5*Math.sin(Math.PI + ms/1000));
+            //owner.getTransform().rotation = [0, 2.0 * Math.PI * (s - Math.floor(s)), 0];
+        }
+        postUpdate(): void {
+            
+        }
+
+    };
+
+    const motion = new SineMotionUpdate(owner);
+    owner.getWorld().registerComponent(owner, motion);
+
+    owner.getTransform().rotation = [0, Math.PI/4, 0];
+    owner.getTransform().scale = [ 2, 2, 2];
+    owner.getTransform().position = [5, 0, 0]; 
 }
 
 class TestPlayerInitializer extends ScriptSystem.Component
@@ -302,9 +342,11 @@ export class TestWorld extends World {
 
                 const platform = this.createEntity();
                 const playerEntity = this.createEntity();
-                const aoe = this.createEntity();
-                
-                roundAreaOfEffectInitialize(aoe);
+                const aoeCircle = this.createEntity();
+                const aoeRect = this.createEntity();
+
+                roundAreaOfEffectInitialize(aoeCircle);
+                rectAreaOfEffectInitialize(aoeRect);
 
                 const connectionComponent = new ClientConnectionSystem.Component(playerEntity, regConnection);
                 this.registerComponent(playerEntity, connectionComponent);
