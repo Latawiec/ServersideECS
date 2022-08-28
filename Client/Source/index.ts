@@ -6,6 +6,7 @@ import { mat4, vec4, vec3, vec2 } from "gl-matrix";
 import { send } from "process";
 import { DrawSpriteSegmentRequest } from "./DrawSpriteSegmentRequest";
 import { DrawTextureSquareRequest } from "./DrawTextureSquareRequest";
+import { DrawCircleAoeRequest } from "./DrawCircleAoeRequest";
 import PNG from 'png-ts';
 
 
@@ -99,17 +100,24 @@ const sleep = async (ms: number) => new Promise(r => setTimeout(r, ms));
 var entitiesToDraw = new Map<string, DrawRequest>();
 var awaitedDrawRequests = new Map<string, DrawRequest | undefined>();
 
+// Test Alpha Blend.
+canvas.glContext.enable(canvas.glContext.BLEND);
+canvas.glContext.blendFunc(canvas.glContext.SRC_ALPHA, canvas.glContext.ONE_MINUS_SRC_ALPHA);
+
 async function render(world: any) {
 
     // We'll be swaping DrawRequests and asigning to currently existing names lol. Kinda makes it easier to implement.
     const newToDraw = new Map<string, DrawRequest>();
     world.entities?.forEach((entity: any) => {
         const name: string = entity.name;
-        const transform: mat4 = entity.components.transform;
+        var transform: mat4 = entity.components.transform;
 
         if (entity.components.drawing !== undefined) {
             let request: DrawRequest;
             const drawComponent = entity.components.drawing;
+            if (drawComponent.transform) {
+                transform = drawComponent.transform;
+            }
             const assetPaths = drawComponent.assetPaths as Array<string>;
             const type: number = entity.components.drawing?.type;
 
@@ -117,14 +125,23 @@ async function render(world: any) {
             {
                 const request = entitiesToDraw.get(name)!;
                 if (type == 0) {
+                    // Fix this "any"
                     let square = request as any;
                     square.transform = transform;
+                    if (drawComponent.color != undefined) {
+                        square.color = drawComponent.color;
+                    }
                 } else
                 if (type == 1) { 
                     let spriteRequest = request as DrawSpriteSegmentRequest;
                     const spriteSelect = entity.components.drawing!.selectedSegment;
                     spriteRequest.transform = transform;
                     spriteRequest.spriteSelect = vec2.fromValues(spriteSelect[0], spriteSelect[1]);
+                } else 
+                if (type == 2) {
+                    let closedAoeCircle = request as DrawCircleAoeRequest;
+                    closedAoeCircle.transform = transform;
+                    console.log(closedAoeCircle);
                 }
                 newToDraw.set(name, request);
                 return;
@@ -174,6 +191,13 @@ async function render(world: any) {
                     });
                     return;
                 }
+            } else 
+            if (type == 2) {
+                const aoeCircleRequest = new DrawCircleAoeRequest(canvas.glContext);
+                aoeCircleRequest.transform = transform;
+                console.log("here");
+                newToDraw.set(name, aoeCircleRequest);
+                return;
             }
         }
     });

@@ -117,6 +117,7 @@ export class World {
         this._scriptSystem.onUpdate();
         this._triggerCollisionSystem2D.update();
         this._scriptSystem.postUpdate();
+        this._drawableSystem.update();
     }
 
     updateWorldTransforms(entity: Readonly<Entity>, parentTransform: Readonly<mat4> = mat4.create()) {

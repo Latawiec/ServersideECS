@@ -1,7 +1,7 @@
 import { World } from "./World"
 import { PlayerInputController } from "../Scripts/Player/PlayerInputController"
 import { Entity } from "../Base/Entity"
-import { AABBDrawableComponent, DrawingSystem, SpriteTexture } from "../Systems/DrawingSystem";
+import { AABBDrawableComponent, DrawableAoECircleClosed, DrawingSystem, SpriteTexture } from "../Systems/DrawingSystem";
 import { ClientConnectionSystem } from "../Systems/ClientConnectionSystem";
 import * as WebSocket from 'websocket'
 import { WorldSerializer } from "../Serialization/Serializer"
@@ -46,6 +46,21 @@ class TestPlayer extends ScriptSystem.Component
         this._movement = new BasicMovement(entity);
         world.registerComponent(entity, this._movement);
 
+
+
+
+        const playerColliderEntity = world.createEntity();
+        
+        const trigger = new TriggerCollisionSystem2D.CircleTriggerComponent(playerColliderEntity);
+        world.registerComponent(playerColliderEntity, trigger);
+        
+        const triggerDrawableComponent = new AABBDrawableComponent(playerColliderEntity, "Test\\circle.png");
+        world.registerComponent(playerColliderEntity, triggerDrawableComponent);
+        const transform = playerColliderEntity.getTransform();
+        transform.scale = [trigger.shape.radius, trigger.shape.radius, trigger.shape.radius];
+        transform.rotation = [Math.PI/2.0, 0, Math.PI/4.0];
+
+        var isCollided = false;
         class Follower extends ScriptSystem.Component {
             private _followed;
             private _follower;
@@ -72,30 +87,24 @@ class TestPlayer extends ScriptSystem.Component
                 const invertFollowerTransform = mat4.invert(mat4.create(), this._follower.getTransform().worldTransform);
                 const positionDiffApply = vec4tovec3(vec4.transformMat4(vec4.create(), positionDiffWorldSpace, invertFollowerTransform));
                 vec3.add(this._follower.getTransform().position, this._follower.getTransform().position, positionDiffApply);
+                isCollided = false;
             }
             postUpdate(): void {
-                
+                if (isCollided) {
+                    triggerDrawableComponent.color = [1, 0, 0, 1];
+                } else {
+                    triggerDrawableComponent.color = [1, 1, 1, 1];
+                }
             }
 
         };
-
-        const playerColliderEntity = world.createEntity();
-        
-        const trigger = new TriggerCollisionSystem2D.CircleTriggerComponent(playerColliderEntity);
-        world.registerComponent(playerColliderEntity, trigger);
-        
-        const triggerDrawableComponent = new AABBDrawableComponent(playerColliderEntity, "Test\\circle.png");
-        world.registerComponent(playerColliderEntity, triggerDrawableComponent);
-        const transform = playerColliderEntity.getTransform();
-        transform.scale = [trigger.shape.radius, trigger.shape.radius, trigger.shape.radius];
-        transform.rotation = [Math.PI/2.0, 0, Math.PI/4.0];
 
         const triggerFollowPlayer = new Follower(playerColliderEntity, owner);
         world.registerComponent(playerColliderEntity, triggerFollowPlayer);
 
         trigger.triggerListener = {
             onTriggered(triggededBy: Readonly<TriggerCollisionSystem2D.Component>) {
-                console.log("collided with:" + triggededBy.ownerEntity.getUuid());
+                isCollided = true;
             }
         }
 
@@ -148,9 +157,10 @@ class Platform extends ScriptSystem.Component
         const world = entity.getWorld();
 
         this._drawable = new AABBDrawableComponent(entity, "");
+        this._drawable.color = [0.2, 0.5, 0.5, 1];
         world.registerComponent(entity, this._drawable);
 
-        const transform = this.ownerEntity.getTransform();
+        const transform = this._drawable.transform;
         transform.scale = [7, 7, 7];
         transform.rotation = [Math.PI/2.0, 0, Math.PI/4.0];
         transform.position = [0, 0, 0.2];
@@ -171,15 +181,15 @@ class Platform extends ScriptSystem.Component
 
 function roundAreaOfEffectInitialize(owner: Entity) {
     const aoeComponent = new TriggerCollisionSystem2D.CircleTriggerComponent(owner);
-    aoeComponent.shape.radius = 3;
     owner.getWorld().registerComponent(owner, aoeComponent);
+    aoeComponent.shape.radius = 3;
 
-    const drawableComponent = new AABBDrawableComponent(owner, "Test\\circle.png");
+    const drawableComponent = new DrawableAoECircleClosed(owner, aoeComponent.shape.radius);
     owner.getWorld().registerComponent(owner, drawableComponent);
 
-    const transform = owner.getTransform();
+    const transform = drawableComponent.transform;
     transform.scale = [aoeComponent.shape.radius, aoeComponent.shape.radius, aoeComponent.shape.radius];
-    transform.rotation = [Math.PI/2.0, 0, Math.PI/4.0];
+    transform.rotation = [Math.PI/2.0, 0, 0];
 
     class SineMotionUpdate extends ScriptSystem.Component {
 

@@ -78,6 +78,15 @@ export class DrawTextureSquareRequest implements DrawRequest {
         glContext.texParameteri(glContext.TEXTURE_2D, glContext.TEXTURE_WRAP_T, glContext.CLAMP_TO_EDGE);
     }
 
+    set color(color: Readonly<vec4>) {
+        this._color = vec4.copy(vec4.create(), color);
+    }
+
+    get color() : vec4 {
+        return this._color;
+    }
+
+
     draw(camera: Readonly<Camera>): void {
         const gl = this._gl;
         

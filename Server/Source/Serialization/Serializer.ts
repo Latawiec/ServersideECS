@@ -1,6 +1,6 @@
 import { World } from "../World/World"
 import { Entity } from "../Base/Entity"
-import { AABBDrawableComponent, DrawingSystem, SpriteTexture } from "../Systems/DrawingSystem";
+import { AABBDrawableComponent, DrawableAoECircleClosed, DrawableAoERectangleClosed, DrawingSystem, SpriteTexture } from "../Systems/DrawingSystem";
 import { throws } from "assert";
 import { Recoverable } from "repl";
 import { stringify } from "querystring";
@@ -53,6 +53,7 @@ export class WorldSerializer
         const type = component.getType();
         let result : any = {};
         result.type = type;
+        result.transform = component.transform.worldTransform;
 
         switch (type)
         {
@@ -65,6 +66,16 @@ export class WorldSerializer
             case DrawingSystem.Types.AABBRect:
                 const AABBComponent = component as AABBDrawableComponent;
                 result.assetPaths = component.getAssetsPaths();
+                result.color = AABBComponent.color;
+                break;
+            case DrawingSystem.Types.AOE_CircleClosed:
+                const AoECircleComponent = component as DrawableAoECircleClosed;
+                result.radius = AoECircleComponent.radius;
+                break;
+            case DrawingSystem.Types.AOE_RectangleClosed:
+                const AoERectangleComponent = component as DrawableAoERectangleClosed;
+                result.width = AoERectangleComponent.width;
+                result.height = AoERectangleComponent.height;
                 break;
             default:
                 assert(false, "Can't convert Drawable type: " + type);

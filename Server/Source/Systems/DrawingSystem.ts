@@ -4,13 +4,19 @@ import { Entity } from "../Base/Entity";
 import { SystemBase } from "../Base/System"
 import { Uuid } from "../Base/UuidGenerator"
 import { assert } from "console";
+import { vec4 } from "gl-matrix";
+import { Transform } from "../Base/Transform";
 
 
 export namespace DrawingSystem {
 
     export enum Types {
         AABBRect,
-        SpriteTexture
+        SpriteTexture,
+
+        AOE_CircleClosed,
+        AOE_RectangleClosed,
+        AOE_CircleOpen
     }
 
     export abstract class Component implements ComponentBase {
@@ -21,10 +27,12 @@ export namespace DrawingSystem {
         private _ownerEntity: Entity;
         private _isActive: boolean = true;
         private _systemAsignedId: Uuid | undefined = undefined;
+        private _transform: Transform;
         
         constructor(owner: Entity) {
             this._assetsPaths = [];
             this._ownerEntity = owner;
+            this._transform = new Transform();
         }
     
         get isActive(): boolean {
@@ -52,6 +60,10 @@ export namespace DrawingSystem {
         getAssetsPaths(): string[] {
             return this._assetsPaths;
         }
+
+        get transform(): Transform {
+            return this._transform;
+        }
     
         protected get assetsPaths(): string[] {
             return this._assetsPaths;
@@ -76,6 +88,14 @@ export namespace DrawingSystem {
             this._unregisterComponent(component);
             return component;
         }
+
+        update() {
+            for(const componentEntry of this._getComponentsMap()) 
+            {
+                const component = componentEntry[1] as DrawingSystem.Component;
+                component.transform.updateWorldTransform(component.ownerEntity.getTransform().worldTransform);
+            }
+        }
     }
 
 };
@@ -88,6 +108,7 @@ export class AABBDrawableComponent extends DrawingSystem.Component {
     private _width: number = 1.0;
     private _height: number = 1.0;
     private _assetPath: string;
+    private _color: vec4 = [0, 0, 0, 0];
 
     constructor(entity: Entity, texturePath: string) {
         super(entity);
@@ -97,6 +118,14 @@ export class AABBDrawableComponent extends DrawingSystem.Component {
 
     getType(): DrawingSystem.Types {
         return DrawingSystem.Types.AABBRect;
+    }
+
+    get color(): vec4 {
+        return this._color;
+    }
+
+    set color(color: vec4) {
+        this._color = color;
     }
 }
 
@@ -140,6 +169,48 @@ export class SpriteTexture extends AABBDrawableComponent {
     set selectedHeightSegment(newHeightSegment: number) {
         assert(newHeightSegment < this._heightSegments, "Selected segment exceeding defined limits.");
         this._selectedHeightSegment = newHeightSegment;
+    }
+}
+
+export class DrawableAoECircleClosed extends DrawingSystem.Component {
+
+    private _radius: number = 1;
+
+    constructor(entity: Entity, radius: number) {
+        super(entity);
+        this._radius = radius;
+    }
+
+    getType(): DrawingSystem.Types {
+        return DrawingSystem.Types.AOE_CircleClosed;
+    }
+
+    get radius(): number {
+        return this._radius;
+    }
+}
+
+export class DrawableAoERectangleClosed extends DrawingSystem.Component {
+    
+    private _width: number = 1;
+    private _hegiht: number = 1;
+
+    constructor(entity: Entity, width: number, height: number) {
+        super(entity);
+        this._width = width;
+        this._hegiht = height;
+    }
+
+    getType(): DrawingSystem.Types {
+        return DrawingSystem.Types.AOE_RectangleClosed;
+    }
+
+    get width() {
+        return this._width;
+    }
+
+    get height() {
+        return this._hegiht;
     }
 }
 
