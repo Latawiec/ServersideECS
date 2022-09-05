@@ -13,6 +13,7 @@ import { vec2, vec4, mat4, vec3 } from "gl-matrix"
 import { TriggerCollisionSystem2D } from "../Systems/TriggerCollisionSystem2D";
 import { Transform } from "stream";
 import { vec3tovec4, vec4tovec3, vec3decomposed } from "../Common/Math/gl-extensions";
+import { BlockingCollisionSystem2D } from "../Systems/BlockingCollisionSystem2D";
 
 
 class TestPlayer extends ScriptSystem.Component
@@ -50,6 +51,10 @@ class TestPlayer extends ScriptSystem.Component
         
         const trigger = new TriggerCollisionSystem2D.CircleTriggerComponent(playerColliderEntity);
         world.registerComponent(playerColliderEntity, trigger);
+
+        const blocking = new BlockingCollisionSystem2D.CircleCollisionComponent(owner);
+        blocking.shape.radius = 1.0;
+        world.registerComponent(owner, blocking);
         
         const triggerDrawableComponent = new AABBDrawableComponent(playerColliderEntity, "Test\\circle.png");
         world.registerComponent(playerColliderEntity, triggerDrawableComponent);
@@ -217,7 +222,7 @@ function roundAreaOfEffectInitialize(owner: Entity) {
 function rectAreaOfEffectInitialize(owner: Entity) {
     const aoeComponent = new TriggerCollisionSystem2D.RectangleTriggerComponent(owner);
     owner.getWorld().registerComponent(owner, aoeComponent);
-    aoeComponent.shape.width = 1;
+    aoeComponent.shape.width = 2;
     aoeComponent.shape.height = 1;
 
     const drawableComponent = new DrawableAoERectangleClosed(owner, aoeComponent.shape.width, aoeComponent.shape.height);
@@ -255,6 +260,16 @@ function rectAreaOfEffectInitialize(owner: Entity) {
     owner.getTransform().rotation = [0, Math.PI/4, 0];
     owner.getTransform().scale = [ 2, 2, 2];
     owner.getTransform().position = [5, 0, 0]; 
+}
+
+function blockingPlaneInitialize(owner: Entity) {
+    for (var i=0; i<4; ++i) {
+        const blockingComponent = new BlockingCollisionSystem2D.PlaneCollisionComponent(owner, true);
+        blockingComponent.shape.normal = vec2.fromValues(1.0, 0);
+        mat4.rotateY(blockingComponent.transform, blockingComponent.transform,  i * Math.PI/2 + Math.PI/4);        
+        mat4.translate(blockingComponent.transform, blockingComponent.transform, vec3.fromValues(-7.0, 0, 0));
+        owner.getWorld().registerComponent(owner, blockingComponent)
+    }
 }
 
 class TestPlayerInitializer extends ScriptSystem.Component
@@ -345,8 +360,11 @@ export class TestWorld extends World {
                 const aoeCircle = this.createEntity();
                 const aoeRect = this.createEntity();
 
+                const blockPlane = this.createEntity();
+
                 roundAreaOfEffectInitialize(aoeCircle);
                 rectAreaOfEffectInitialize(aoeRect);
+                blockingPlaneInitialize(blockPlane);
 
                 const connectionComponent = new ClientConnectionSystem.Component(playerEntity, regConnection);
                 this.registerComponent(playerEntity, connectionComponent);

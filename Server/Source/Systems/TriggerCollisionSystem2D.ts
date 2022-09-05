@@ -66,6 +66,10 @@ export namespace TriggerCollisionSystem2D {
         }
 
         get transform() : mat4 {
+            return this._transform;
+        }
+
+        get worldTransform() : mat4 {
             return mat4.mul(mat4.create(), this.ownerEntity.getTransform().worldTransform, this._transform);
         }
     }
@@ -173,7 +177,7 @@ export namespace TriggerCollisionSystem2D {
             // TODO: catche collider descriptions within the component instead of recalculating on every check.
             const collider = new Collisions.D2.CircleCollider();
 
-            const translation = vec4.transformMat4(vec4.create(), vec4.fromValues(0, 0, 0, 1), this.transform);
+            const translation = vec4.transformMat4(vec4.create(), vec4.fromValues(0, 0, 0, 1), this.worldTransform);
             collider.position = vec2.fromValues(translation[0], translation[2]);
             collider.radius = this.shape.radius;
 
@@ -195,11 +199,11 @@ export namespace TriggerCollisionSystem2D {
         get collider(): Collisions.D2.RectangleCollider {
             // TODO: catche collider descriptions within the component instead of recalculating on every check.
             const collider = new Collisions.D2.RectangleCollider();
-            const translation = vec4.transformMat4(vec4.create(), vec4.fromValues(0, 0, 0, 1), this.transform);
+            const translation = vec4.transformMat4(vec4.create(), vec4.fromValues(0, 0, 0, 1), this.worldTransform);
             collider.position = vec2.fromValues(translation[0], translation[2]);
 
-            const widthExtensionVec = vec4.transformMat4(vec4.create(), vec4.fromValues(this.shape.width, 0, 0, 0), this.transform);
-            const heightExtensionVec = vec4.transformMat4(vec4.create(), vec4.fromValues(0, 0, this.shape.height, 0), this.transform);
+            const widthExtensionVec = vec4.transformMat4(vec4.create(), vec4.fromValues(this.shape.width, 0, 0, 0), this.worldTransform);
+            const heightExtensionVec = vec4.transformMat4(vec4.create(), vec4.fromValues(0, 0, this.shape.height, 0), this.worldTransform);
 
             collider.xExtension = vec2.fromValues(widthExtensionVec[0], widthExtensionVec[2]);
             collider.yExtension = vec2.fromValues(heightExtensionVec[0], heightExtensionVec[2]);

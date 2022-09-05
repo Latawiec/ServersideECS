@@ -39,7 +39,7 @@ export class PerspectiveCamera implements Camera {
 
     get viewTransform(): mat4 {
         const viewTransform  = mat4.create();
-        mat4.lookAt(viewTransform, vec3.fromValues(0, 10, -8), vec3.fromValues(0, 0, 0,), vec3.fromValues(0, 1, 0));
+        mat4.lookAt(viewTransform, vec3.fromValues(0, 18, -7), vec3.fromValues(0, 0, 0,), vec3.fromValues(0, 1, 0));
 
         return viewTransform;
     }

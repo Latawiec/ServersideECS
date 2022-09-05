@@ -36,6 +36,18 @@ export namespace Collisions {
             position: vec2 = [0, 0];
         }
 
+        export class PlaneCollider {
+            normal: vec2 = [1, 0];
+            distance: number = 0.0;
+        }
+
+        export function CheckCirclePlane(circle: Readonly<CircleCollider>, plane: Readonly<PlaneCollider>) : boolean {
+            const circlePosPlaneNormalCast = vec2.dot(circle.position, plane.normal);
+
+
+            return circle.radius <= plane.distance;
+        }
+
         export function CheckRectangleRectangle(rectOne: Readonly<RectangleCollider>, rectTwo: Readonly<RectangleCollider>) : boolean {
             
             const rectOneDim = {
@@ -94,6 +106,30 @@ export namespace Collisions {
 
         export function CheckCirclePoint(circle: Readonly<CircleCollider>, point: Readonly<PointCollider>) : boolean {
             return SDF.CircleSDF(point.position, circle.position, circle.radius) <= 0;
+        }
+
+// Measure actual distance vector
+        export function CircleCircleDistance(fromCircle: Readonly<CircleCollider>, targetCircle: Readonly<CircleCollider>) : vec2decomposed {
+            const distanceVector = vec2.sub(vec2.create(), targetCircle.position, fromCircle.position);
+            const distanceDecomposed = new vec2decomposed(distanceVector)
+            distanceDecomposed.length -= fromCircle.radius;
+            distanceDecomposed.length -= targetCircle.radius;
+
+            return distanceDecomposed;
+        }
+
+        export function PlaneCircleDistance(fromPlane: Readonly<PlaneCollider>, targetCircle: Readonly<CircleCollider>) : vec2decomposed {
+            const planeClosestCirclePos = vec2.add(vec2.create(), targetCircle.position, vec2.scale(vec2.create(), fromPlane.normal, targetCircle.radius));
+
+            const planeClosestCirclePosOnPlaneNormal = vec2.dot(planeClosestCirclePos, fromPlane.normal);
+            const distance = planeClosestCirclePosOnPlaneNormal - fromPlane.distance;
+            
+            return new vec2decomposed(fromPlane.normal, distance);
+        }
+
+        export function CirclePlaneDistance(fromCircle: Readonly<CircleCollider>, targetPlane: Readonly<PlaneCollider>) : vec2decomposed {
+            const planeToCircle = PlaneCircleDistance(targetPlane, fromCircle);
+            return new vec2decomposed(planeToCircle.unitVector, -planeToCircle.length);
         }
     }
 }

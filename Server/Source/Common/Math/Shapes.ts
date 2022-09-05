@@ -23,6 +23,11 @@ export namespace Shapes {
         export class Circle implements Shape {
             radius : number = 1.0;
         };
+
+        export class Plane implements Shape {
+            normal : vec2 = [1.0, 0.0];
+            distance : number = 0.0;
+        }
     };
 
     export namespace D3 {

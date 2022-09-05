@@ -12,9 +12,13 @@ export class vec3decomposed {
 };
 
 export class vec2decomposed {
-    constructor(vector: Readonly<vec2>) {
+    constructor(vector: Readonly<vec2>, length: number | undefined = undefined) {
         this.unitVector = vec2.normalize(vec2.create(), vector);
-        this.length = vec2.length(vector);
+        if (length !== undefined) {
+            this.length = length;
+        } else {
+            this.length = vec2.length(vector);
+        }
     }
 
     get vec2() : vec2 {
