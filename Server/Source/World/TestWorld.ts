@@ -270,6 +270,11 @@ function blockingPlaneInitialize(owner: Entity) {
         mat4.translate(blockingComponent.transform, blockingComponent.transform, vec3.fromValues(-7.0, 0, 0));
         owner.getWorld().registerComponent(owner, blockingComponent)
     }
+
+    const blockingDome = new BlockingCollisionSystem2D.DomeCollisionComponent(owner, true);
+    blockingDome.shape.radius = 5;
+    mat4.translate(blockingDome.transform, blockingDome.transform, vec3.fromValues(-3, 0, 0));
+    owner.getWorld().registerComponent(owner, blockingDome);
 }
 
 class TestPlayerInitializer extends ScriptSystem.Component
