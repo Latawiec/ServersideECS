@@ -21,21 +21,17 @@ export class World {
     private _blockingCollisionSystem2D: BlockingCollisionSystem2D.System;
     private _assetManager: AssetManager.AssetManager;
 
-    constructor() {
+    constructor(worldAssets: Readonly<string>) {
         this._entityUuidGenerator = new UuidGenerator();
         this._scriptSystem = new ScriptSystem.System();
         this._drawableSystem = new DrawingSystem.System();
         this._clientConnectionSystem = new ClientConnectionSystem.System();
         this._triggerCollisionSystem2D = new TriggerCollisionSystem2D.System();
         this._blockingCollisionSystem2D = new BlockingCollisionSystem2D.System();
-        this._assetManager = new AssetManager.AssetManager("");
+        this._assetManager = new AssetManager.AssetManager(worldAssets);
 
         this._rootNode = new Entity(this, undefined, this._entityUuidGenerator.getNext());
         this._entities = [ this._rootNode ];
-    }
-
-    protected setAssetPath(assetPath: Readonly<string>) {
-        this._assetManager = new AssetManager.AssetManager(assetPath);
     }
 
     createEntity(parent?: Readonly<Entity>): Entity {
@@ -112,6 +108,10 @@ export class World {
 
     getAsset(assetPath: Readonly<string>, onSuccess: (asset: AssetManager.Asset)=>void, onError: (error: AssetManager.AssetError)=>void ): any {
         this._assetManager.getAsset(assetPath, onSuccess, onError);
+    }
+
+    bindAsset(assetPath: Readonly<string>) : AssetManager.AssetBinding {
+        return this._assetManager.bindAsset(assetPath);
     }
 
     getRoot(): Readonly<Entity> {

@@ -3,9 +3,9 @@ import * as WebSocket from 'websocket'
 import express from 'express'
 import * as path from 'path'
 
-import { TestWorld } from "../World/TestWorld"
-import { WorldSerializer } from "../Serialization/Serializer"
-import { World } from '../World/World'
+import { TestWorld } from "@worlds/TestWorld/TestWorld"
+import { WorldSerializer } from "../Core/Serialization/Serializer"
+import { World } from '../Core/World/World'
 import { send } from 'process'
 
 const app = express();

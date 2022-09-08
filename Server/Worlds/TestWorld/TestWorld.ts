@@ -1,19 +1,18 @@
-import { World } from "./World"
-import { PlayerInputController } from "../Scripts/Player/PlayerInputController"
-import { Entity } from "../Base/Entity"
-import { AABBDrawableComponent, DrawableAoECircleClosed, DrawableAoERectangleClosed, DrawingSystem, SpriteTexture } from "../Systems/DrawingSystem";
-import { ClientConnectionSystem } from "../Systems/ClientConnectionSystem";
-import * as WebSocket from 'websocket'
-import { WorldSerializer } from "../Serialization/Serializer"
-import { ScriptSystem } from "../Systems/ScriptSystem";
-import { PlayerIdentity } from "../Scripts/Player/PlayerIdentity";
-import { BasicMovement } from "../Scripts/Player/BasicMovement";
-import { throws } from "assert";
+import { World } from "@core/World/World"
+import { PlayerInputController } from "@core/Scripts/Player/PlayerInputController"
+import { Entity } from "@core/Base/Entity"
+import { AABBDrawableComponent, DrawableAoECircleClosed, DrawableAoERectangleClosed, DrawingSystem, SpriteTexture } from "@core/Systems/DrawingSystem";
+import { ClientConnectionSystem } from "@core/Systems/ClientConnectionSystem";
+import { WorldSerializer } from "@core/Serialization/Serializer"
+import { ScriptSystem } from "@core/Systems/ScriptSystem";
+import { PlayerIdentity } from "@core/Scripts/Player/PlayerIdentity";
+import { BasicMovement } from "@core/Scripts/Player/BasicMovement";
+import { TriggerCollisionSystem2D } from "@core/Systems/TriggerCollisionSystem2D";
+import { vec3tovec4, vec4tovec3, vec3decomposed } from "@core/Common/Math/gl-extensions";
+import { BlockingCollisionSystem2D } from "@core/Systems/BlockingCollisionSystem2D";
+
 import { vec2, vec4, mat4, vec3 } from "gl-matrix"
-import { TriggerCollisionSystem2D } from "../Systems/TriggerCollisionSystem2D";
-import { Transform } from "stream";
-import { vec3tovec4, vec4tovec3, vec3decomposed } from "../Common/Math/gl-extensions";
-import { BlockingCollisionSystem2D } from "../Systems/BlockingCollisionSystem2D";
+import * as WebSocket from 'websocket'
 
 
 class TestPlayer extends ScriptSystem.Component
@@ -35,7 +34,7 @@ class TestPlayer extends ScriptSystem.Component
         const entity = this.ownerEntity;
         const world = entity.getWorld();
 
-        this._drawable = new SpriteTexture(entity,"WOL\\RedMage.png", 2, 2);
+        this._drawable = new SpriteTexture(entity,"Common\\WOL\\RedMage.png", 2, 2);
         world.registerComponent(entity, this._drawable);
 
         this._playerInputController = new PlayerInputController(entity);
@@ -56,7 +55,7 @@ class TestPlayer extends ScriptSystem.Component
         blocking.shape.radius = 1.0;
         world.registerComponent(owner, blocking);
         
-        const triggerDrawableComponent = new AABBDrawableComponent(playerColliderEntity, "Test\\circle.png");
+        const triggerDrawableComponent = new AABBDrawableComponent(playerColliderEntity, "Common\\Test\\circle.png");
         world.registerComponent(playerColliderEntity, triggerDrawableComponent);
         const transform = playerColliderEntity.getTransform();
         transform.scale = [trigger.shape.radius, trigger.shape.radius, trigger.shape.radius];
@@ -344,8 +343,7 @@ export class TestWorld extends World {
 
     constructor(wsServer: WebSocket.server)
     {
-        super()
-        this.setAssetPath("D:\\Programming\\FFXIVSavagePlayground\\Server\\Assets");
+        super("D:\\Programming\\FFXIVSavagePlayground\\Server\\Assets\\Worlds\\TestWorld")
         // 
         {
             wsServer.on('request', (req) => {
