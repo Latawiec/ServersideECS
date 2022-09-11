@@ -1,12 +1,26 @@
 {
   "dependencies": {
     "@types/node": "^17.0.23",
+    "@types/unzipper": "^0.10.5",
     "assert": "^2.0.0",
+    "browserify": "^17.0.0",
+    "browserify-fs": "^1.0.0",
+    "browserify-zlib": "^0.2.0",
+    "buffer": "^6.0.3",
+    "constants-browserify": "^1.0.0",
+    "fs": "^0.0.1-security",
     "gl-matrix": "^3.4.3",
+    "memfs": "^3.4.7",
     "node": "^17.7.2",
+    "path": "^0.12.7",
+    "path-browserify": "^1.0.1",
     "png-ts": "^0.0.3",
     "pngjs": "^6.0.0",
-    "zlib": "^1.0.5"
+    "readable-stream": "^4.1.0",
+    "stream": "^0.0.2",
+    "stream-browserify": "^3.0.0",
+    "unzipper": "^0.10.11",
+    "url": "^0.11.0"
   },
   "devDependencies": {
     "process": "^0.11.10",

@@ -30,6 +30,23 @@
 				"Build Client"
 			],
 			"label": "Build and Pack Client"
+		},
+		{
+			"type": "process",
+			"command": "7z.exe",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "none",
+			"args": [
+				"a",
+				"${workspaceFolder}\\Package\\TestWorld.zip",
+				"${workspaceFolder}\\Assets\\Worlds\\TestWorld"
+			],
+			"label": "Package TestWorld"
 		}
 	]
 }

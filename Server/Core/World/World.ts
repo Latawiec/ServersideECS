@@ -114,6 +114,10 @@ export class World {
         return this._assetManager.bindAsset(assetPath);
     }
 
+    get assetManager(): Readonly<AssetManager.AssetManager> {
+        return this._assetManager
+    }
+
     getRoot(): Readonly<Entity> {
         return this._rootNode
     }

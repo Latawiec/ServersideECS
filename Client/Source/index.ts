@@ -9,22 +9,78 @@ import { DrawTextureSquareRequest } from "./DrawTextureSquareRequest";
 import { DrawCircleAoeRequest } from "./DrawCircleAoeRequest";
 import PNG from 'png-ts';
 import { DrawRectangleAoeRequest } from "./DrawRectangleAoeRequest";
+import memfs from 'memfs';
+import unzipper from "unzipper"
+import path from "path"
+import * as fs from "fs"
 
+const {
+    Readable,
+    Writable,
+    Transform,
+    Duplex,
+    pipeline,
+    finished
+  } = require('readable-stream')
 
 console.log(location.host);
 const ws = new WebSocket('ws://' + location.host);
 
-function getAsset(assetPath: string, onReceive: (data: Readonly<Uint8Array>) => void)
-{
+const assetsCacheFs = memfs.createFsFromVolume(new memfs.Volume());
+
+function fetchAssets() {
     var xmlHttp = new XMLHttpRequest();
-    xmlHttp.open( "GET", "asset?path=" + assetPath, true );
+    xmlHttp.open( "GET", "worldAssets", true );
     xmlHttp.responseType = "arraybuffer";
     xmlHttp.onload = function() {
         var arrayBuffer = xmlHttp.response;
-        var byteArray = new Uint8Array(arrayBuffer);
-        onReceive(byteArray);
+        var stream = new Duplex();
+        stream.push(new Uint8Array(arrayBuffer));
+        stream.push(null);
+        stream
+        .pipe(unzipper.Parse())
+        .on('entry', function(entry: any) {
+            // Cut off the .zip file name.
+            const relativePath = entry.path.split(path.sep).slice(1).join(path.sep);
+            if (relativePath !== '') {
+                if (entry.type === 'Directory') {
+                    assetsCacheFs.mkdirSync(relativePath);
+                }
+                if (entry.type === 'File') {
+                    (entry.buffer() as Promise<Buffer>).then((buffer) => {
+                        assetsCacheFs.writeFileSync(relativePath, buffer);
+                        console.log('File: ' + relativePath);
+                    });
+                }    
+            }
+            entry.autodrain();
+        });
     }
     xmlHttp.send(null);
+}
+
+function getAsset(assetPath: string, onReceive: (data: Readonly<Uint8Array>) => void)
+{
+    assetsCacheFs.readFile(assetPath, (err, data) =>{
+        if (err) {
+            console.log("Can't read file: ", normPath)
+            console.log(err)
+            return;
+        }
+
+        if (data) {
+            onReceive(new Uint8Array(data as Buffer))
+        }
+    })
+    // var xmlHttp = new XMLHttpRequest();
+    // xmlHttp.open( "GET", "asset?path=" + assetPath, true );
+    // xmlHttp.responseType = "arraybuffer";
+    // xmlHttp.onload = function() {
+    //     var arrayBuffer = xmlHttp.response;
+    //     var byteArray = new Uint8Array(arrayBuffer);
+    //     onReceive(byteArray);
+    // }
+    // xmlHttp.send(null);
 }
 
 class Image {
@@ -49,6 +105,7 @@ function pngDecode(data: Readonly<Uint8Array>) : Image
 
 ws.onopen = function() {
     console.log('WebSocketClient Connected');
+    fetchAssets()
 }
 
 document.addEventListener('keyup', function(event) {
@@ -150,7 +207,7 @@ async function render(world: any) {
                 newToDraw.set(name, request);
                 return;
             } else {
-                console.log("Doesn't have: " + name);
+                // console.log("Doesn't have: " + name);
             }
 
             if (awaitedDrawRequests.has(name))

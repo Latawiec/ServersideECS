@@ -34,7 +34,7 @@ class TestPlayer extends ScriptSystem.Component
         const entity = this.ownerEntity;
         const world = entity.getWorld();
 
-        this._drawable = new SpriteTexture(entity,"Common\\WOL\\RedMage.png", 2, 2);
+        this._drawable = new SpriteTexture(entity,"Common/WOL/RedMage.png", 2, 2);
         world.registerComponent(entity, this._drawable);
 
         this._playerInputController = new PlayerInputController(entity);
@@ -55,7 +55,7 @@ class TestPlayer extends ScriptSystem.Component
         blocking.shape.radius = 1.0;
         world.registerComponent(owner, blocking);
         
-        const triggerDrawableComponent = new AABBDrawableComponent(playerColliderEntity, "Common\\Test\\circle.png");
+        const triggerDrawableComponent = new AABBDrawableComponent(playerColliderEntity, "Test/circle.png");
         world.registerComponent(playerColliderEntity, triggerDrawableComponent);
         const transform = playerColliderEntity.getTransform();
         transform.scale = [trigger.shape.radius, trigger.shape.radius, trigger.shape.radius];

@@ -1,6 +1,10 @@
 import { throws } from "assert";
 import * as fs from "fs"
 import * as path from "path"
+import stream from "stream";
+import archiver from 'archiver';
+
+import Config from "@config/assets.json"
 
 export enum AssetType {
     Unknown,
@@ -55,6 +59,7 @@ export class AssetBinding {
 export class AssetManager {
     private _assetStorageRoot: Readonly<string> = ""
     private _assetBindingCache: Map<Readonly<string>, AssetBinding> = new Map;
+    private static _assetPackagesOutputPath = Config.packageOutputDir;
 
     constructor(assetStorageRoot: Readonly<string>) {
         if (fs.existsSync(assetStorageRoot) ) {
@@ -89,6 +94,20 @@ export class AssetManager {
             var result = new Asset(AssetType.Unknown, data, data.byteLength);
 
             onSuccess(result);
+        })
+    }
+
+
+    getAllAssetsZip(onSuccess: (data: Uint8Array) => void, onError: (error: any) => void ) {
+        const packagePath = path.join(AssetManager._assetPackagesOutputPath, path.basename(this._assetStorageRoot) + ".zip");
+        fs.readFile(packagePath, (err, data)=> {
+            if (err != null) {
+                console.log(err);
+                onError(err);
+                return;
+            }
+
+            onSuccess(new Uint8Array(data));
         })
     }
 

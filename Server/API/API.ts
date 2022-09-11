@@ -4,9 +4,7 @@ import express from 'express'
 import * as path from 'path'
 
 import { TestWorld } from "@worlds/TestWorld/TestWorld"
-import { WorldSerializer } from "../Core/Serialization/Serializer"
-import { World } from '../Core/World/World'
-import { send } from 'process'
+import { WorldSerializer } from "@core/Serialization/Serializer"
 
 const app = express();
 const clientOutputPath = path.resolve(__dirname + "/../../../" + "Client/build")
@@ -50,6 +48,19 @@ app.get("/asset", (req, res) => {
                 res.statusCode = 404;
             });
     }
+})
+
+app.get("/worldAssets", (req, res) => {
+    console.log("asdf")
+    world.assetManager.getAllAssetsZip(
+    (data) => {
+        res.write(data);
+        res.send();
+    },
+    (error) => {
+        console.log("Couldn't retrieve world assets", error);
+        res.statusCode = 404;
+    });
 })
 
 

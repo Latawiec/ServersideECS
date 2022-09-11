@@ -1,7 +1,9 @@
 {
   "dependencies": {
+    "@types/archiver": "^5.3.1",
     "@types/gl-matrix": "^3.2.0",
     "@types/node": "^17.0.23",
+    "archiver": "^5.3.1",
     "express": "^4.17.3",
     "gl-matrix": "^3.4.3",
     "https": "^1.0.0",

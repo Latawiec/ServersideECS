@@ -14,7 +14,7 @@
                 "-r",
                 "tsconfig-paths/register"
             ],
-            "program": "${workspaceFolder}\\Source\\API\\API.ts",
+            "program": "${workspaceFolder}\\API\\API.ts",
             "outFiles": [
                 "${workspaceFolder}\\build\\**\\*.js"
             ],
