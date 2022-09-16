@@ -1,14 +1,15 @@
 import { throws } from "assert";
 import { Entity } from "../Base/Entity"
 import { UuidGenerator } from "../Base/UuidGenerator"
-import { ScriptSystem } from "../Systems/ScriptSystem";
+import { ScriptSystem } from "@core/Systems/ScriptSystem";
 import { mat4 } from "gl-matrix"
-import { DrawingSystem } from "../Systems/DrawingSystem";
-import { ClientConnectionSystem } from "../Systems/ClientConnectionSystem";
+import { DrawingSystem } from "@core/Systems/DrawingSystem";
+import { ClientConnectionSystem } from "@core/Systems/ClientConnectionSystem";
 import { ComponentBase } from "../Base/Component";
 import * as AssetManager from "../Assets/AssetManager";
-import { TriggerCollisionSystem2D } from "../Systems/TriggerCollisionSystem2D";
-import { BlockingCollisionSystem2D } from "../Systems/BlockingCollisionSystem2D";
+import { TriggerCollisionSystem2D } from "@core/Systems/TriggerCollisionSystem2D";
+import { BlockingCollisionSystem2D } from "@core/Systems/BlockingCollisionSystem2D";
+import { CameraSystem } from "@core/Systems/CameraSystem";
 
 export class World {
     private _rootNode: Entity;
@@ -19,6 +20,7 @@ export class World {
     private _clientConnectionSystem: ClientConnectionSystem.System;
     private _triggerCollisionSystem2D: TriggerCollisionSystem2D.System;
     private _blockingCollisionSystem2D: BlockingCollisionSystem2D.System;
+    private _cameraSystem: CameraSystem.System;
     private _assetManager: AssetManager.AssetManager;
 
     constructor(worldAssets: Readonly<string>) {
@@ -28,6 +30,7 @@ export class World {
         this._clientConnectionSystem = new ClientConnectionSystem.System();
         this._triggerCollisionSystem2D = new TriggerCollisionSystem2D.System();
         this._blockingCollisionSystem2D = new BlockingCollisionSystem2D.System();
+        this._cameraSystem = new CameraSystem.System();
         this._assetManager = new AssetManager.AssetManager(worldAssets);
 
         this._rootNode = new Entity(this, undefined, this._entityUuidGenerator.getNext());
@@ -67,6 +70,10 @@ export class World {
             case BlockingCollisionSystem2D.System.staticMetaName():
                 this._blockingCollisionSystem2D.registerComponent(component as BlockingCollisionSystem2D.Component);
                 break;
+            
+            case CameraSystem.System.staticMetaName():
+                this._cameraSystem.registerComponent(component as CameraSystem.Component);
+                break;
 
             default:
                 throw "Tried to get system that doesn't exist";
@@ -98,6 +105,10 @@ export class World {
 
             case BlockingCollisionSystem2D.System.staticMetaName():
                 this._blockingCollisionSystem2D.unregisterComponent(component as BlockingCollisionSystem2D.Component);
+                break;
+            
+            case CameraSystem.System.staticMetaName():
+                this._cameraSystem.unregisterComponent(component as CameraSystem.Component);
                 break;
 
             default:

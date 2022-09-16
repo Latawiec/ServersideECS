@@ -3,9 +3,27 @@ import { mat4, vec3 } from "gl-matrix";
 
 export interface Camera {
     get transform(): mat4;
-
     get viewTransform(): mat4;
 };
+
+export class RawCamera implements Camera {
+    private _projection = mat4.create();
+    private _viewTransform = mat4.create();
+
+    constructor(viewTransform: mat4, projection: mat4) {
+        // TOOD: I really need to resolve the naming of these holy shit.
+        this._projection = projection;
+        this._viewTransform = viewTransform;
+    }
+
+    get transform(): mat4 {
+        return this._projection
+    }
+
+    get viewTransform(): mat4 {
+        return this._viewTransform;    
+    }
+}
 
 export class PerspectiveCamera implements Camera {
     private _fovy: number;

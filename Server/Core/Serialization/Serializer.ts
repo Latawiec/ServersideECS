@@ -5,6 +5,7 @@ import { throws } from "assert";
 import { Recoverable } from "repl";
 import { stringify } from "querystring";
 import { PlayerIdentity } from "../Scripts/Player/PlayerIdentity";
+import { CameraSystem } from "../Systems/CameraSystem"
 import { PlayerInputController } from "../Scripts/Player/PlayerInputController";
 import { assert } from "console";
 import { mat4 } from "gl-matrix"
@@ -25,7 +26,8 @@ export class WorldSerializer
 
     static serializableComponentsMapping = new Map<string, any>([
         [ DrawingSystem.Component.staticMetaName(), this.serializeDrawableComponent ],
-        [ PlayerIdentity.staticMetaName(), this.serializePlayerIdentityComponent ]
+        [ PlayerIdentity.staticMetaName(), this.serializePlayerIdentityComponent ],
+        [ CameraSystem.Component.staticMetaName(), this.serializeCameraComponent ]
     ]);
 
     static serializeEntity(entity: Readonly<Entity>): Record<string, any> {
@@ -87,6 +89,13 @@ export class WorldSerializer
     static serializePlayerIdentityComponent(output: Record<string, any>, component: Readonly<PlayerIdentity>) {
         output.playerIdentity = {
             name: component.name
+        }
+    }
+
+    static serializeCameraComponent(output: Record<string, any>, component: Readonly<CameraSystem.Component>) {
+        output.camera = {
+            transform: component.worldTransform,
+            projection: component.projection
         }
     }
 

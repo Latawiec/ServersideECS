@@ -53,7 +53,7 @@ export namespace ClientConnectionSystem {
 
     export class Component implements ComponentBase {
         // Metadata
-        static staticMetaName(): string { return 'ClientConnectionSystem.Component' }
+        static staticMetaName(): MetaName { return 'ClientConnectionSystem.Component' }
 
         private _ownerEntity: Entity;
         private _isActive: boolean = true;
@@ -82,7 +82,7 @@ export namespace ClientConnectionSystem {
             this._connection.addListener(this._connectionListener);    
         }
     
-        get systemMetaName(): string {
+        get systemMetaName(): MetaName {
             return System.staticMetaName();
         }
     
@@ -98,7 +98,7 @@ export namespace ClientConnectionSystem {
         set systemAsignedId(value: number | undefined) {
             this._systemAsignedId = value;
         }
-        get metaName(): string {
+        get metaName(): MetaName {
             return Component.staticMetaName();
         }
     
@@ -109,10 +109,10 @@ export namespace ClientConnectionSystem {
 
     export class System extends SystemBase<Component> {
         // Metadata
-        static staticMetaName(): string { return 'ClientConnectionSystem.System' }
+        static staticMetaName(): MetaName { return 'ClientConnectionSystem.System' }
 
         // SystemBase implementation
-        get metaName(): string {
+        get metaName(): MetaName {
             return System.staticMetaName();
         }
 

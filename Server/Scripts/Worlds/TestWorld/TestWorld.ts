@@ -13,6 +13,7 @@ import { BlockingCollisionSystem2D } from "@core/Systems/BlockingCollisionSystem
 
 import { vec2, vec4, mat4, vec3 } from "gl-matrix"
 import * as WebSocket from 'websocket'
+import { CameraSystem } from "@core/Systems/CameraSystem";
 
 
 class TestPlayer extends ScriptSystem.Component
@@ -388,8 +389,32 @@ export class TestWorld extends World {
                     this.clientConnectionSystem.removeConnection(connection);
                 });
 
-                
+                const cameraHolder = this.createEntity();
+                const cameraComponent = new CameraSystem.Component(cameraHolder);
+                this.registerComponent(cameraHolder, cameraComponent);
 
+                // Camera setup
+                {
+                    const projectionMatrix = mat4.create();
+                    mat4.identity(projectionMatrix);
+                    const fovy = 45.0 * Math.PI / 180.0;
+                    const aspect = 1200.0/800.0;
+                    const near = 0.1;
+                    const far = 100;
+
+                    cameraComponent.projection =  mat4.perspective(
+                        projectionMatrix,
+                        fovy,
+                        aspect,
+                        near,
+                        far
+                    )
+
+                    const viewTransform  = mat4.create();
+                    cameraComponent.transform = mat4.lookAt(viewTransform, vec3.fromValues(0, 18, -7), vec3.fromValues(0, 0, 0,), vec3.fromValues(0, 1, 0));
+
+                    cameraComponent.projection = projectionMatrix;
+                }
             });
         }
     }

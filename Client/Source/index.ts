@@ -1,4 +1,4 @@
-import { PerspectiveCamera } from "./Rendering/Basic/Camera";
+import { PerspectiveCamera, RawCamera } from "./Rendering/Basic/Camera";
 import { DrawSquareRequest } from "./DrawSquareRequest";
 import { Layer, Canvas, DrawRequest } from "./Rendering/Canvas";
 import { Shader, ShaderProgram, ShaderType } from "./Rendering/Materials/ShaderProgram";
@@ -63,7 +63,7 @@ function getAsset(assetPath: string, onReceive: (data: Readonly<Uint8Array>) => 
 {
     assetsCacheFs.readFile(assetPath, (err, data) =>{
         if (err) {
-            console.log("Can't read file: ", normPath)
+            console.log("Can't read file: ", assetPath)
             console.log(err)
             return;
         }
@@ -147,11 +147,6 @@ if (htmlCanvas === null)
 }
 const canvas = new Canvas(document.getElementById('glCanvas') as HTMLCanvasElement);
 
-const camera = new PerspectiveCamera(
-    45.0 * Math.PI / 180.0,
-    canvas.width/canvas.height,
-    0.1,
-    100.0);
 
 
 const sleep = async (ms: number) => new Promise(r => setTimeout(r, ms));
@@ -164,11 +159,19 @@ canvas.glContext.blendFunc(canvas.glContext.SRC_ALPHA, canvas.glContext.ONE_MINU
 
 async function render(world: any) {
 
+    let camera = undefined;
+
     // We'll be swaping DrawRequests and asigning to currently existing names lol. Kinda makes it easier to implement.
     const newToDraw = new Map<string, DrawRequest>();
     world.entities?.forEach((entity: any) => {
         const name: string = entity.name;
         var transform: mat4 = entity.components.transform;
+
+        // grab camera
+        if (entity.components.camera !== undefined) {
+            const cameraComponent = entity.components.camera;
+            camera = new RawCamera(mat4.copy(mat4.create(), cameraComponent.transform), mat4.copy(mat4.create(), cameraComponent.projection));
+        }
 
         if (entity.components.drawing !== undefined) {
             let request: DrawRequest;
@@ -276,7 +279,9 @@ async function render(world: any) {
 
     //await sleep(16);
     // canvas.requestDraw(Layer.Background, squareDraw);
-    canvas.executeDraw(camera);
+    if (camera !== undefined) {
+        canvas.executeDraw(camera);
+    }
     // requestAnimationFrame(render);
 }
 

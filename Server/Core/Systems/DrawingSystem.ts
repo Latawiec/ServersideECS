@@ -1,5 +1,5 @@
 import { throws } from "assert";
-import { ComponentBase } from "../Base/Component"
+import { ComponentBase, MetaName } from "../Base/Component"
 import { Entity } from "../Base/Entity";
 import { SystemBase } from "../Base/System"
 import { Uuid } from "../Base/UuidGenerator"
@@ -21,7 +21,7 @@ export namespace DrawingSystem {
 
     export abstract class Component implements ComponentBase {
         // Metadata
-        static staticMetaName(): string { return 'DrawingSystem.Component' }
+        static staticMetaName(): MetaName { return 'DrawingSystem.Component' }
 
         private _assetsPaths: string[];
         private _ownerEntity: Entity;
