@@ -1,9 +1,8 @@
-import { throws } from "assert";
-import { Entity } from "../../Base/Entity";
-import { ScriptSystem } from "../../Systems/ScriptSystem";
+import { Entity } from "@core/Base/Entity";
+import { Transform } from "@core/Base/Transform";
+import { ScriptSystem } from "@systems/ScriptSystem";
 import { PlayerInputController } from "./PlayerInputController";
 import { vec3 } from "gl-matrix"
-import { Transform } from "../../Base/Transform";
 
 
 

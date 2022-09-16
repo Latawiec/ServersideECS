@@ -30,6 +30,8 @@
     "baseUrl": ".",                                     /* Specify the base directory to resolve non-relative module names. */
     "paths": {
       "@core/*": ["Core/*"],
+      "@systems/*": ["Core/Systems/*"],
+      "@scripts/*": ["Scripts/*"],
       "@worlds/*": ["Scripts/Worlds/*"],
       "@config/*": ["Config/*"]
     },                                         /* Specify a set of entries that re-map imports to additional lookup locations. */

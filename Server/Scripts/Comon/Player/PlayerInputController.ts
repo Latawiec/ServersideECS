@@ -1,7 +1,6 @@
-import { throws } from "assert"
-import { Entity } from "../../Base/Entity"
-import { ClientConnectionSystem } from "../../Systems/ClientConnectionSystem"
-import { ScriptSystem } from "../../Systems/ScriptSystem"
+import { Entity } from "@core/Base/Entity"
+import { ClientConnectionSystem } from "@systems/ClientConnectionSystem"
+import { ScriptSystem } from "@systems/ScriptSystem"
 
 
 export class PlayerInputController extends ScriptSystem.Component {
@@ -65,7 +64,6 @@ export class PlayerInputController extends ScriptSystem.Component {
                 const keyCode = message[playerInputProp][keyPressedProp];
                 if (!this._keyStates.has(keyCode) || this._keyStates.get(keyCode) === false) {
                     this._keyStates.set(keyCode, true);
-                    console.log('Key pressed: %s', keyCode);
                 }
             }
 
@@ -74,7 +72,6 @@ export class PlayerInputController extends ScriptSystem.Component {
                 if (!this._keyStates.has(keyCode) || this._keyStates.get(keyCode) === true) {
                     // Only notify if something has changed
                     this._keyStates.set(keyCode, false)
-                    console.log('Key released: %s', keyCode);
                 }
             }
         }

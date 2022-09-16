@@ -1,19 +1,22 @@
 import { World } from "@core/World/World"
-import { PlayerInputController } from "@core/Scripts/Player/PlayerInputController"
 import { Entity } from "@core/Base/Entity"
-import { AABBDrawableComponent, DrawableAoECircleClosed, DrawableAoERectangleClosed, DrawingSystem, SpriteTexture } from "@core/Systems/DrawingSystem";
-import { ClientConnectionSystem } from "@core/Systems/ClientConnectionSystem";
-import { WorldSerializer } from "@core/Serialization/Serializer"
 import { ScriptSystem } from "@core/Systems/ScriptSystem";
-import { PlayerIdentity } from "@core/Scripts/Player/PlayerIdentity";
-import { BasicMovement } from "@core/Scripts/Player/BasicMovement";
-import { TriggerCollisionSystem2D } from "@core/Systems/TriggerCollisionSystem2D";
-import { vec3tovec4, vec4tovec3, vec3decomposed } from "@core/Common/Math/gl-extensions";
+import { WorldSerializer } from "@core/Serialization/Serializer"
+import { ClientConnectionSystem } from "@core/Systems/ClientConnectionSystem";
+import { vec4tovec3 } from "@core/Common/Math/gl-extensions";
 import { BlockingCollisionSystem2D } from "@core/Systems/BlockingCollisionSystem2D";
+import { AABBDrawableComponent, DrawableAoECircleClosed, DrawableAoERectangleClosed, SpriteTexture } from "@core/Systems/DrawingSystem";
+
+import { PlayerInputController } from "@scripts/Comon/Player/PlayerInputController"
+import { PlayerIdentity } from "@scripts/Comon/Player/PlayerIdentity";
+import { BasicMovement } from "@scripts/Comon/Player/BasicMovement";
+import { TriggerCollisionSystem2D } from "@systems/TriggerCollisionSystem2D";
+import { CameraSystem } from "@systems/CameraSystem";
+import { CircleWorldAoE } from "@scripts/Comon/Mechanics/CircleWorldAoE";
+
 
 import { vec2, vec4, mat4, vec3 } from "gl-matrix"
 import * as WebSocket from 'websocket'
-import { CameraSystem } from "@core/Systems/CameraSystem";
 
 
 class TestPlayer extends ScriptSystem.Component
@@ -49,7 +52,7 @@ class TestPlayer extends ScriptSystem.Component
 
         const playerColliderEntity = world.createEntity();
         
-        const trigger = new TriggerCollisionSystem2D.CircleTriggerComponent(playerColliderEntity);
+        const trigger = new TriggerCollisionSystem2D.CircleTriggerComponent(playerColliderEntity, 1);
         world.registerComponent(playerColliderEntity, trigger);
 
         const blocking = new BlockingCollisionSystem2D.CircleCollisionComponent(owner);
@@ -89,7 +92,6 @@ class TestPlayer extends ScriptSystem.Component
                 const invertFollowerTransform = mat4.invert(mat4.create(), this._follower.getTransform().transform);
                 const positionDiffApply = vec4tovec3(vec4.transformMat4(vec4.create(), positionDiffWorldSpace, invertFollowerTransform));
                 vec3.add(this._follower.getTransform().position, this._follower.getTransform().position, positionDiffApply);
-                isCollided = false;
             }
             postUpdate(): void {
                 if (isCollided) {
@@ -97,6 +99,7 @@ class TestPlayer extends ScriptSystem.Component
                 } else {
                     triggerDrawableComponent.color = [1, 1, 1, 1];
                 }
+                isCollided = false;
             }
 
         };
@@ -182,7 +185,7 @@ class Platform extends ScriptSystem.Component
 
 
 function roundAreaOfEffectInitialize(owner: Entity) {
-    const aoeComponent = new TriggerCollisionSystem2D.CircleTriggerComponent(owner);
+    const aoeComponent = new TriggerCollisionSystem2D.CircleTriggerComponent(owner, 1);
     owner.getWorld().registerComponent(owner, aoeComponent);
     aoeComponent.shape.radius = 3;
 
@@ -366,8 +369,8 @@ export class TestWorld extends World {
 
                 const blockPlane = this.createEntity();
 
-                roundAreaOfEffectInitialize(aoeCircle);
-                rectAreaOfEffectInitialize(aoeRect);
+                //roundAreaOfEffectInitialize(aoeCircle);
+                //rectAreaOfEffectInitialize(aoeRect);
                 blockingPlaneInitialize(blockPlane);
 
                 const connectionComponent = new ClientConnectionSystem.Component(playerEntity, regConnection);
@@ -380,7 +383,7 @@ export class TestWorld extends World {
                 this.registerComponent(platform, platformComponent);
 
                 connection.on('message', (message) => {
-                    console.log('Received Message: ', message);
+                    // console.log('Received Message: ', message);
                     regConnection.receiveMessage(message);
                 })
 
@@ -398,7 +401,7 @@ export class TestWorld extends World {
                     const projectionMatrix = mat4.create();
                     mat4.identity(projectionMatrix);
                     const fovy = 45.0 * Math.PI / 180.0;
-                    const aspect = 1200.0/800.0;
+                    const aspect = 1200.0/1200.0;
                     const near = 0.1;
                     const far = 100;
 
@@ -414,6 +417,37 @@ export class TestWorld extends World {
                     cameraComponent.transform = mat4.lookAt(viewTransform, vec3.fromValues(0, 18, -7), vec3.fromValues(0, 0, 0,), vec3.fromValues(0, 1, 0));
 
                     cameraComponent.projection = projectionMatrix;
+                }
+
+                // Repeating AoE
+                {
+                    class ReloadAoE extends ScriptSystem.Component {
+                        
+                        private _circleAoe: CircleWorldAoE | undefined;
+                        constructor(owner: Entity) {
+                            super (owner);
+                        }
+
+                        preUpdate(): void {
+                            
+                        }
+
+                        onUpdate(): void {
+                            if (this._circleAoe === undefined || this._circleAoe.isExploded) {
+                                const nextExplosionTimeMs = this.ownerEntity.getWorld().getClock().getTimeMs() + 5000;
+                                this._circleAoe = new CircleWorldAoE(this.ownerEntity, 3, nextExplosionTimeMs);
+                                this.ownerEntity.getTransform().position = mat4.getTranslation(vec3.create(), playerEntity.getTransform().worldTransform);
+                            }
+                        }
+
+                        postUpdate(): void {
+                            
+                        }
+                    };
+
+                    const aoeRepeating = this.createEntity();
+                    const reloader = new ReloadAoE(aoeRepeating);
+                    this.registerComponent(aoeRepeating, reloader);
                 }
             });
         }

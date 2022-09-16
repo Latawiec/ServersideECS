@@ -165,6 +165,11 @@ export namespace TriggerCollisionSystem2D {
     export class CircleTriggerComponent extends Component {
         private _collisionShape: Shapes.D2.Circle = new Shapes.D2.Circle();
 
+        constructor(ownerEntity: Entity, radius: number) {
+            super(ownerEntity);
+            this._collisionShape.radius = radius;
+        }
+
         get type(): Readonly<Type> {
             return Type.Circle;
         }

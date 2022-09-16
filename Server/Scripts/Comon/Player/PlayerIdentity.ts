@@ -1,5 +1,5 @@
-import { Entity } from "../../Base/Entity";
-import { ScriptSystem } from "../../Systems/ScriptSystem";
+import { Entity } from "@core/Base/Entity";
+import { ScriptSystem } from "@systems/ScriptSystem";
 
 export class PlayerIdentity extends ScriptSystem.Component {
     static staticMetaName(): string { return 'PlayerIdentity' }

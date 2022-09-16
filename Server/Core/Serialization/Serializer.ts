@@ -1,14 +1,9 @@
 import { World } from "../World/World"
 import { Entity } from "../Base/Entity"
 import { AABBDrawableComponent, DrawableAoECircleClosed, DrawableAoERectangleClosed, DrawingSystem, SpriteTexture } from "../Systems/DrawingSystem";
-import { throws } from "assert";
-import { Recoverable } from "repl";
-import { stringify } from "querystring";
-import { PlayerIdentity } from "../Scripts/Player/PlayerIdentity";
-import { CameraSystem } from "../Systems/CameraSystem"
-import { PlayerInputController } from "../Scripts/Player/PlayerInputController";
+import { PlayerIdentity } from "@scripts/Comon/Player/PlayerIdentity";
+import { CameraSystem } from "@systems/CameraSystem"
 import { assert } from "console";
-import { mat4 } from "gl-matrix"
 
 export class WorldSerializer
 {
