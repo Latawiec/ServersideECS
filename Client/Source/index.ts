@@ -9,10 +9,10 @@ import { DrawTextureSquareRequest } from "./DrawTextureSquareRequest";
 import { DrawCircleAoeRequest } from "./DrawCircleAoeRequest";
 import PNG from 'png-ts';
 import { DrawRectangleAoeRequest } from "./DrawRectangleAoeRequest";
-import memfs from 'memfs';
 import unzipper from "unzipper"
 import path from "path"
 import * as fs from "fs"
+import { MemoryFilesystem } from "./MemoryFilesystem";
 
 const {
     Readable,
@@ -25,8 +25,8 @@ const {
 
 console.log(location.host);
 const ws = new WebSocket('ws://' + location.host);
+let assetsLoaded = false;
 
-const assetsCacheFs = memfs.createFsFromVolume(new memfs.Volume());
 
 function fetchAssets() {
     var xmlHttp = new XMLHttpRequest();
@@ -44,24 +44,25 @@ function fetchAssets() {
             const relativePath = entry.path.split(path.sep).slice(1).join(path.sep);
             if (relativePath !== '') {
                 if (entry.type === 'Directory') {
-                    assetsCacheFs.mkdirSync(relativePath);
+                    MemoryFilesystem.fs.mkdirSync(relativePath);
                 }
                 if (entry.type === 'File') {
                     (entry.buffer() as Promise<Buffer>).then((buffer) => {
-                        assetsCacheFs.writeFileSync(relativePath, buffer);
+                        MemoryFilesystem.fs.writeFileSync(relativePath, buffer);
                         console.log('File: ' + relativePath);
                     });
-                }    
+                }
             }
             entry.autodrain();
         });
+        assetsLoaded = true;
     }
     xmlHttp.send(null);
 }
 
 function getAsset(assetPath: string, onReceive: (data: Readonly<Uint8Array>) => void)
 {
-    assetsCacheFs.readFile(assetPath, (err, data) =>{
+    MemoryFilesystem.fs.readFile(assetPath, (err, data) =>{
         if (err) {
             console.log("Can't read file: ", assetPath)
             console.log(err)
@@ -106,6 +107,7 @@ function pngDecode(data: Readonly<Uint8Array>) : Image
 ws.onopen = function() {
     console.log('WebSocketClient Connected');
     fetchAssets()
+
 }
 
 document.addEventListener('keyup', function(event) {
@@ -158,6 +160,8 @@ canvas.glContext.enable(canvas.glContext.BLEND);
 canvas.glContext.blendFunc(canvas.glContext.SRC_ALPHA, canvas.glContext.ONE_MINUS_SRC_ALPHA);
 
 async function render(world: any) {
+
+    if (!assetsLoaded) return;
 
     let camera = undefined;
 

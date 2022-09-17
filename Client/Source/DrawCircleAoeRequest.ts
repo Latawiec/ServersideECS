@@ -3,6 +3,7 @@ import { Shader, ShaderProgram, ShaderType } from "./Rendering/Materials/ShaderP
 import { mat4, vec4, vec3 } from "gl-matrix";
 import { CommonShapes } from "./Rendering/Basic/CommonShapes";
 import { Camera } from "./Rendering/Basic/Camera";
+import { MemoryFilesystem } from "./MemoryFilesystem";
 
 export class DrawCircleAoeRequest implements DrawRequest {
     private _gl: WebGLRenderingContext;
@@ -13,46 +14,14 @@ export class DrawCircleAoeRequest implements DrawRequest {
     private _transform: mat4 = mat4.create();
     private _color: vec4 = vec4.create();
 
-    private vertexShaderCode: string = `
-        attribute vec4 aVertexPosition;
-
-        uniform mat4 uModelViewMatrix;
-        uniform mat4 uProjectionMatrix;
-
-        uniform vec4 uColor;
-        uniform float uTime;
-
-        varying lowp vec4 vColor;
-        varying lowp vec2 vVertexPosition;
-        varying lowp float vTime;
-
-        void main(void) {
-            gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aVertexPosition.xyz, 1);
-            vColor = uColor;
-            vTime = uTime;
-            vVertexPosition = aVertexPosition.xy;
-        }
-    `;
-    private pixelShaderCode: string = `
-        varying lowp vec4 vColor;
-        varying lowp vec2 vVertexPosition;
-        varying lowp float vTime;
-
-        void main(void) {
-            lowp float cDist = length(vVertexPosition);
-            lowp float cDistReverse = 1.0 - cDist;
-            lowp float edge = smoothstep(1.04, 0.98, cDistReverse + 0.98);
-            lowp float pulse = smoothstep(0.2, 0.0, fract(cDistReverse + vTime * 1.0) + 0.08) * 0.9;
-            lowp float bias = 0.75;
-            lowp float edgeFade = smoothstep(0.98, 1.04, cDistReverse + 0.98);
-            lowp float colorWeight = edge + pulse + bias;
-            lowp float alpha = (edge + bias) * edgeFade;
-            gl_FragColor = vec4((edge + bias) * 0.75 + pulse * 0.95, (edge + bias) * 0.25 + pulse * 0.10 , colorWeight * 0.0, alpha );
-        }
-    `;
+    private vertexShaderCode: string = '';
+    private pixelShaderCode: string = '';
 
     constructor(glContext: WebGLRenderingContext) {
         this._gl = glContext
+        console.log(MemoryFilesystem.fs);
+        this.vertexShaderCode = MemoryFilesystem.fs.readFileSync('Common/Mechanics/CircleWorldAoE.vs.glsl').toString('ascii');
+        this.pixelShaderCode = MemoryFilesystem.fs.readFileSync('Common/Mechanics/CircleWorldAoE.fs.glsl').toString('ascii');
 
         const squareMesh = new CommonShapes.Square();
         this._elementsCount = squareMesh.indices.length;
@@ -99,10 +68,10 @@ export class DrawCircleAoeRequest implements DrawRequest {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
         gl.useProgram(this._shaderProgram.glShaderProgram);
 
-        const projectionMatrixUniformLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uProjectionMatrix');
-        const modelViewMatrixUniformLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uModelViewMatrix');
+        const projectionMatrixUniformLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uCameraData.projectionMatrix');
+        const modelViewMatrixUniformLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uCameraData.modelViewMatrix');
         const colorUniformLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uColor');
-        const timeUniformLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uTime');
+        const timeUniformLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uTimeData.globalTime');
 
         let dateTime = new Date();
         var ms = dateTime.getMilliseconds();

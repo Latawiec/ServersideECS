@@ -43,6 +43,7 @@
 			"group": "none",
 			"args": [
 				"a",
+				"-mx0",
 				"${workspaceFolder}\\Package\\TestWorld.zip",
 				"${workspaceFolder}\\Assets\\Worlds\\TestWorld"
 			],
