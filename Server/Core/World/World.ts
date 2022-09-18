@@ -10,7 +10,7 @@ import * as AssetManager from "../Assets/AssetManager";
 import { TriggerCollisionSystem2D } from "@core/Systems/TriggerCollisionSystem2D";
 import { BlockingCollisionSystem2D } from "@core/Systems/BlockingCollisionSystem2D";
 import { CameraSystem } from "@core/Systems/CameraSystem";
-import { Clock } from "@core/Base/Clock";
+import { GlobalClock } from "@core/Base/GlobalClock";
 
 export class World {
     private _rootNode: Entity;
@@ -23,7 +23,6 @@ export class World {
     private _blockingCollisionSystem2D: BlockingCollisionSystem2D.System;
     private _cameraSystem: CameraSystem.System;
     private _assetManager: AssetManager.AssetManager;
-    private _clock: Clock = new Clock();
 
     constructor(worldAssets: Readonly<string>) {
         this._entityUuidGenerator = new UuidGenerator();
@@ -138,13 +137,10 @@ export class World {
     getEntites(): Readonly<Entity[]> {
         return this._entities;
     }
-
-    getClock(): Readonly<Clock> {
-        return this._clock;
-    }
     
     update() {
         this.updateWorldTransforms(this._rootNode);
+        GlobalClock.clock.nextFrame();
         this._scriptSystem.preUpdate();
         this._triggerCollisionSystem2D.update();
         this._scriptSystem.onUpdate();

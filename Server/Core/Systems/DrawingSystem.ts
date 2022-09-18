@@ -6,6 +6,7 @@ import { Uuid } from "../Base/UuidGenerator"
 import { assert } from "console";
 import { vec4 } from "gl-matrix";
 import { Transform } from "../Base/Transform";
+import { GlobalClock } from "@core/Base/GlobalClock";
 
 
 export namespace DrawingSystem {
@@ -33,6 +34,17 @@ export namespace DrawingSystem {
             this._assetsPaths = [];
             this._ownerEntity = owner;
             this._transform = new Transform();
+        }
+
+        serialize(output: Record<string, any>): Record<string, any> {
+            let result: any = {};
+            
+            result.transform = this.transform.worldTransform;
+            result.type = this.getType();
+            result.componentId = this.systemAsignedId;
+
+            output.drawableComponent = result;
+            return output.drawableComponent;
         }
     
         get isActive(): boolean {
@@ -99,8 +111,6 @@ export namespace DrawingSystem {
     }
 
 };
-
-
 
 // Move it
 export class AABBDrawableComponent extends DrawingSystem.Component {
@@ -172,45 +182,34 @@ export class SpriteTexture extends AABBDrawableComponent {
     }
 }
 
-export class DrawableAoECircleClosed extends DrawingSystem.Component {
-
-    private _radius: number = 1;
-
-    constructor(entity: Entity, radius: number) {
-        super(entity);
-        this._radius = radius;
-    }
-
-    getType(): DrawingSystem.Types {
-        return DrawingSystem.Types.AOE_CircleClosed;
-    }
-
-    get radius(): number {
-        return this._radius;
-    }
-}
-
 export class DrawableAoERectangleClosed extends DrawingSystem.Component {
     
-    private _width: number = 1;
-    private _hegiht: number = 1;
+    width: number = 1;
+    height: number = 1;
+    opacity: number = 1;
 
-    constructor(entity: Entity, width: number, height: number) {
+    constructor(entity: Entity, width: number = 1, height: number = 1) {
         super(entity);
-        this._width = width;
-        this._hegiht = height;
+        this.width = width;
+        this.height = height;
     }
 
     getType(): DrawingSystem.Types {
         return DrawingSystem.Types.AOE_RectangleClosed;
     }
 
-    get width() {
-        return this._width;
-    }
+    serialize(output: Record<string, any>): Record<string, any> {
+        let result = super.serialize(output);
 
-    get height() {
-        return this._hegiht;
+        result.uniformParameters = {
+            'uObjectData.transform': this.transform.worldTransform,
+            'uObjectData.width': this.width,
+            'uObjectData.height': this.height,
+
+            'uTimeData.globalTime': GlobalClock.clock.getCurrentFrameTimeMs()
+        };
+
+        return result;
     }
 }
 

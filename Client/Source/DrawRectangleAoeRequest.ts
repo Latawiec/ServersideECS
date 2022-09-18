@@ -137,7 +137,7 @@ export class DrawRectangleAoeRequest implements DrawRequest {
 
         gl.uniform1f(
             timeUniformLoc,
-            ms/1000.0
+            ms
         );
 
         gl.drawElements(gl.TRIANGLES, this._elementsCount, gl.UNSIGNED_SHORT, 0);

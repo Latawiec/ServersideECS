@@ -5,7 +5,8 @@ import { WorldSerializer } from "@core/Serialization/Serializer"
 import { ClientConnectionSystem } from "@core/Systems/ClientConnectionSystem";
 import { vec4tovec3 } from "@core/Common/Math/gl-extensions";
 import { BlockingCollisionSystem2D } from "@core/Systems/BlockingCollisionSystem2D";
-import { AABBDrawableComponent, DrawableAoECircleClosed, DrawableAoERectangleClosed, SpriteTexture } from "@core/Systems/DrawingSystem";
+import { AABBDrawableComponent, DrawableAoERectangleClosed, SpriteTexture } from "@core/Systems/DrawingSystem";
+import { CircleWorldAoEDrawableComponent } from "@scripts/Comon/Mechanics/CircleWorldAoEDrawableComponent";
 
 import { PlayerInputController } from "@scripts/Comon/Player/PlayerInputController"
 import { PlayerIdentity } from "@scripts/Comon/Player/PlayerIdentity";
@@ -17,6 +18,7 @@ import { CircleWorldAoE } from "@scripts/Comon/Mechanics/CircleWorldAoE";
 
 import { vec2, vec4, mat4, vec3 } from "gl-matrix"
 import * as WebSocket from 'websocket'
+import { GlobalClock } from "@core/Base/GlobalClock";
 
 
 class TestPlayer extends ScriptSystem.Component
@@ -189,7 +191,7 @@ function roundAreaOfEffectInitialize(owner: Entity) {
     owner.getWorld().registerComponent(owner, aoeComponent);
     aoeComponent.shape.radius = 3;
 
-    const drawableComponent = new DrawableAoECircleClosed(owner, aoeComponent.shape.radius);
+    const drawableComponent = new CircleWorldAoEDrawableComponent(owner, aoeComponent.shape.radius);
     owner.getWorld().registerComponent(owner, drawableComponent);
 
     const transform = drawableComponent.transform;
@@ -434,8 +436,7 @@ export class TestWorld extends World {
 
                         onUpdate(): void {
                             if (this._circleAoe === undefined || this._circleAoe.isExploded) {
-                                const nextExplosionTimeMs = this.ownerEntity.getWorld().getClock().getTimeMs() + 5000;
-                                this._circleAoe = new CircleWorldAoE(this.ownerEntity, 3, nextExplosionTimeMs);
+                                this._circleAoe = new CircleWorldAoE(this.ownerEntity, 3, 5000);
                                 this.ownerEntity.getTransform().position = mat4.getTranslation(vec3.create(), playerEntity.getTransform().worldTransform);
                             }
                         }

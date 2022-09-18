@@ -18,6 +18,11 @@ export namespace ScriptSystem {
             this._ownerEntity = owner;
         }
 
+        serialize(output: Record<string, any>): Record<string, any> {
+            // Do nothing
+            return output
+        }
+
         get systemMetaName(): string {
             return System.staticMetaName();
         }

@@ -72,7 +72,10 @@ return new Promise((resolve) => {
 
 async function run() {
     await sleep(10);
+    const start = Date.now();
     world.update();
+    const end = Date.now();
+    console.log("Update took: %d", end - start);
     run();
 }
 

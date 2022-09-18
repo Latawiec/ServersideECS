@@ -105,6 +105,11 @@ export namespace ClientConnectionSystem {
         set onMessage(event: (message: any) => void) {
             this._onMessageEvent = event;
         }
+
+        serialize(output: Record<string, any>): Record<string, any> {
+            // Do nothing. 
+            return output;
+        }
     };
 
     export class System extends SystemBase<Component> {

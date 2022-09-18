@@ -7,8 +7,9 @@ struct Camera {
 };
 
 struct Object {
-    highp mat4 transform;
-    lowp float radius;
+    mat4 transform;
+    lowp float width;
+    lowp float height;
     lowp float opacity;
 };
 
@@ -18,10 +19,11 @@ struct Time {
 
 uniform Camera uCameraData;
 uniform Object uObjectData;
+uniform Time   uTimeData;
 
 varying lowp vec2 vVertexPosition;
 
 void main(void) {
-    gl_Position = uCameraData.proj * uCameraData.view * uObjectData.transform * vec4(uObjectData.radius * aVertexPosition.xyz, 1);
+    gl_Position = uCameraData.proj * uCameraData.view * uObjectData.transform * vec4(aVertexPosition.xyz, 1);
     vVertexPosition = aVertexPosition.xy;
 }

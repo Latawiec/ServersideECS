@@ -76,6 +76,11 @@ export namespace BlockingCollisionSystem2D {
         get isBlocking() : Readonly<boolean> {
             return this._isBlocking;
         }
+
+        serialize(output: Record<string, any>): Record<string, any> {
+            // Do nothing.
+            return output
+        }
     }
 
     export class System extends SystemBase<Component> {

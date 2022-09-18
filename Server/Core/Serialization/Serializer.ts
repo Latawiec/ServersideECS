@@ -1,6 +1,6 @@
 import { World } from "../World/World"
 import { Entity } from "../Base/Entity"
-import { AABBDrawableComponent, DrawableAoECircleClosed, DrawableAoERectangleClosed, DrawingSystem, SpriteTexture } from "../Systems/DrawingSystem";
+import { AABBDrawableComponent, DrawableAoERectangleClosed, DrawingSystem, SpriteTexture } from "../Systems/DrawingSystem";
 import { PlayerIdentity } from "@scripts/Comon/Player/PlayerIdentity";
 import { CameraSystem } from "@systems/CameraSystem"
 import { assert } from "console";
@@ -66,13 +66,16 @@ export class WorldSerializer
                 result.color = AABBComponent.color;
                 break;
             case DrawingSystem.Types.AOE_CircleClosed:
-                const AoECircleComponent = component as DrawableAoECircleClosed;
-                result.radius = AoECircleComponent.radius;
+                // It'll do it by itself.
+                component.serialize(output);
+                return;
+
                 break;
             case DrawingSystem.Types.AOE_RectangleClosed:
-                const AoERectangleComponent = component as DrawableAoERectangleClosed;
-                result.width = AoERectangleComponent.width;
-                result.height = AoERectangleComponent.height;
+                // It'll do it by itself.
+                //component.serialize(output);
+                return;
+
                 break;
             default:
                 assert(false, "Can't convert Drawable type: " + type);
@@ -88,10 +91,7 @@ export class WorldSerializer
     }
 
     static serializeCameraComponent(output: Record<string, any>, component: Readonly<CameraSystem.Component>) {
-        output.camera = {
-            transform: component.worldTransform,
-            projection: component.projection
-        }
+        component.serialize(output);
     }
 
 }

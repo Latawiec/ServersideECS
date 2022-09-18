@@ -62,6 +62,16 @@ export namespace CameraSystem {
         get worldTransform() : mat4 {
             return mat4.mul(mat4.create(), this.ownerEntity.getTransform().worldTransform, this._transform);
         }
+
+        serialize(output: Record<string, any>): Record<string, any> {
+            const result: Record<string, any> = {
+                transform: this.worldTransform,
+                projection: this.projection
+            }
+
+            output.camera = result;
+            return result;
+        }
     }
 
     export class System extends SystemBase<Component> {

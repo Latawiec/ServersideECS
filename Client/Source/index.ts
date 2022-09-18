@@ -1,4 +1,4 @@
-import { PerspectiveCamera, RawCamera } from "./Rendering/Basic/Camera";
+import { Camera, PerspectiveCamera, RawCamera } from "./Rendering/Basic/Camera";
 import { DrawSquareRequest } from "./DrawSquareRequest";
 import { Layer, Canvas, DrawRequest } from "./Rendering/Canvas";
 import { Shader, ShaderProgram, ShaderType } from "./Rendering/Materials/ShaderProgram";
@@ -27,6 +27,39 @@ console.log(location.host);
 const ws = new WebSocket('ws://' + location.host);
 let assetsLoaded = false;
 
+class BasicMesh {
+    private _vertexBuffer: WebGLBuffer;
+    private _indexBuffer: WebGLBuffer;
+    private _uvBuffer: WebGLBuffer;
+    private _elementsCount: number; 
+
+    constructor(glContext: WebGLRenderingContext, vertices: Float32Array, indices: Uint16Array, uv: Float32Array) {
+        this._vertexBuffer = glContext.createBuffer()!;
+        this._indexBuffer = glContext.createBuffer()!;
+        this._uvBuffer = glContext.createBuffer()!;
+
+        glContext.bindBuffer(glContext.ARRAY_BUFFER, this._vertexBuffer);
+        glContext.bufferData(glContext.ARRAY_BUFFER, vertices, glContext.STATIC_DRAW);
+
+        glContext.bindBuffer(glContext.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+        glContext.bufferData(glContext.ELEMENT_ARRAY_BUFFER, indices, glContext.STATIC_DRAW);
+
+        glContext.bindBuffer(glContext.ARRAY_BUFFER, this._uvBuffer);
+        glContext.bufferData(glContext.ARRAY_BUFFER, uv, glContext.STATIC_DRAW)
+
+        this._elementsCount = indices.length;
+    }
+
+    get glVertexBuffer(): Readonly<WebGLBuffer> { return this._vertexBuffer; }
+    get glIndexBuffer(): Readonly<WebGLBuffer> { return this._indexBuffer; }
+    get glUvBuffer(): Readonly<WebGLBuffer> { return this._uvBuffer; }
+    get elementsCount(): Readonly<number> { return this._elementsCount; }
+}
+
+const meshCache = new Map<string, BasicMesh>();
+const compiledShaderCache = new Map<string, Shader>();
+
+const drawableComponentProgramCache = new Map<string, ShaderProgram>();
 
 function fetchAssets() {
     var xmlHttp = new XMLHttpRequest();
@@ -54,8 +87,11 @@ function fetchAssets() {
                 }
             }
             entry.autodrain();
-        });
-        assetsLoaded = true;
+        })
+        .promise()
+        .then( () => {
+            assetsLoaded = true;
+        })
     }
     xmlHttp.send(null);
 }
@@ -157,6 +193,7 @@ var awaitedDrawRequests = new Map<string, DrawRequest | undefined>();
 
 // Test Alpha Blend.
 canvas.glContext.enable(canvas.glContext.BLEND);
+canvas.glContext.enable(canvas.glContext.DEPTH_TEST);
 canvas.glContext.blendFunc(canvas.glContext.SRC_ALPHA, canvas.glContext.ONE_MINUS_SRC_ALPHA);
 
 async function render(world: any) {
@@ -272,6 +309,129 @@ async function render(world: any) {
                 newToDraw.set(name, aoeRectangleRequest);
                 return;
             }
+        }
+
+        // The new drawable. All controll passed over to the server.
+        if (entity.components.drawableComponent !== undefined) {
+            const gl = canvas.glContext;
+
+            const drawableComponent = entity.components.drawableComponent;
+
+            const vertexShaderPath = drawableComponent.assetPaths.vertexShader;
+            const pixelShaderPath = drawableComponent.assetPaths.pixelShader;
+
+            if (!compiledShaderCache.has(vertexShaderPath)) {
+                const shader = new Shader(gl, ShaderType.VERTEX, MemoryFilesystem.fs.readFileSync(vertexShaderPath).toString());
+                compiledShaderCache.set(vertexShaderPath, shader);
+            }
+
+            if (!compiledShaderCache.has(pixelShaderPath)) {
+                const shader = new Shader(gl, ShaderType.PIXEL, MemoryFilesystem.fs.readFileSync(pixelShaderPath).toString());
+                compiledShaderCache.set(pixelShaderPath, shader);
+            }
+
+            const vertexShader = compiledShaderCache.get(vertexShaderPath)!
+            const pixelShader = compiledShaderCache.get(pixelShaderPath)!
+            
+            const meshDataPath = drawableComponent.assetPaths.mesh;
+
+            if (!meshCache.has(meshDataPath)) {
+                const meshData = JSON.parse(MemoryFilesystem.fs.readFileSync(meshDataPath).toString());
+                const mesh = new BasicMesh(gl, Float32Array.from(meshData.vertices), Uint16Array.from(meshData.indices), Float32Array.from(meshData.uv))
+                meshCache.set(meshDataPath, mesh);
+            }
+
+            if (!drawableComponentProgramCache.has(drawableComponent.componentId)) {
+                const shaderProgram = new ShaderProgram(gl, pixelShader, vertexShader);
+                drawableComponentProgramCache.set(drawableComponent.componentId, shaderProgram)
+            }
+
+            const mesh = meshCache.get(meshDataPath);
+            const shaderProgram = drawableComponentProgramCache.get(drawableComponent.componentId)!;
+
+            class DrawStuff implements DrawRequest {
+                private _shaderProgram = shaderProgram;
+                private _mesh = mesh;
+                private _uniformAttributes : Record<string, any> = drawableComponent.uniformParameters!
+
+
+                draw(camera: Readonly<Camera>): void {
+                    // Why is aVertexPosition hardcoded?
+                    const vertexPositionAttribLoc = gl.getAttribLocation(this._shaderProgram.glShaderProgram, 'aVertexPosition');
+
+                    gl.bindBuffer(gl.ARRAY_BUFFER, this._mesh!.glVertexBuffer);
+                    gl.vertexAttribPointer(
+                        vertexPositionAttribLoc,
+                        3,
+                        gl.FLOAT,
+                        false,
+                        0,
+                        0
+                    );
+                    gl.enableVertexAttribArray(vertexPositionAttribLoc);
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._mesh!.glIndexBuffer);
+                    gl.useProgram(this._shaderProgram.glShaderProgram);
+
+                    for(const key in this._uniformAttributes) {
+                        const value = this._uniformAttributes[key];
+
+                        const uniformLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, key);
+
+                        if (uniformLoc === null ){
+                            console.log('null')
+                        }
+
+                        if (Array.isArray(value)) {
+                            const array: Array<number> = value
+                            const size = array.length;
+
+                            if (size === 16) {
+                                gl.uniformMatrix4fv(
+                                    uniformLoc,
+                                    false,
+                                    array
+                                )
+                            }
+
+                            if (size === 4) {
+                                gl.uniform4fv(
+                                    uniformLoc,
+                                    array
+                                )
+                            }
+                        } 
+                        else
+                        if (!isNaN(+value)) {
+                            gl.uniform1f(
+                                uniformLoc,
+                                parseFloat(value)
+                            )
+                        }
+                    }
+
+                    // Off the grid uniforms for the camera. Need to figure out how to pass them.
+                    const cameraViewLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uCameraData.view');
+                    const cameraProjLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uCameraData.proj');
+
+                    gl.uniformMatrix4fv(
+                        cameraViewLoc,
+                        false,
+                        camera.viewTransform
+                    );
+
+                    gl.uniformMatrix4fv(
+                        cameraProjLoc,
+                        false,
+                        camera.transform
+                    )
+
+                    gl.drawElements(gl.TRIANGLES, this._mesh!.elementsCount, gl.UNSIGNED_SHORT, 0);
+                }
+            }
+
+            const request = new DrawStuff();
+            newToDraw.set(name, request);
+
         }
     });
 

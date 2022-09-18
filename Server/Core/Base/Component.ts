@@ -1,3 +1,4 @@
+import { Serializable } from "../Serialization/Serializable"
 import { Entity } from "./Entity"
 import { Uuid } from "./UuidGenerator"
 
@@ -7,7 +8,7 @@ export interface MetaClass {
     get metaName(): MetaName
 }
 
-export interface ComponentBase extends MetaClass {
+export interface ComponentBase extends Serializable, MetaClass {
     get isActive(): boolean;
     get ownerEntity(): Entity;
     get systemAsignedId(): Uuid | undefined;

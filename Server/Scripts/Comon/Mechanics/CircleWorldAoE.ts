@@ -1,28 +1,36 @@
 import { Entity } from "@core/Base/Entity"
-import { DrawableAoECircleClosed } from "@core/Systems/DrawingSystem"
+import { CircleWorldAoEDrawableComponent } from "./CircleWorldAoEDrawableComponent"
 import { ScriptSystem } from "@core/Systems/ScriptSystem";
 import { TriggerCollisionSystem2D } from "@core/Systems/TriggerCollisionSystem2D";
 import { runInThisContext } from "vm";
+import { GlobalClock } from "@core/Base/GlobalClock";
 
 export class CircleWorldAoE extends ScriptSystem.Component {
 
-    private _drawableComponent: DrawableAoECircleClosed;
+    private _drawableComponent: CircleWorldAoEDrawableComponent;
     private _triggerComponent: TriggerCollisionSystem2D.CircleTriggerComponent;
     private _explosionTimeMs: number;
     private _isExploding = false;
     private _isExploded = false;
 
+    private _startTimeMs: number;
+    private _fadeInMs = 250;
+    private _fadeOutMs = 400;
+
+    private _radius = 1.0;
+
     private _explodedEntities = new Array<Entity>();
 
-    constructor(ownerEntity: Entity, radius: number, explosionTimeMs: number) {
+    constructor(ownerEntity: Entity, radius: number, duration: number) {
         super(ownerEntity);
-
-        this._explosionTimeMs = explosionTimeMs;
-        this._drawableComponent = new DrawableAoECircleClosed(this.ownerEntity, radius);
+        this._startTimeMs = GlobalClock.clock.getTimeMs();
+        this._explosionTimeMs = this._startTimeMs + duration;
+        this._drawableComponent = new CircleWorldAoEDrawableComponent(this.ownerEntity, radius);
         this._triggerComponent = new TriggerCollisionSystem2D.CircleTriggerComponent(this.ownerEntity, radius);
 
+        this._radius = radius;
+
         this._drawableComponent.transform.rotation = [Math.PI/2, 0, 0];
-        this._drawableComponent.transform.scale = [radius, radius, radius];
 
         const self = this;
         this._triggerComponent.triggerListener = {
@@ -43,6 +51,14 @@ export class CircleWorldAoE extends ScriptSystem.Component {
     }
 
     onUpdate(): void {
+        const time = GlobalClock.clock.getTimeMs();
+        const fadeInProgress = Math.min(1, Math.max(0, (time - this._startTimeMs) / this._fadeInMs));
+        const fadeOutProgress = Math.min(1, Math.max(0, (this._explosionTimeMs - time) / this._fadeOutMs));
+
+        this._drawableComponent.radius = 0.2 * this._radius + 0.8 * fadeInProgress * this._radius;
+        this._drawableComponent.opacity = fadeInProgress * fadeOutProgress;
+
+        console.log("FadeIn: %d FadeOut: %d", fadeInProgress, fadeOutProgress);
         if ( this._isExploding ) {
             console.log("Poof!");
             this.ownerEntity.getWorld().unregisterComponent(this._drawableComponent);
@@ -58,7 +74,7 @@ export class CircleWorldAoE extends ScriptSystem.Component {
     }
 
     postUpdate(): void {
-        const currentTimeMs = this.ownerEntity.getWorld().getClock().getTimeMs();
+        const currentTimeMs = GlobalClock.clock.getTimeMs();
         if ( currentTimeMs >= this._explosionTimeMs ) {
             this._isExploding = true;
         }
