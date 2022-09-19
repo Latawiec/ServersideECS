@@ -109,6 +109,7 @@ export class DrawCircleAoeRequest implements DrawRequest {
             ms/1000.0
         );
 
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.drawElements(gl.TRIANGLES, this._elementsCount, gl.UNSIGNED_SHORT, 0);
     }
 

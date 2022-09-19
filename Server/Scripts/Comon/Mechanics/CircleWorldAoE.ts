@@ -15,9 +15,10 @@ export class CircleWorldAoE extends ScriptSystem.Component {
 
     private _startTimeMs: number;
     private _fadeInMs = 250;
-    private _fadeOutMs = 400;
+    private _fadeOutMs = 500;
 
     private _radius = 1.0;
+    private _intensity = 0.9;
 
     private _explodedEntities = new Array<Entity>();
 
@@ -29,6 +30,8 @@ export class CircleWorldAoE extends ScriptSystem.Component {
         this._triggerComponent = new TriggerCollisionSystem2D.CircleTriggerComponent(this.ownerEntity, radius);
 
         this._radius = radius;
+        this._drawableComponent.radius = radius;
+        this._drawableComponent.intensity = this._intensity;
 
         this._drawableComponent.transform.rotation = [Math.PI/2, 0, 0];
 
@@ -55,10 +58,9 @@ export class CircleWorldAoE extends ScriptSystem.Component {
         const fadeInProgress = Math.min(1, Math.max(0, (time - this._startTimeMs) / this._fadeInMs));
         const fadeOutProgress = Math.min(1, Math.max(0, (this._explosionTimeMs - time) / this._fadeOutMs));
 
-        this._drawableComponent.radius = 0.2 * this._radius + 0.8 * fadeInProgress * this._radius;
+        this._drawableComponent.radius = 0.2 * this._radius + 0.8 * fadeInProgress * fadeInProgress * this._radius;
         this._drawableComponent.opacity = fadeInProgress * fadeOutProgress;
 
-        console.log("FadeIn: %d FadeOut: %d", fadeInProgress, fadeOutProgress);
         if ( this._isExploding ) {
             console.log("Poof!");
             this.ownerEntity.getWorld().unregisterComponent(this._drawableComponent);

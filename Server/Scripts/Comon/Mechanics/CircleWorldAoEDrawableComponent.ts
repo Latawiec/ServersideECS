@@ -7,6 +7,7 @@ export class CircleWorldAoEDrawableComponent extends DrawingSystem.Component {
 
     radius: number = 1;
     opacity: number = 1;
+    intensity: number = 1;
 
     constructor(entity: Entity, radius: number = 1) {
         super(entity);
@@ -30,6 +31,7 @@ export class CircleWorldAoEDrawableComponent extends DrawingSystem.Component {
             'uObjectData.transform':Array.from(this.transform.worldTransform),
             'uObjectData.radius': this.radius,
             'uObjectData.opacity': this.opacity,
+            'uObjectData.intensity': this.intensity,
 
             'uTimeData.globalTime': GlobalClock.clock.getTimeMs()
         };

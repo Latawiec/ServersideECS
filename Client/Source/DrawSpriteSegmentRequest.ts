@@ -175,6 +175,7 @@ export class DrawSpriteSegmentRequest implements DrawRequest {
             this._spriteSelect[1]
         );
 
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.drawElements(gl.TRIANGLES, this._elementsCount, gl.UNSIGNED_SHORT, 0);
     }
 

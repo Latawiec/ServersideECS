@@ -10,6 +10,7 @@ struct Object {
     highp mat4 transform;
     lowp float radius;
     lowp float opacity;
+    lowp float intensity;
 };
 
 struct Time {

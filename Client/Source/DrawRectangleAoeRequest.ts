@@ -140,6 +140,7 @@ export class DrawRectangleAoeRequest implements DrawRequest {
             ms
         );
 
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.drawElements(gl.TRIANGLES, this._elementsCount, gl.UNSIGNED_SHORT, 0);
     }
 

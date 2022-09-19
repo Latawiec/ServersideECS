@@ -19,11 +19,15 @@ export class Canvas {
     constructor (canvas: HTMLCanvasElement) {
         this._canvas = canvas;
         this._drawRequests = new Map<Layer, DrawRequest[]>();
-        this._gl = canvas.getContext('webgl')!;
+        this._gl = canvas.getContext('webgl', 
+        {
+            premultipliedAlpha: false,
+            alpha: false
+        })!;
     }
 
     executeDraw(camera: Readonly<Camera>): void {
-        this._gl.clearColor(0.0, 1.0, 0.0, 1.0);
+        this._gl.clearColor(0.0, 0.0, 0.0, 1.0);
         this._gl.clearDepth(1.0);
         this._gl.enable(this._gl.DEPTH_TEST);
         this._gl.depthFunc(this._gl.LEQUAL);
@@ -54,6 +58,7 @@ export class Canvas {
             })
         }
 
+        this.glContext.flush();
         this._drawRequests.clear();
     }
 

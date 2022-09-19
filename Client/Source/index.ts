@@ -192,9 +192,15 @@ var entitiesToDraw = new Map<string, DrawRequest>();
 var awaitedDrawRequests = new Map<string, DrawRequest | undefined>();
 
 // Test Alpha Blend.
-canvas.glContext.enable(canvas.glContext.BLEND);
 canvas.glContext.enable(canvas.glContext.DEPTH_TEST);
+canvas.glContext.enable(canvas.glContext.BLEND);
 canvas.glContext.blendFunc(canvas.glContext.SRC_ALPHA, canvas.glContext.ONE_MINUS_SRC_ALPHA);
+//canvas.glContext.blendFunc(canvas.glContext.ONE, canvas.glContext.ONE_MINUS_SRC_ALPHA);
+// canvas.glContext.blendFuncSeparate(
+//     canvas.glContext.SRC_ALPHA,
+//     canvas.glContext.ONE_MINUS_SRC_ALPHA,
+//     canvas.glContext.ONE,
+//     canvas.glContext.ONE);
 
 async function render(world: any) {
 
@@ -424,7 +430,10 @@ async function render(world: any) {
                         false,
                         camera.transform
                     )
-
+                    // debugger;
+                    //canvas.glContext.blendFunc(canvas.glContext.SRC_ALPHA, canvas.glContext.ONE); // Additive blending.
+                    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); // real transparency
+                    // gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
                     gl.drawElements(gl.TRIANGLES, this._mesh!.elementsCount, gl.UNSIGNED_SHORT, 0);
                 }
             }

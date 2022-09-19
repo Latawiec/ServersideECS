@@ -3,6 +3,7 @@ import { Shader, ShaderProgram, ShaderType } from "./Rendering/Materials/ShaderP
 import { mat4, vec4, vec3 } from "gl-matrix";
 import { CommonShapes } from "./Rendering/Basic/CommonShapes";
 import { Camera } from "./Rendering/Basic/Camera";
+import { flagsToNumber } from "memfs/lib/volume";
 
 export class DrawTextureSquareRequest implements DrawRequest {
     private _gl: WebGLRenderingContext;
@@ -158,6 +159,8 @@ export class DrawTextureSquareRequest implements DrawRequest {
         gl.bindTexture(gl.TEXTURE_2D, this._texture);
         gl.uniform1i(textureSamplerUniformLoc, 0);
 
+        
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.drawElements(gl.TRIANGLES, this._elementsCount, gl.UNSIGNED_SHORT, 0);
     }
 
