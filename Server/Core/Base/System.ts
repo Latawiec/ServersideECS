@@ -22,6 +22,7 @@ export abstract class SystemBase<Type extends ComponentBase> {
     protected _unregisterComponent(component: Readonly<Type>): void {
         if (component.systemAsignedId !== undefined && !this._IdComponentMap.has(component.systemAsignedId)) {
             // Bad bad... very bad
+            debugger;
             console.error('Trying to unregister component %s with id %d which is not registered.', component.metaName, component.systemAsignedId);
             return;
         }

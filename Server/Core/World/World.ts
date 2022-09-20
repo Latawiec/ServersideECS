@@ -46,6 +46,22 @@ export class World {
         return result;
     }
 
+    destroyEntity(entity: Entity): boolean {
+        entity.getComponents().forEach((components, metaname) => {
+            for (const component of components) {
+                this.unregisterComponent(component)
+            }
+        })
+
+        const index =  this._entities.indexOf(entity, 0);
+        if (index > -1) {
+            this._entities.splice(index, 1);
+        }
+
+        entity.getParent()?.removeChild(entity);
+        return true;
+    }
+
     registerComponent(owner: Entity, component: ComponentBase) {
         const systemAsignmentMetaName = component.systemMetaName;
 

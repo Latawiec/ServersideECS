@@ -44,6 +44,10 @@ export namespace TriggerCollisionSystem2D {
             return this._isActive
         }
 
+        set isActive(value: Readonly<boolean>) {
+            this._isActive = value;
+        }
+
         get metaName(): Readonly<string> {
             return Component.staticMetaName();
         }

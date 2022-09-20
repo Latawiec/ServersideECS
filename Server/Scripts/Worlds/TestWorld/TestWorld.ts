@@ -19,6 +19,7 @@ import { CircleWorldAoE } from "@scripts/Comon/Mechanics/CircleWorldAoE";
 import { vec2, vec4, mat4, vec3 } from "gl-matrix"
 import * as WebSocket from 'websocket'
 import { GlobalClock } from "@core/Base/GlobalClock";
+import { Devour, DevourPattern } from "../Abyssos/The Fifth Circle Savage/Devour";
 
 
 class TestPlayer extends ScriptSystem.Component
@@ -42,6 +43,7 @@ class TestPlayer extends ScriptSystem.Component
 
         this._drawable = new SpriteTexture(entity,"Common/WOL/RedMage.png", 2, 2);
         world.registerComponent(entity, this._drawable);
+        this._drawable.transform.position = vec3.fromValues(0, 1, 0);
 
         this._playerInputController = new PlayerInputController(entity);
         world.registerComponent(entity, this._playerInputController);
@@ -170,7 +172,7 @@ class Platform extends ScriptSystem.Component
         const transform = this._drawable.transform;
         transform.scale = [7, 7, 7];
         transform.rotation = [Math.PI/2.0, 0, Math.PI/4.0];
-        entity.getTransform().position = [0, -1.0, 0];
+        entity.getTransform().position = [0, -0.1, 0];
     }
 
     preUpdate(): void {
@@ -369,6 +371,8 @@ export class TestWorld extends World {
                 const aoeCircle = this.createEntity();
                 const aoeRect = this.createEntity();
 
+                const devour = this.createEntity();
+
                 const blockPlane = this.createEntity();
 
                 //roundAreaOfEffectInitialize(aoeCircle);
@@ -446,9 +450,18 @@ export class TestWorld extends World {
                         }
                     };
 
-                    const aoeRepeating = this.createEntity();
-                    const reloader = new ReloadAoE(aoeRepeating);
-                    this.registerComponent(aoeRepeating, reloader);
+                    if (false) {
+                        const aoeRepeating = this.createEntity();
+                        const reloader = new ReloadAoE(aoeRepeating);
+                        this.registerComponent(aoeRepeating, reloader);
+                    }
+                }
+
+                // Devour
+                {
+                    const devourComponent = new Devour(devour, DevourPattern.Circle, GlobalClock.clock.getTimeMs() + 5000);
+
+                    this.registerComponent(devour, devourComponent);
                 }
             });
         }

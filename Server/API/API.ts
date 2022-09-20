@@ -75,7 +75,7 @@ async function run() {
     const start = Date.now();
     world.update();
     const end = Date.now();
-    console.log("Update took: %d", end - start);
+    // console.log("Update took: %d", end - start);
     run();
 }
 

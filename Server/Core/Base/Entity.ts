@@ -64,6 +64,13 @@ export class Entity {
         this._children.push(entity);
     }
 
+    removeChild(entity: Entity) {
+        const index =  this._children.indexOf(entity, 0);
+        if (index > -1) {
+            this._children.splice(index, 1);
+        }
+    }
+
     getParent(): Readonly<Entity> | undefined {
         return this._parent ? this._parent : undefined;
     }
