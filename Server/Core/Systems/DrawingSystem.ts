@@ -12,12 +12,14 @@ import { GlobalClock } from "@core/Base/GlobalClock";
 export namespace DrawingSystem {
 
     export enum Types {
+
         AABBRect,
         SpriteTexture,
 
         AOE_CircleClosed,
         AOE_RectangleClosed,
-        AOE_CircleOpen
+        AOE_CircleOpen,
+        Unknown,
     }
 
     export abstract class Component implements ComponentBase {

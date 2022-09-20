@@ -211,7 +211,6 @@ async function render(world: any) {
     // We'll be swaping DrawRequests and asigning to currently existing names lol. Kinda makes it easier to implement.
     const newToDraw = new Map<string, DrawRequest>();
     world.entities?.forEach((entity: any) => {
-        const name: string = entity.name;
         var transform: mat4 = entity.components.transform;
 
         // grab camera
@@ -220,102 +219,106 @@ async function render(world: any) {
             camera = new RawCamera(mat4.copy(mat4.create(), cameraComponent.transform), mat4.copy(mat4.create(), cameraComponent.projection));
         }
 
-        if (entity.components.drawing !== undefined) {
-            let request: DrawRequest;
-            const drawComponent = entity.components.drawing;
-            if (drawComponent.transform) {
-                transform = drawComponent.transform;
-            }
-            const assetPaths = drawComponent.assetPaths as Array<string>;
-            const type: number = entity.components.drawing?.type;
-
-            if (entitiesToDraw.has(name)) 
-            {
-                const request = entitiesToDraw.get(name)!;
-                if (type == 0) {
-                    // Fix this "any"
-                    let square = request as any;
-                    square.transform = transform;
-                    if (drawComponent.color != undefined) {
-                        square.color = drawComponent.color;
-                    }
-                } else
-                if (type == 1) { 
-                    let spriteRequest = request as DrawSpriteSegmentRequest;
-                    const spriteSelect = entity.components.drawing!.selectedSegment;
-                    spriteRequest.transform = transform;
-                    spriteRequest.spriteSelect = vec2.fromValues(spriteSelect[0], spriteSelect[1]);
-                } else 
-                if (type == 2) {
-                    let closedAoeCircle = request as DrawCircleAoeRequest;
-                    closedAoeCircle.transform = transform;
-                } else
-                if (type == 3) {
-                    let closedAoeRect = request as DrawRectangleAoeRequest;
-                    closedAoeRect.transform = transform;
+        oldDrawing: {
+            if (entity.components.drawing !== undefined) {
+                let request: DrawRequest;
+                const drawComponent = entity.components.drawing;
+                if (drawComponent.transform) {
+                    transform = drawComponent.transform;
                 }
-                newToDraw.set(name, request);
-                return;
-            } else {
-                // console.log("Doesn't have: " + name);
-            }
+                const assetPaths = drawComponent.assetPaths as Array<string>;
+                const type: number = entity.components.drawing?.type;
+                const componentId = drawComponent.componentId;
 
-            if (awaitedDrawRequests.has(name))
-            {
-                if (awaitedDrawRequests.get(name) != undefined) {
-                    newToDraw.set(name, awaitedDrawRequests.get(name)!);
-                    awaitedDrawRequests.delete(name);
-                }
-                return;
-            }
-
-            // Create new draw request. Such object hasn't been registered for drawing yet.
-            if (type == 0) {
-                if (assetPaths.length > 0 && assetPaths[0] != "") {
-                    awaitedDrawRequests.set(name, undefined);
-                    getAsset(assetPaths[0], (data) => {
-                        const image = pngDecode(data);
-                        const texturedSquareRequest = new DrawTextureSquareRequest(canvas.glContext, image.data, image.width, image.height);
-                        texturedSquareRequest.transform = transform;
-                        awaitedDrawRequests.set(name, texturedSquareRequest);
-                    });
-                    return;
-                } else {
-                    const plainSquareRequest = new DrawSquareRequest(canvas.glContext);
-                    plainSquareRequest.transform = transform;
-
-                    newToDraw.set(name, plainSquareRequest);
-                    return;
-                }
-            } else 
-            if (type == 1) {
-                if (assetPaths.length > 0 && assetPaths[0] != "") {
-                    awaitedDrawRequests.set(name, undefined);
-                    getAsset(assetPaths[0], (data) => {
-                        const image = pngDecode(data);
-                        const spriteRequest = new DrawSpriteSegmentRequest(canvas.glContext, image.data, image.width, image.height);
+                if (entitiesToDraw.has(componentId)) 
+                {
+                    const request = entitiesToDraw.get(componentId)!;
+                    if (type == 0) {
+                        // Fix this "any"
+                        let square = request as any;
+                        square.transform = transform;
+                        if (drawComponent.color != undefined) {
+                            square.color = drawComponent.color;
+                        }
+                    } else
+                    if (type == 1) { 
+                        let spriteRequest = request as DrawSpriteSegmentRequest;
                         const spriteSelect = entity.components.drawing!.selectedSegment;
                         spriteRequest.transform = transform;
                         spriteRequest.spriteSelect = vec2.fromValues(spriteSelect[0], spriteSelect[1]);
-                        awaitedDrawRequests.set(name, spriteRequest);
-                    });
-                    return;
+                    } else 
+                    if (type == 2) {
+                        let closedAoeCircle = request as DrawCircleAoeRequest;
+                        closedAoeCircle.transform = transform;
+                    } else
+                    if (type == 3) {
+                        let closedAoeRect = request as DrawRectangleAoeRequest;
+                        closedAoeRect.transform = transform;
+                    }
+                    newToDraw.set(componentId, request);
+                    break oldDrawing;
+                } else {
+                    // console.log("Doesn't have: " + name);
                 }
-            } else 
-            if (type == 2) {
-                const aoeCircleRequest = new DrawCircleAoeRequest(canvas.glContext);
-                aoeCircleRequest.transform = transform;
-                newToDraw.set(name, aoeCircleRequest);
-                return;
-            } else
-            if (type == 3) {
-                console.log("Got 3");
-                const aoeRectangleRequest = new DrawRectangleAoeRequest(canvas.glContext);
-                aoeRectangleRequest.transform = transform;
-                newToDraw.set(name, aoeRectangleRequest);
-                return;
+
+                if (awaitedDrawRequests.has(componentId))
+                {
+                    if (awaitedDrawRequests.get(componentId) != undefined) {
+                        newToDraw.set(componentId, awaitedDrawRequests.get(componentId)!);
+                        awaitedDrawRequests.delete(componentId);
+                    }
+                    break oldDrawing;
+                }
+
+                // Create new draw request. Such object hasn't been registered for drawing yet.
+                if (type == 0) {
+                    if (assetPaths.length > 0 && assetPaths[0] != "") {
+                        awaitedDrawRequests.set(componentId, undefined);
+                        getAsset(assetPaths[0], (data) => {
+                            const image = pngDecode(data);
+                            const texturedSquareRequest = new DrawTextureSquareRequest(canvas.glContext, image.data, image.width, image.height);
+                            texturedSquareRequest.transform = transform;
+                            awaitedDrawRequests.set(componentId, texturedSquareRequest);
+                        });
+                        break oldDrawing;
+                    } else {
+                        const plainSquareRequest = new DrawSquareRequest(canvas.glContext);
+                        plainSquareRequest.transform = transform;
+
+                        newToDraw.set(componentId, plainSquareRequest);
+                        break oldDrawing;
+                    }
+                } else 
+                if (type == 1) {
+                    if (assetPaths.length > 0 && assetPaths[0] != "") {
+                        awaitedDrawRequests.set(componentId, undefined);
+                        getAsset(assetPaths[0], (data) => {
+                            const image = pngDecode(data);
+                            const spriteRequest = new DrawSpriteSegmentRequest(canvas.glContext, image.data, image.width, image.height);
+                            const spriteSelect = entity.components.drawing!.selectedSegment;
+                            spriteRequest.transform = transform;
+                            spriteRequest.spriteSelect = vec2.fromValues(spriteSelect[0], spriteSelect[1]);
+                            awaitedDrawRequests.set(componentId, spriteRequest);
+                        });
+                        break oldDrawing;
+                    }
+                } else 
+                if (type == 2) {
+                    const aoeCircleRequest = new DrawCircleAoeRequest(canvas.glContext);
+                    aoeCircleRequest.transform = transform;
+                    newToDraw.set(componentId, aoeCircleRequest);
+                    break oldDrawing;
+                } else
+                if (type == 3) {
+                    console.log("Got 3");
+                    const aoeRectangleRequest = new DrawRectangleAoeRequest(canvas.glContext);
+                    aoeRectangleRequest.transform = transform;
+                    newToDraw.set(componentId, aoeRectangleRequest);
+                    break oldDrawing;
+                }
             }
         }
+        
 
         // The new drawable. All controll passed over to the server.
         if (entity.components.drawableComponent !== undefined) {
@@ -405,6 +408,13 @@ async function render(world: any) {
                                     array
                                 )
                             }
+
+                            if (size === 3) {
+                                gl.uniform3fv(
+                                    uniformLoc,
+                                    array
+                                )
+                            }
                         } 
                         else
                         if (!isNaN(+value)) {
@@ -439,7 +449,7 @@ async function render(world: any) {
             }
 
             const request = new DrawStuff();
-            newToDraw.set(name, request);
+            newToDraw.set(drawableComponent.componentId, request);
 
         }
     });

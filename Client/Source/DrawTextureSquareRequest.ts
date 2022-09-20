@@ -42,9 +42,7 @@ export class DrawTextureSquareRequest implements DrawRequest {
 
         void main(void) {
             highp vec4 color = texture2D(texSampler, uvCoord);
-            if (color.a != 1.0) discard;
-
-            gl_FragColor = vColor;
+            gl_FragColor = color;
         }
     `;
 

@@ -39,6 +39,7 @@ export class CircleWorldAoE extends ScriptSystem.Component {
         this._drawableComponent.radius = radius;
         this._drawableComponent.intensity = this.intensity;
 
+        // TODO: Change mesh coords. Do not rotate every time I use it...
         this._drawableComponent.transform.rotation = [Math.PI/2, 0, 0];
 
         const self = this;
@@ -95,6 +96,7 @@ export class CircleWorldAoE extends ScriptSystem.Component {
 
             this.ownerEntity.getWorld().unregisterComponent(this._drawableComponent);
             this.ownerEntity.getWorld().unregisterComponent(this._triggerComponent);
+            this.ownerEntity.getWorld().unregisterComponent(this);
 
             this._isExploded = true;
         }

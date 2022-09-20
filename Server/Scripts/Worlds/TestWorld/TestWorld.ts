@@ -20,6 +20,7 @@ import { vec2, vec4, mat4, vec3 } from "gl-matrix"
 import * as WebSocket from 'websocket'
 import { GlobalClock } from "@core/Base/GlobalClock";
 import { Devour, DevourPattern } from "../Abyssos/The Fifth Circle Savage/Devour";
+import { Waymark, WaymarkType } from "@scripts/Comon/Waymarks/Waymark";
 
 
 class TestPlayer extends ScriptSystem.Component
@@ -349,6 +350,8 @@ export class TestWorld extends World {
         this.clientConnectionSystem.broadcastMessage(JSON.stringify(WorldSerializer.serializeWorld(this)));
     }
 
+    isInitialized = false;
+
     constructor(wsServer: WebSocket.server)
     {
         super("D:\\Programming\\FFXIVSavagePlayground\\Server\\Assets\\Worlds\\TestWorld")
@@ -370,6 +373,7 @@ export class TestWorld extends World {
                 const playerEntity = this.createEntity();
                 const aoeCircle = this.createEntity();
                 const aoeRect = this.createEntity();
+                const waymark = this.createEntity();
 
                 const devour = this.createEntity();
 
@@ -460,9 +464,43 @@ export class TestWorld extends World {
                 // Devour
                 {
                     const devourComponent = new Devour(devour, DevourPattern.Circle, GlobalClock.clock.getTimeMs() + 5000);
-
-                    this.registerComponent(devour, devourComponent);
                 }
+
+                // Waymark
+                if (!this.isInitialized)
+                {
+                    const Aentity = this.createEntity();
+                    const Bentity = this.createEntity();
+                    const Centity = this.createEntity();
+                    const Dentity = this.createEntity();
+                    
+                    const scale = 3.0;
+                    Aentity.getTransform().position = vec3.fromValues(-scale, 0, +scale);
+                    Bentity.getTransform().position = vec3.fromValues(+scale, 0, +scale);
+                    Centity.getTransform().position = vec3.fromValues(-scale, 0, -scale);
+                    Dentity.getTransform().position = vec3.fromValues(+scale, 0, -scale);
+
+                    new Waymark(Aentity, WaymarkType._A);
+                    new Waymark(Bentity, WaymarkType._B);
+                    new Waymark(Centity, WaymarkType._C);
+                    new Waymark(Dentity, WaymarkType._D);
+
+                    waymark.addChild(Aentity);
+                    waymark.addChild(Bentity);
+                    waymark.addChild(Centity);
+                    waymark.addChild(Dentity);
+
+
+                    // Test waymark letter
+                    const letter = new AABBDrawableComponent(Aentity, 'Common/Waymarks/A.png');
+                    //letter.color = [1, 1, 1, 1];
+                    letter.transform.rotation = vec3.fromValues(0, 0, 0);
+                    letter.transform.position = vec3.fromValues(0, 3, 0);
+
+                    this.registerComponent(Aentity, letter);
+                }
+
+                this.isInitialized = true;
             });
         }
     }

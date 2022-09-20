@@ -32,15 +32,11 @@ export class WorldSerializer
         output.components.transform = entity.getTransform().worldTransform;
         const components = entity.getComponents();
 
-        let i=0;
         this.serializableComponentsMapping.forEach((func: any, key: string) => {
             const components = entity.getComponentsByType(key);
-            
-            if (components.length > 0) {
-                // but assume 1 for now
-                func(output.components, components[0]);
+            for (const component of components) {
+                func(output.components, component);
             }
-            i++;
         })
 
         return output;
@@ -51,9 +47,15 @@ export class WorldSerializer
         let result : any = {};
         result.type = type;
         result.transform = component.transform.worldTransform;
+        result.componentId = component.systemAsignedId;
 
         switch (type)
         {
+            case DrawingSystem.Types.Unknown:
+                // It'll do it by itself.
+                component.serialize(output);
+                return;
+                break;
             case DrawingSystem.Types.SpriteTexture:
                 const SpriteComponent = component as SpriteTexture;
                 result.widthSegments = SpriteComponent.widthSegments;

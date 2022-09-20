@@ -37,4 +37,4 @@ void main(void) {
         ;
 
     gl_FragColor = vec4(outputColor.rgb, outputColor.a * inside * uObjectData.opacity);
-}
+} 
