@@ -1,0 +1,33 @@
+279 entities raw json: 170kB
+
+279 Entities Data hand-cut: 75kB 
+    - without all json useless characters
+    - without field names
+    - all floats exceeding 3 positions changed to 1.234
+
+279 Entities 7zipped (Normal - 5 compression): 5.17kB
+
+279 Entities 7zipped (Ultra - 9 compression): 3.9kB
+
+
+YouTube 144p video, stabilizes at: 30kB/s receiving, 6kB/s sending.
+
+
+
+For now realistic limits are:
+    Hard Limit: 100kB/s
+        For 30 fps: 3.33kB per frame
+        For 60 fps: 1.67kB per frame
+    
+    Reasonable Limit: 30kB/s
+        For 30 fps: 1kB per frame
+        For 60 fps: 500B per frame
+    
+Non-realistic limits:
+    'Would be great':
+        For 30 fps: 512B per frame
+        For 60 fps: 256B per frame
+
+    Dream: 7.7kB/s
+        For 30 fps: 256B per frame
+        For 60 fps: 128B per frame
