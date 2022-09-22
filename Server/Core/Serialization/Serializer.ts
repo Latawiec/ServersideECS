@@ -27,9 +27,9 @@ export class WorldSerializer
 
     static serializeEntity(entity: Readonly<Entity>): Record<string, any> {
         var output: Record<string, any> = {};
-        output.name = entity.getUuid();
+        output.name = entity.uuid;
         output.components = {};
-        const components = entity.getComponents();
+        const components = entity.components;
 
         this.serializableComponentsMapping.forEach((func: any, key: string) => {
             const components = entity.getComponentsByType(key);

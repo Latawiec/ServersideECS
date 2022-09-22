@@ -23,12 +23,24 @@ export class Entity {
         this._uuid = uuid;
     }
 
-    getTransform() : Transform {
+    get transform(): Transform {
         return this._transform;
     }
-    
-    getComponents() : Readonly<Map<MetaName, ComponentBase[]>> {
+
+    get components(): Readonly<Map<MetaName, ComponentBase[]>>  {
         return this._componentsMap;
+    }
+
+    get parent(): Readonly<Entity> | undefined {
+        return this._parent ? this._parent : undefined;
+    }
+
+    get uuid(): Readonly<Uuid> {
+        return this._uuid
+    }
+
+    get world(): Readonly<World> {
+        return this._world;
     }
 
     getComponentsByType(name: MetaName): Readonly<ComponentBase[]> {
@@ -65,7 +77,7 @@ export class Entity {
     // Does it overwrite existing parent?
     // also it doesnt work right now.
     addChild(entity: Entity) {
-        if (entity._parent != undefined || entity._parent != entity.getWorld().getRoot()) {
+        if (entity._parent != undefined || entity._parent != entity.world.getRoot()) {
             console.log("Entity already has a parent.");
         }
 
@@ -78,17 +90,5 @@ export class Entity {
         if (index > -1) {
             this._children.splice(index, 1);
         }
-    }
-
-    getParent(): Readonly<Entity> | undefined {
-        return this._parent ? this._parent : undefined;
-    }
-
-    getUuid(): Readonly<Uuid> {
-        return this._uuid
-    }
-
-    getWorld(): Readonly<World> {
-        return this._world;
     }
 }

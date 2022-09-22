@@ -361,11 +361,16 @@ async function render(world: any) {
                 private _shaderProgram = shaderProgram;
                 private _mesh = mesh;
                 private _uniformAttributes : Record<string, any> = drawableComponent.uniformParameters!
+                private _vertexAttributes : Record<string, any> = drawableComponent.vertexAttributes!
 
 
                 draw(camera: Readonly<Camera>): void {
-                    // Why is aVertexPosition hardcoded?
-                    const vertexPositionAttribLoc = gl.getAttribLocation(this._shaderProgram.glShaderProgram, 'aVertexPosition');
+                    
+                    if (this._vertexAttributes.vertices === undefined ) {
+                        console.log("No vertices.")
+                    }
+
+                    const vertexPositionAttribLoc = gl.getAttribLocation(this._shaderProgram.glShaderProgram, this._vertexAttributes.vertices);
 
                     gl.bindBuffer(gl.ARRAY_BUFFER, this._mesh!.glVertexBuffer);
                     gl.vertexAttribPointer(
@@ -378,6 +383,22 @@ async function render(world: any) {
                     );
                     gl.enableVertexAttribArray(vertexPositionAttribLoc);
                     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._mesh!.glIndexBuffer);
+                    
+                    if (this._vertexAttributes.uv) {
+                        const uvCoordAttribLoc = gl.getAttribLocation(this._shaderProgram.glShaderProgram, this._vertexAttributes.uv);
+
+                        gl.bindBuffer(gl.ARRAY_BUFFER, this._mesh!.glUvBuffer);
+                        gl.vertexAttribPointer(
+                            uvCoordAttribLoc,
+                            2,
+                            gl.FLOAT,
+                            false,
+                            0,
+                            0
+                        );
+                        gl.enableVertexAttribArray(uvCoordAttribLoc);
+                    }
+
                     gl.useProgram(this._shaderProgram.glShaderProgram);
 
                     for(const key in this._uniformAttributes) {

@@ -39,9 +39,6 @@ export class CircleWorldAoE extends ScriptSystem.Component {
         this._drawableComponent.radius = radius;
         this._drawableComponent.intensity = this.intensity;
 
-        // TODO: Change mesh coords. Do not rotate every time I use it...
-        this._drawableComponent.transform.rotation = [Math.PI/2, 0, 0];
-
         const self = this;
         this._triggerComponent.triggerListener = {
             onTriggered(triggededBy) {
@@ -51,9 +48,9 @@ export class CircleWorldAoE extends ScriptSystem.Component {
             }
         }
 
-        ownerEntity.getWorld().registerComponent(ownerEntity, this._drawableComponent);
-        ownerEntity.getWorld().registerComponent(ownerEntity, this._triggerComponent);
-        ownerEntity.getWorld().registerComponent(ownerEntity, this);
+        ownerEntity.world.registerComponent(ownerEntity, this._drawableComponent);
+        ownerEntity.world.registerComponent(ownerEntity, this._triggerComponent);
+        ownerEntity.world.registerComponent(ownerEntity, this);
     }
 
     preUpdate(): void {
@@ -91,12 +88,12 @@ export class CircleWorldAoE extends ScriptSystem.Component {
             console.log("Poof!");
             
             for (const exploded of this._explodedEntities) {
-                console.log("Exploded: %s", exploded.getUuid());
+                console.log("Exploded: %s", exploded.uuid);
             }
 
-            this.ownerEntity.getWorld().unregisterComponent(this._drawableComponent);
-            this.ownerEntity.getWorld().unregisterComponent(this._triggerComponent);
-            this.ownerEntity.getWorld().unregisterComponent(this);
+            this.ownerEntity.world.unregisterComponent(this._drawableComponent);
+            this.ownerEntity.world.unregisterComponent(this._triggerComponent);
+            this.ownerEntity.world.unregisterComponent(this);
 
             this._isExploded = true;
         }

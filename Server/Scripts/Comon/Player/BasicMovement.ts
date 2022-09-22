@@ -16,7 +16,7 @@ export class BasicMovement extends ScriptSystem.Component {
 
     constructor(owner: Entity) {
         super(owner);
-        this._playerTransform = owner.getTransform();
+        this._playerTransform = owner.transform;
 
         const playerInputControllers = owner.getComponentsByType(PlayerInputController.staticMetaName());
         if (playerInputControllers.length === 0) {
@@ -58,12 +58,9 @@ export class BasicMovement extends ScriptSystem.Component {
             vec3.normalize(movementDirection, movementDirection);
             this._movementDirection = movementDirection;
 
-            const currentPosition = this._playerTransform.position;
             const scaling: vec3 = [0.1, 0.1, 0.1];
-            const newPosition = vec3.create();
-            vec3.multiply(newPosition, movementDirection, scaling);
-            vec3.add(newPosition, newPosition, currentPosition);
-            this._playerTransform.position = newPosition;
+            const motionVector = vec3.mul(vec3.create(), movementDirection, scaling);
+            this._playerTransform.move(motionVector);
         }
     }
     postUpdate(): void {

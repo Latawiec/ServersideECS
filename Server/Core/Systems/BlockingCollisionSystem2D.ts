@@ -70,7 +70,7 @@ export namespace BlockingCollisionSystem2D {
         }
 
         get worldTransform() : mat4 {
-            return mat4.mul(mat4.create(), this.ownerEntity.getTransform().worldTransform, this._transform);
+            return mat4.mul(mat4.create(), this.ownerEntity.transform.worldTransform, this._transform);
         }
 
         get isBlocking() : Readonly<boolean> {
@@ -136,12 +136,9 @@ export namespace BlockingCollisionSystem2D {
                 // TODO: I shouldn't update positions here, because state changes between iterations... 
                 // But for now its all good I guess.
                 const solutionAsVec4 = vec4.fromValues(collisionSolution[0], 0, collisionSolution[1], 0);
-                const solutionInEntitySpace = vec4tovec3(vec4.transformMat4(vec4.create(), solutionAsVec4, mat4.invert(mat4.create(), triggerOne.ownerEntity.getTransform().worldTransform)));
-                 vec3.add(
-                    triggerOne.ownerEntity.getTransform().position,
-                    triggerOne.ownerEntity.getTransform().position, 
-                    solutionInEntitySpace
-                );
+                const solutionInEntitySpace = vec4tovec3(vec4.transformMat4(vec4.create(), solutionAsVec4, mat4.invert(mat4.create(), triggerOne.ownerEntity.transform.worldTransform)));
+
+                triggerOne.ownerEntity.transform.move(solutionInEntitySpace);
             }
         }
 

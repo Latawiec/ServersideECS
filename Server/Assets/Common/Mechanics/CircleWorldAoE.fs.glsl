@@ -1,5 +1,5 @@
 
-varying lowp vec2 vVertexPosition;
+varying lowp vec2 vUvCoord;
 
 struct Time {
     highp float globalTime;
@@ -17,7 +17,7 @@ uniform Object uObjectData;
 
 void main(void) {
     highp float seconds = uTimeData.globalTime / 1000.0;
-    lowp float cDist = length(vVertexPosition);
+    lowp float cDist = length(vUvCoord);
     lowp float cDistReverse = 1.0 - cDist;
 
     lowp float inside = ceil(cDistReverse);

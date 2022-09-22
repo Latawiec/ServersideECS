@@ -1,5 +1,5 @@
 
-varying lowp vec2 vVertexPosition;
+varying lowp vec2 vUvCoord;
 
 struct Object {
     highp mat4 transform;
@@ -22,7 +22,7 @@ const lowp float outlineBackfallIntensityMultiplier = 0.5;
 
 
 void main(void) {
-    lowp float cDist = length(vVertexPosition);
+    lowp float cDist = length(vUvCoord);
     lowp float cDistReverse = 1.0 - cDist;
 
     lowp float outterCircleMask = ceil(cDistReverse);

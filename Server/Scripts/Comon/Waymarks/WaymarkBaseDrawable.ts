@@ -18,10 +18,16 @@ export class WaymarkBaseDrawable extends DrawingSystem.Component {
     serialize(output: Record<string, any>): Record<string, any> {
         let result = super.serialize(output);
 
+        
         result.assetPaths = {
             vertexShader: 'Common/Waymarks/Waymark.vs.glsl',
             pixelShader: 'Common/Waymarks/Waymark.fs.glsl',
             mesh: 'Common/Meshes/square.json'
+        }
+
+        result.vertexAttributes = {
+            vertices: 'aVertexPosition',
+            uv: 'aUvCoord'
         }
 
         result.uniformParameters = {

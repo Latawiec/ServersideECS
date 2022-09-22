@@ -1,10 +1,10 @@
 
 varying lowp vec4 vColor;
-varying lowp vec2 vVertexPosition;
+varying lowp vec2 vUvCoord;
 varying lowp float vTime;
 
 void main(void) {
-    lowp float cDist = length(vVertexPosition);
+    lowp float cDist = length(vUvCoord);
     lowp float cDistReverse = 1.0 - cDist;
     lowp float edge = smoothstep(1.04, 0.98, cDistReverse + 0.98);
     lowp float pulse = smoothstep(0.2, 0.0, fract(cDistReverse + vTime * 1.0) + 0.08) * 0.9;

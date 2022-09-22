@@ -47,7 +47,7 @@ export class World {
     }
 
     destroyEntity(entity: Entity): boolean {
-        entity.getComponents().forEach((components, metaname) => {
+        entity.components.forEach((components, metaname) => {
             for (const component of components) {
                 this.unregisterComponent(component)
             }
@@ -58,7 +58,7 @@ export class World {
             this._entities.splice(index, 1);
         }
 
-        entity.getParent()?.removeChild(entity);
+        entity.parent?.removeChild(entity);
         return true;
     }
 
@@ -166,9 +166,9 @@ export class World {
     }
 
     updateWorldTransforms(entity: Readonly<Entity>, parentTransform: Readonly<mat4> = mat4.create()) {
-        entity.getTransform().updateWorldTransform(parentTransform);
+        entity.transform.updateWorldTransform(parentTransform);
         for(const child of entity.getChildren()) {
-            this.updateWorldTransforms(child, entity.getTransform().worldTransform);
+            this.updateWorldTransforms(child, entity.transform.worldTransform);
         }
     }
     

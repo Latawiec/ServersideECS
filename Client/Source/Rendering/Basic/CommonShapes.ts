@@ -8,10 +8,10 @@ export interface Mesh {
 
 export class Square implements Mesh {
     private _vertices = Float32Array.from([
-         1.0,  1.0, 0.0,
-        -1.0,  1.0, 0.0,
-         1.0, -1.0, 0.0,
-        -1.0, -1.0, 0.0,
+         1.0,  0.0,  1.0,
+        -1.0,  0.0,  1.0,
+         1.0,  0.0, -1.0,
+        -1.0,  0.0, -1.0 
     ]);
 
     private _indices = Uint16Array.from([

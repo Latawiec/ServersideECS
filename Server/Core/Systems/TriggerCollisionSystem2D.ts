@@ -79,7 +79,7 @@ export namespace TriggerCollisionSystem2D {
         }
 
         get worldTransform() : mat4 {
-            return mat4.mul(mat4.create(), this.ownerEntity.getTransform().worldTransform, this._transform);
+            return mat4.mul(mat4.create(), this.ownerEntity.transform.worldTransform, this._transform);
         }
     }
 

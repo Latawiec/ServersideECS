@@ -2,35 +2,32 @@ import { mat4, vec3 } from "gl-matrix";
 
 export class Transform {
 
-    private _position: vec3 = [0, 0, 0];
-    private _rotation: vec3 = [0, 0, 0];
-    private _scale: vec3 = [1, 1, 1];
+    public static WORLD_UP = vec3.fromValues(0, 1, 0);
 
     private _transform: mat4 = mat4.create();
     private _worldTransform: mat4 = mat4.create();
 
-    set position(value: Readonly<vec3>) {
-        this._position = vec3.clone(value);
+    move(translation: Readonly<vec3>) {
+        mat4.translate(this._transform, this._transform, translation);
     }
 
-    set rotation(value: Readonly<vec3>) {
-        this._rotation = vec3.clone(value);
+    moveTo(position: Readonly<vec3>) {
+        const translation = mat4.getTranslation(vec3.create(), this._transform);
+        const diff = vec3.sub(vec3.create(), position, translation);
+        this.move(diff);
     }
 
-    set scale(value: Readonly<vec3>) {
-        this._scale = vec3.clone(value);
+    rotate(axis: Readonly<vec3>, rad: number) {
+        mat4.rotate(this._transform, this._transform, rad, axis);
+    }
+    
+    rotateTowards(target: Readonly<vec3>) {
+        const translation = mat4.getTranslation(vec3.create(), this._transform);
+        mat4.targetTo(this._transform, translation, target, Transform.WORLD_UP);
     }
 
-    get position() : vec3 {
-        return this._position;
-    }
-
-    get rotation() : vec3 {
-        return this._rotation;
-    }
-
-    get scale() : vec3 {
-        return this._scale;
+    scale(scale: Readonly<vec3>) {
+        mat4.scale(this._transform, this._transform, scale);
     }
 
     get transform() : Readonly<mat4> {
@@ -41,22 +38,8 @@ export class Transform {
     get worldTransform(): Readonly<mat4> {
         return this._worldTransform;
     }
-    
-    updateTransform() : Readonly<mat4> {
-        this._transform = mat4.create();
-        // TODO: Revisit if order of operations is good.
-        mat4.scale(this._transform, this._transform, this._scale);
-        mat4.rotateX(this._transform, this._transform, this._rotation[0]);
-        mat4.rotateY(this._transform, this._transform, this._rotation[1]);
-        mat4.rotateZ(this._transform, this._transform, this._rotation[2]);
-        mat4.translate(this._transform, this._transform, this._position);
 
-        return this._transform;
-    }
-
-    updateWorldTransform(parentWorldTransform: Readonly<mat4>) : Readonly<mat4> {
-        this.updateTransform();
-        
+    updateWorldTransform(parentWorldTransform: Readonly<mat4>) : Readonly<mat4> {   
         mat4.mul(this._worldTransform, parentWorldTransform, this._transform);
         return this._worldTransform;
     }

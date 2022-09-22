@@ -27,6 +27,11 @@ export class CircleWorldAoEDrawableComponent extends DrawingSystem.Component {
             mesh: 'Common/Meshes/square.json'
         }
 
+        result.vertexAttributes = {
+            vertices: 'aVertexPosition',
+            uv: 'aUvCoord'
+        }
+
         result.uniformParameters = {
             'uObjectData.transform':Array.from(this.transform.worldTransform),
             'uObjectData.radius': this.radius,

@@ -40,12 +40,12 @@ class TestPlayer extends ScriptSystem.Component
         super(owner);
 
         const entity = this.ownerEntity;
-        const world = entity.getWorld();
+        const world = entity.world;
 
         this._drawable = new SpriteTexture(entity,"Common/WOL/RedMage.png", 2, 2);
         world.registerComponent(entity, this._drawable);
-        this._drawable.transform.scale = vec3.fromValues(0.7, 0.7, 0.7);
-        this._drawable.transform.position = vec3.fromValues(0, 1, 0);
+        this._drawable.transform.scale([0.7, 0.7, 0.7]);
+        this._drawable.transform.move([0, 1, 0]);
 
         this._playerInputController = new PlayerInputController(entity);
         world.registerComponent(entity, this._playerInputController);
@@ -68,9 +68,8 @@ class TestPlayer extends ScriptSystem.Component
         
         const triggerDrawableComponent = new AABBDrawableComponent(playerColliderEntity, "Test/circle.png");
         world.registerComponent(playerColliderEntity, triggerDrawableComponent);
-        const transform = playerColliderEntity.getTransform();
-        transform.scale = [trigger.shape.radius, trigger.shape.radius, trigger.shape.radius];
-        transform.rotation = [Math.PI/2.0, 0, Math.PI/4.0];
+        const transform = playerColliderEntity.transform;
+        transform.scale([trigger.shape.radius, trigger.shape.radius, trigger.shape.radius])
 
         var isCollided = false;
         class Follower extends ScriptSystem.Component {
@@ -89,16 +88,17 @@ class TestPlayer extends ScriptSystem.Component
                 const followerWorldPosition = vec4.transformMat4(
                     vec4.create(),
                     vec4.fromValues(0, 0, 0, 1),
-                    this._follower.getTransform().worldTransform);
+                    this._follower.transform.worldTransform);
                 const followedWorldPosition = vec4.transformMat4(
                     vec4.create(),
                     vec4.fromValues(0, 0, 0, 1),
-                    this._followed.getTransform().worldTransform
+                    this._followed.transform.worldTransform
                 );
                 const positionDiffWorldSpace = vec4.sub(vec4.create(), followedWorldPosition, followerWorldPosition);
-                const invertFollowerTransform = mat4.invert(mat4.create(), this._follower.getTransform().transform);
+                const invertFollowerTransform = mat4.invert(mat4.create(), this._follower.transform.transform);
                 const positionDiffApply = vec4tovec3(vec4.transformMat4(vec4.create(), positionDiffWorldSpace, invertFollowerTransform));
-                vec3.add(this._follower.getTransform().position, this._follower.getTransform().position, positionDiffApply);
+
+                this._follower.transform.move(positionDiffApply);
             }
             postUpdate(): void {
                 if (isCollided) {
@@ -166,16 +166,15 @@ class Platform extends ScriptSystem.Component
         super(owner);
 
         const entity = this.ownerEntity;
-        const world = entity.getWorld();
+        const world = entity.world;
 
         this._drawable = new AABBDrawableComponent(entity, "");
         this._drawable.color = [0.2, 0.5, 0.5, 1];
         world.registerComponent(entity, this._drawable);
 
         const transform = this._drawable.transform;
-        transform.scale = [7, 7, 7];
-        transform.rotation = [Math.PI/2.0, 0, Math.PI/4.0];
-        entity.getTransform().position = [0, -0.1, 0];
+        transform.scale([7, 7, 7]);
+        transform.move([0, -0.1, 0]);
     }
 
     preUpdate(): void {
@@ -193,15 +192,14 @@ class Platform extends ScriptSystem.Component
 
 function roundAreaOfEffectInitialize(owner: Entity) {
     const aoeComponent = new TriggerCollisionSystem2D.CircleTriggerComponent(owner, 1);
-    owner.getWorld().registerComponent(owner, aoeComponent);
+    owner.world.registerComponent(owner, aoeComponent);
     aoeComponent.shape.radius = 3;
 
     const drawableComponent = new CircleWorldAoEDrawableComponent(owner, aoeComponent.shape.radius);
-    owner.getWorld().registerComponent(owner, drawableComponent);
+    owner.world.registerComponent(owner, drawableComponent);
 
     const transform = drawableComponent.transform;
-    transform.scale = [aoeComponent.shape.radius, aoeComponent.shape.radius, aoeComponent.shape.radius];
-    transform.rotation = [Math.PI/2.0, 0, 0];
+    transform.scale([aoeComponent.shape.radius, aoeComponent.shape.radius, aoeComponent.shape.radius]);
 
     class SineMotionUpdate extends ScriptSystem.Component {
 
@@ -215,7 +213,7 @@ function roundAreaOfEffectInitialize(owner: Entity) {
         onUpdate(): void {
             let dateTime = new Date();
             var ms = dateTime.getTime();
-            owner.getTransform().position =  vec3.fromValues(-3+3*Math.sin(ms/1000), 0, 0);
+            owner.transform.moveTo([-3+3*Math.sin(ms/1000), 0, 0]);
         }
         postUpdate(): void {
             
@@ -224,23 +222,20 @@ function roundAreaOfEffectInitialize(owner: Entity) {
     };
 
     const motion = new SineMotionUpdate(owner);
-    owner.getWorld().registerComponent(owner, motion);
-
-    transform.position = [0, 0, 0.0];
+    owner.world.registerComponent(owner, motion);
 }
 
 function rectAreaOfEffectInitialize(owner: Entity) {
     const aoeComponent = new TriggerCollisionSystem2D.RectangleTriggerComponent(owner);
-    owner.getWorld().registerComponent(owner, aoeComponent);
+    owner.world.registerComponent(owner, aoeComponent);
     aoeComponent.shape.width = 2;
     aoeComponent.shape.height = 1;
 
     const drawableComponent = new DrawableAoERectangleClosed(owner, aoeComponent.shape.width, aoeComponent.shape.height);
-    owner.getWorld().registerComponent(owner, drawableComponent);
+    owner.world.registerComponent(owner, drawableComponent);
 
     const transform = drawableComponent.transform;
-    transform.scale = [aoeComponent.shape.width, 0, aoeComponent.shape.height];
-    transform.rotation = [Math.PI/2.0, 0, 0];
+    transform.scale([aoeComponent.shape.width, 0, aoeComponent.shape.height]);
 
     class SineMotionUpdate extends ScriptSystem.Component {
 
@@ -255,8 +250,8 @@ function rectAreaOfEffectInitialize(owner: Entity) {
             let dateTime = new Date();
             var ms = dateTime.getTime();
             const s = (ms/1000.0) / 5.0;
-            owner.getTransform().position =  vec3.fromValues(1.5, 0, 1.5 + 1.5*Math.sin(Math.PI + ms/1000));
-            //owner.getTransform().rotation = [0, 2.0 * Math.PI * (s - Math.floor(s)), 0];
+            owner.transform.moveTo([1.5, 0, 1.5 + 1.5*Math.sin(Math.PI + ms/1000)]);
+            //owner.transform.rotation = [0, 2.0 * Math.PI * (s - Math.floor(s)), 0];
         }
         postUpdate(): void {
             
@@ -265,11 +260,10 @@ function rectAreaOfEffectInitialize(owner: Entity) {
     };
 
     const motion = new SineMotionUpdate(owner);
-    owner.getWorld().registerComponent(owner, motion);
+    owner.world.registerComponent(owner, motion);
 
-    owner.getTransform().rotation = [0, Math.PI/4, 0];
-    owner.getTransform().scale = [ 2, 2, 2];
-    owner.getTransform().position = [5, 0, 0]; 
+    owner.transform.move([5, 0, 0]); 
+    owner.transform.scale([ 2, 2, 2]);
 }
 
 function blockingPlaneInitialize(owner: Entity) {
@@ -278,13 +272,13 @@ function blockingPlaneInitialize(owner: Entity) {
         blockingComponent.shape.normal = vec2.fromValues(1.0, 0);
         mat4.rotateY(blockingComponent.transform, blockingComponent.transform,  i * Math.PI/2 + Math.PI/4);        
         mat4.translate(blockingComponent.transform, blockingComponent.transform, vec3.fromValues(-7.0, 0, 0));
-        owner.getWorld().registerComponent(owner, blockingComponent)
+        owner.world.registerComponent(owner, blockingComponent)
     }
 
     const blockingDome = new BlockingCollisionSystem2D.DomeCollisionComponent(owner, true);
     blockingDome.shape.radius = 5;
     mat4.translate(blockingDome.transform, blockingDome.transform, vec3.fromValues(-3, 0, 0));
-    owner.getWorld().registerComponent(owner, blockingDome);
+    owner.world.registerComponent(owner, blockingDome);
 }
 
 class TestPlayerInitializer extends ScriptSystem.Component
@@ -306,6 +300,8 @@ class TestPlayerInitializer extends ScriptSystem.Component
         this._connection.onMessage = function (message: any) {
             _this.filterMessage(message);
         }
+
+        owner.transform.rotate([0, 1, 0], Math.PI/4);
     }
 
     preUpdate(): void {
@@ -338,7 +334,7 @@ class TestPlayerInitializer extends ScriptSystem.Component
         const entity = this.ownerEntity;
         const player = new TestPlayer(entity, name);
 
-        const world = entity.getWorld();
+        const world = entity.world;
 
         // Remove self. My work is done.
         world.unregisterComponent(this);
@@ -455,7 +451,7 @@ export class TestWorld extends World {
                         onUpdate(): void {
                             if (this._circleAoe === undefined || this._circleAoe.isExploded) {
                                 this._circleAoe = new CircleWorldAoE(this.ownerEntity, 3, 5000);
-                                this.ownerEntity.getTransform().position = mat4.getTranslation(vec3.create(), playerEntity.getTransform().worldTransform);
+                                this.ownerEntity.transform.moveTo(mat4.getTranslation(vec3.create(), playerEntity.transform.worldTransform));
                             }
                         }
 
@@ -485,10 +481,10 @@ export class TestWorld extends World {
                     const Dentity = this.createEntity();
                     
                     const scale = 3.0;
-                    Aentity.getTransform().position = vec3.fromValues(-scale, 0, +scale);
-                    Bentity.getTransform().position = vec3.fromValues(+scale, 0, +scale);
-                    Centity.getTransform().position = vec3.fromValues(-scale, 0, -scale);
-                    Dentity.getTransform().position = vec3.fromValues(+scale, 0, -scale);
+                    Aentity.transform.move(vec3.fromValues(-scale, 0, +scale));
+                    Bentity.transform.move(vec3.fromValues(+scale, 0, +scale));
+                    Centity.transform.move(vec3.fromValues(-scale, 0, -scale));
+                    Dentity.transform.move(vec3.fromValues(+scale, 0, -scale));
 
                     new Waymark(Aentity, WaymarkType._A);
                     new Waymark(Bentity, WaymarkType._B);
@@ -503,9 +499,6 @@ export class TestWorld extends World {
 
                     // Test waymark letter
                     const letter = new AABBDrawableComponent(Aentity, 'Common/Waymarks/A.png');
-                    //letter.color = [1, 1, 1, 1];
-                    letter.transform.rotation = vec3.fromValues(0, 0, 0);
-                    letter.transform.position = vec3.fromValues(0, 3, 0);
 
                     this.registerComponent(Aentity, letter);
                 }

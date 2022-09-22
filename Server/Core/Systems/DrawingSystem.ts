@@ -107,7 +107,7 @@ export namespace DrawingSystem {
             for(const componentEntry of this._getComponentsMap()) 
             {
                 const component = componentEntry[1] as DrawingSystem.Component;
-                component.transform.updateWorldTransform(component.ownerEntity.getTransform().worldTransform);
+                component.transform.updateWorldTransform(component.ownerEntity.transform.worldTransform);
             }
         }
     }

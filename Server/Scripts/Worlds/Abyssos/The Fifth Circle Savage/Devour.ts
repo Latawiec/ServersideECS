@@ -80,8 +80,6 @@ export class Devour extends ScriptSystem.Component {
         this._pattern = pattern;
         this._startTime = startTime;
 
-        this.ownerEntity.getTransform().rotation = vec3.fromValues(0, -Math.PI/4, 0);
-
         this.reset(this._startTime);
     }
 
@@ -92,14 +90,10 @@ export class Devour extends ScriptSystem.Component {
         for (const positionEnum of Devour._patternPositions.get(this._pattern)!) {
             const position = vec2.scale(vec2.create(), vec2.normalize(vec2.create(), Devour._devourPositions.get(positionEnum)!), Devour._aoeDistance);
 
-            const world = this.ownerEntity.getWorld();
+            const world = this.ownerEntity.world;
             const devourBiteEntity = world.createEntity(this.ownerEntity);
 
-            devourBiteEntity.getTransform().position = vec3.fromValues(
-                position[1],
-                0.0,
-                position[0],
-            );
+            devourBiteEntity.transform.moveTo([ position[1], 0.0, position[0] ]);
 
             const aoeCircleComponent = new CircleWorldAoE(devourBiteEntity, Devour._aoeRadius, Devour._aoeDurationMs, startTime + biteCount * Devour._aoeOffsetMs);
             aoeCircleComponent.intensity = 0.7;
@@ -156,7 +150,7 @@ export class Devour extends ScriptSystem.Component {
 
         // Clean up.
         for (const biteEntity of this._biteEntities) {
-            const world = this.ownerEntity.getWorld();
+            const world = this.ownerEntity.world;
             world.destroyEntity(biteEntity);
         }
 

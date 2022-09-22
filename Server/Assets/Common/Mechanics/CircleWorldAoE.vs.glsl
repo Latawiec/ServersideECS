@@ -1,5 +1,6 @@
 
 attribute vec4 aVertexPosition;
+attribute vec2 aUvCoord;
 
 struct Camera {
     mat4 view;
@@ -20,9 +21,9 @@ struct Time {
 uniform Camera uCameraData;
 uniform Object uObjectData;
 
-varying lowp vec2 vVertexPosition;
+varying lowp vec2 vUvCoord;
 
 void main(void) {
     gl_Position = uCameraData.proj * uCameraData.view * uObjectData.transform * vec4(uObjectData.radius * aVertexPosition.xyz, 1);
-    vVertexPosition = aVertexPosition.xy;
+    vUvCoord = 2.0 * aUvCoord.xy - 1.0;
 }
