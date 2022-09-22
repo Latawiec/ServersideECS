@@ -44,6 +44,7 @@ class TestPlayer extends ScriptSystem.Component
 
         this._drawable = new SpriteTexture(entity,"Common/WOL/RedMage.png", 2, 2);
         world.registerComponent(entity, this._drawable);
+        this._drawable.transform.scale = vec3.fromValues(0.7, 0.7, 0.7);
         this._drawable.transform.position = vec3.fromValues(0, 1, 0);
 
         this._playerInputController = new PlayerInputController(entity);
@@ -59,6 +60,7 @@ class TestPlayer extends ScriptSystem.Component
         
         const trigger = new TriggerCollisionSystem2D.CircleTriggerComponent(playerColliderEntity, 1);
         world.registerComponent(playerColliderEntity, trigger);
+        trigger.shape.radius = 0.46;
 
         const blocking = new BlockingCollisionSystem2D.CircleCollisionComponent(owner);
         blocking.shape.radius = 1.0;
@@ -402,7 +404,7 @@ export class TestWorld extends World {
                     this.clientConnectionSystem.removeConnection(connection);
                 });
 
-                const cameraHolder = this.createEntity();
+                const cameraHolder = this.createEntity(playerEntity);
                 const cameraComponent = new CameraSystem.Component(cameraHolder);
                 this.registerComponent(cameraHolder, cameraComponent);
 
@@ -415,16 +417,24 @@ export class TestWorld extends World {
                     const near = 0.1;
                     const far = 100;
 
-                    cameraComponent.projection =  mat4.perspective(
+                    // cameraComponent.projection =  mat4.perspective(
+                    //     projectionMatrix,
+                    //     fovy,
+                    //     aspect,
+                    //     near,
+                    //     far
+                    // )
+
+                    cameraComponent.projection = mat4.ortho(
                         projectionMatrix,
-                        fovy,
-                        aspect,
+                        -7, 7,
+                        -7, 7, 
                         near,
                         far
-                    )
+                    );
 
                     const viewTransform  = mat4.create();
-                    cameraComponent.transform = mat4.lookAt(viewTransform, vec3.fromValues(0, 18, -7), vec3.fromValues(0, 0, 0,), vec3.fromValues(0, 1, 0));
+                    cameraComponent.transform = mat4.lookAt(viewTransform, vec3.fromValues(0, 18, -18), vec3.fromValues(0, 0, 0,), vec3.fromValues(0, 1, 0));
 
                     cameraComponent.projection = projectionMatrix;
                 }

@@ -211,7 +211,6 @@ async function render(world: any) {
     // We'll be swaping DrawRequests and asigning to currently existing names lol. Kinda makes it easier to implement.
     const newToDraw = new Map<string, DrawRequest>();
     world.entities?.forEach((entity: any) => {
-        var transform: mat4 = entity.components.transform;
 
         // grab camera
         if (entity.components.camera !== undefined) {
@@ -223,9 +222,9 @@ async function render(world: any) {
             if (entity.components.drawing !== undefined) {
                 let request: DrawRequest;
                 const drawComponent = entity.components.drawing;
-                if (drawComponent.transform) {
-                    transform = drawComponent.transform;
-                }
+
+                const transform = drawComponent.transform;
+
                 const assetPaths = drawComponent.assetPaths as Array<string>;
                 const type: number = entity.components.drawing?.type;
                 const componentId = drawComponent.componentId;

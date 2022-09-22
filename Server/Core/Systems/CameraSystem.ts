@@ -60,7 +60,7 @@ export namespace CameraSystem {
         }
 
         get worldTransform() : mat4 {
-            return mat4.mul(mat4.create(), this.ownerEntity.getTransform().worldTransform, this._transform);
+            return mat4.mul(mat4.create(), this._transform, mat4.invert(mat4.create(), this.ownerEntity.getTransform().worldTransform));
         }
 
         serialize(output: Record<string, any>): Record<string, any> {

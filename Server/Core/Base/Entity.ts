@@ -60,7 +60,16 @@ export class Entity {
         return this._children;
     }
 
+
+    // This function is actually broken. Add child should set the parent entity of the entity added.
+    // Does it overwrite existing parent?
+    // also it doesnt work right now.
     addChild(entity: Entity) {
+        if (entity._parent != undefined || entity._parent != entity.getWorld().getRoot()) {
+            console.log("Entity already has a parent.");
+        }
+
+        entity._parent = this;
         this._children.push(entity);
     }
 

@@ -34,6 +34,7 @@ export class Waymark extends ScriptSystem.Component {
         this._baseDrawable.color = Waymark._waymarkColors.get(this._type)!;
         // TODO: Change mesh coords. Do not rotate every time I use it...
         this._baseDrawable.transform.rotation = [Math.PI/2, 0, 0];
+        this._baseDrawable.transform.scale = [1.16, 1.16, 1.16];
         entity.getWorld().registerComponent(entity, this._baseDrawable);
         entity.getWorld().registerComponent(entity, this);
     }

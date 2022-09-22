@@ -29,7 +29,6 @@ export class WorldSerializer
         var output: Record<string, any> = {};
         output.name = entity.getUuid();
         output.components = {};
-        output.components.transform = entity.getTransform().worldTransform;
         const components = entity.getComponents();
 
         this.serializableComponentsMapping.forEach((func: any, key: string) => {
