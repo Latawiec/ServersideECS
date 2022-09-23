@@ -77,9 +77,9 @@ export namespace BlockingCollisionSystem2D {
             return this._isBlocking;
         }
 
-        serialize(output: Record<string, any>): Record<string, any> {
+        serialize(): undefined {
             // Do nothing.
-            return output
+            return undefined;
         }
     }
 

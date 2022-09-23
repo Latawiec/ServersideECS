@@ -1,5 +1,5 @@
 
 
 export interface Serializable {
-    serialize(output: Record<string, any>): Record<string, any>
+    serialize(): Record<string, any> | undefined
 }

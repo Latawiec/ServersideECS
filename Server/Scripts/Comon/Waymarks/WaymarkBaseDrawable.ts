@@ -11,13 +11,8 @@ export class WaymarkBaseDrawable extends DrawingSystem.Component {
         super(entity);
     }
 
-    getType(): DrawingSystem.Types {
-        return DrawingSystem.Types.Unknown;
-    }
-
-    serialize(output: Record<string, any>): Record<string, any> {
-        let result = super.serialize(output);
-
+    serialize(): Record<string, any> {
+        let result = super.serialize();
         
         result.assetPaths = {
             vertexShader: 'Common/Waymarks/Waymark.vs.glsl',

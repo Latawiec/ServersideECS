@@ -1,12 +1,14 @@
 import { DrawingSystem } from "@core/Systems/DrawingSystem";
 import { Entity } from "@core/Base/Entity";
-import { deprecate } from "util";
+import { vec2 } from "gl-matrix"
 
 export class TextureSquareDrawable extends DrawingSystem.Component {
 
     size: number = 1;
     texturePath: string;
     opacity: number = 1;
+    uvScale: vec2 = [1, 1];
+    uvOffset: vec2 = [0, 0];
 
     constructor(entity: Entity, texturePath: string, size: number = 1) {
         super(entity)
@@ -14,13 +16,8 @@ export class TextureSquareDrawable extends DrawingSystem.Component {
         this.size = size;
     }
 
-    // TODO: This should be removed soon. Client side no longer has to recognize these.
-    getType(): DrawingSystem.Types {
-        return DrawingSystem.Types.Unknown;
-    }
-
-    serialize(output: Record<string, any>): Record<string, any> {
-        let result = super.serialize(output);
+    serialize(): Record<string, any> {
+        let result = super.serialize();
 
         result.assetPaths = {
             vertexShader: 'Common/Basic/Drawing/Texture.vs.glsl',
@@ -40,6 +37,8 @@ export class TextureSquareDrawable extends DrawingSystem.Component {
         result.uniformParameters.float['uObjectData.size'] = this.size;
         result.uniformParameters.float['uObjectData.opacity'] = this.opacity;
         result.uniformParameters.int['uObjectData.texSampler'] = 0;
+        result.uniformParameters.vec2['uObjectData.uvScale'] = this.uvScale;
+        result.uniformParameters.vec2['uObjectData.uvOffset'] = this.uvOffset;
 
         return result;
     }

@@ -81,6 +81,10 @@ export namespace ClientConnectionSystem {
             }    
             this._connection.addListener(this._connectionListener);    
         }
+
+        serialize(): undefined {
+            return undefined
+        }
     
         get systemMetaName(): MetaName {
             return System.staticMetaName();
@@ -104,11 +108,6 @@ export namespace ClientConnectionSystem {
     
         set onMessage(event: (message: any) => void) {
             this._onMessageEvent = event;
-        }
-
-        serialize(output: Record<string, any>): Record<string, any> {
-            // Do nothing. 
-            return output;
         }
     };
 

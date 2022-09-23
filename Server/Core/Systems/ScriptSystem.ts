@@ -18,9 +18,8 @@ export namespace ScriptSystem {
             this._ownerEntity = owner;
         }
 
-        serialize(output: Record<string, any>): Record<string, any> {
-            // Do nothing
-            return output
+        serialize(): undefined {
+            return undefined
         }
 
         get systemMetaName(): string {

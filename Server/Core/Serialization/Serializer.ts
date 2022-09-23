@@ -1,6 +1,6 @@
 import { World } from "../World/World"
 import { Entity } from "../Base/Entity"
-import { AABBDrawableComponent, DrawableAoERectangleClosed, DrawingSystem, SpriteTexture } from "../Systems/DrawingSystem";
+import { DrawingSystem } from "../Systems/DrawingSystem";
 import { PlayerIdentity } from "@scripts/Comon/Player/PlayerIdentity";
 import { CameraSystem } from "@systems/CameraSystem"
 import { assert } from "console";
@@ -42,47 +42,13 @@ export class WorldSerializer
     }
 
     static serializeDrawableComponent(output: Record<string, any>, component: Readonly<DrawingSystem.Component>) {
-        const type = component.getType();
-        let result : any = {};
-        result.type = type;
-        result.transform = component.transform.worldTransform;
-        result.componentId = component.systemAsignedId;
-
-        switch (type)
-        {
-            case DrawingSystem.Types.Unknown:
-                // It'll do it by itself.
-                component.serialize(output);
-                return;
-                break;
-            case DrawingSystem.Types.SpriteTexture:
-                const SpriteComponent = component as SpriteTexture;
-                result.widthSegments = SpriteComponent.widthSegments;
-                result.heightSegments = SpriteComponent.heightSegments;
-                result.selectedSegment = [ SpriteComponent.selectedWidthSegment, SpriteComponent.selectedHeightSegment ];
-                // fallthrough
-            case DrawingSystem.Types.AABBRect:
-                const AABBComponent = component as AABBDrawableComponent;
-                result.assetPaths = component.getAssetsPaths();
-                result.color = AABBComponent.color;
-                break;
-            case DrawingSystem.Types.AOE_CircleClosed:
-                // It'll do it by itself.
-                component.serialize(output);
-                return;
-
-                break;
-            case DrawingSystem.Types.AOE_RectangleClosed:
-                // It'll do it by itself.
-                //component.serialize(output);
-                return;
-
-                break;
-            default:
-                assert(false, "Can't convert Drawable type: " + type);
+        if (!output.drawableComponents) {
+            output.drawableComponents = []
         }
-
-        output.drawing = result;
+        const serialized = component.serialize();
+        if (serialized) {
+            (output.drawableComponents as Array<any>).push(serialized);
+        }
     }
 
     static serializePlayerIdentityComponent(output: Record<string, any>, component: Readonly<PlayerIdentity>) {
@@ -92,7 +58,8 @@ export class WorldSerializer
     }
 
     static serializeCameraComponent(output: Record<string, any>, component: Readonly<CameraSystem.Component>) {
-        component.serialize(output);
+        // TODO: Handle multiple cameras?
+        output.camera = component.serialize();
     }
 
 }

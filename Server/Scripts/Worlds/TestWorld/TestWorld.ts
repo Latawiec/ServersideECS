@@ -5,7 +5,6 @@ import { WorldSerializer } from "@core/Serialization/Serializer"
 import { ClientConnectionSystem } from "@core/Systems/ClientConnectionSystem";
 import { vec4tovec3 } from "@core/Common/Math/gl-extensions";
 import { BlockingCollisionSystem2D } from "@core/Systems/BlockingCollisionSystem2D";
-import { AABBDrawableComponent, DrawableAoERectangleClosed, SpriteTexture } from "@core/Systems/DrawingSystem";
 import { CircleWorldAoEDrawableComponent } from "@scripts/Comon/Mechanics/CircleWorldAoEDrawableComponent";
 
 import { PlayerInputController } from "@scripts/Comon/Player/PlayerInputController"
@@ -22,6 +21,8 @@ import { GlobalClock } from "@core/Base/GlobalClock";
 import { Devour, DevourPattern } from "../Abyssos/The Fifth Circle Savage/Devour";
 import { Waymark, WaymarkType } from "@scripts/Comon/Waymarks/Waymark";
 import { CharacterDrawable, CharacterType } from "@scripts/Comon/WOL/CharacterDrawable";
+import { TextureSquareDrawable } from "@scripts/Comon/Basic/Drawing/TextureSquareDrawable";
+import { SpriteSquareDrawable } from "@scripts/Comon/Basic/Drawing/SpriteSquareDrawable";
 
 
 class TestPlayer extends ScriptSystem.Component
@@ -45,7 +46,7 @@ class TestPlayer extends ScriptSystem.Component
 
         this._drawable = new CharacterDrawable(entity, CharacterType.RedMage);
         world.registerComponent(entity, this._drawable);
-        this._drawable.transform.scale([1.4, 1.4, 1.4]);
+        this._drawable.transform.scale([1.2, 1.2, 1.2]);
 
         this._playerInputController = new PlayerInputController(entity);
         world.registerComponent(entity, this._playerInputController);
@@ -63,13 +64,12 @@ class TestPlayer extends ScriptSystem.Component
         trigger.shape.radius = 0.46;
 
         const blocking = new BlockingCollisionSystem2D.CircleCollisionComponent(owner);
-        blocking.shape.radius = 1.0;
+        blocking.shape.radius = 0.5;
         world.registerComponent(owner, blocking);
         
-        const triggerDrawableComponent = new AABBDrawableComponent(playerColliderEntity, "Test/circle.png");
+        const triggerDrawableComponent = new TextureSquareDrawable(playerColliderEntity, "Test/circle.png");
         world.registerComponent(playerColliderEntity, triggerDrawableComponent);
-        const transform = playerColliderEntity.transform;
-        transform.scale([trigger.shape.radius, trigger.shape.radius, trigger.shape.radius])
+        triggerDrawableComponent.size = blocking.shape.radius;
 
         var isCollided = false;
         class Follower extends ScriptSystem.Component {
@@ -101,11 +101,6 @@ class TestPlayer extends ScriptSystem.Component
                 this._follower.transform.move(positionDiffApply);
             }
             postUpdate(): void {
-                if (isCollided) {
-                    triggerDrawableComponent.color = [1, 0, 0, 1];
-                } else {
-                    triggerDrawableComponent.color = [1, 1, 1, 1];
-                }
                 isCollided = false;
             }
 
@@ -159,7 +154,7 @@ class TestPlayer extends ScriptSystem.Component
 
 class Platform extends ScriptSystem.Component
 {
-    private _drawable: AABBDrawableComponent;
+    private _drawable: TextureSquareDrawable;
 
     constructor(owner: Entity, name: string) {
         super(owner);
@@ -167,13 +162,12 @@ class Platform extends ScriptSystem.Component
         const entity = this.ownerEntity;
         const world = entity.world;
 
-        this._drawable = new AABBDrawableComponent(entity, "");
-        this._drawable.color = [0.2, 0.5, 0.5, 1];
+        this._drawable = new TextureSquareDrawable(entity, "/Test/Platform.png");
         world.registerComponent(entity, this._drawable);
 
         const transform = this._drawable.transform;
         transform.scale([7, 7, 7]);
-        transform.move([0, -0.1, 0]);
+        transform.move([0, -0.001, 0]);
     }
 
     preUpdate(): void {
@@ -230,46 +224,47 @@ function rectAreaOfEffectInitialize(owner: Entity) {
     aoeComponent.shape.width = 2;
     aoeComponent.shape.height = 1;
 
-    const drawableComponent = new DrawableAoERectangleClosed(owner, aoeComponent.shape.width, aoeComponent.shape.height);
-    owner.world.registerComponent(owner, drawableComponent);
+    // TODO: Bring back rectangle aoe
+    // const drawableComponent = new DrawableAoERectangleClosed(owner, aoeComponent.shape.width, aoeComponent.shape.height);
+    // owner.world.registerComponent(owner, drawableComponent);
 
-    const transform = drawableComponent.transform;
-    transform.scale([aoeComponent.shape.width, 0, aoeComponent.shape.height]);
+    // const transform = drawableComponent.transform;
+    // transform.scale([aoeComponent.shape.width, 0, aoeComponent.shape.height]);
 
-    class SineMotionUpdate extends ScriptSystem.Component {
+    // class SineMotionUpdate extends ScriptSystem.Component {
 
-        constructor(owner: Entity) {
-            super(owner);
+    //     constructor(owner: Entity) {
+    //         super(owner);
 
-        }
-        preUpdate(): void {
+    //     }
+    //     preUpdate(): void {
             
-        }
-        onUpdate(): void {
-            let dateTime = new Date();
-            var ms = dateTime.getTime();
-            const s = (ms/1000.0) / 5.0;
-            owner.transform.moveTo([1.5, 0, 1.5 + 1.5*Math.sin(Math.PI + ms/1000)]);
-            //owner.transform.rotation = [0, 2.0 * Math.PI * (s - Math.floor(s)), 0];
-        }
-        postUpdate(): void {
+    //     }
+    //     onUpdate(): void {
+    //         let dateTime = new Date();
+    //         var ms = dateTime.getTime();
+    //         const s = (ms/1000.0) / 5.0;
+    //         owner.transform.moveTo([1.5, 0, 1.5 + 1.5*Math.sin(Math.PI + ms/1000)]);
+    //         //owner.transform.rotation = [0, 2.0 * Math.PI * (s - Math.floor(s)), 0];
+    //     }
+    //     postUpdate(): void {
             
-        }
+    //     }
 
-    };
+    // };
 
-    const motion = new SineMotionUpdate(owner);
-    owner.world.registerComponent(owner, motion);
+    // const motion = new SineMotionUpdate(owner);
+    // owner.world.registerComponent(owner, motion);
 
-    owner.transform.move([5, 0, 0]); 
-    owner.transform.scale([ 2, 2, 2]);
+    // owner.transform.move([5, 0, 0]); 
+    // owner.transform.scale([ 2, 2, 2]);
 }
 
 function blockingPlaneInitialize(owner: Entity) {
     for (var i=0; i<4; ++i) {
         const blockingComponent = new BlockingCollisionSystem2D.PlaneCollisionComponent(owner, true);
         blockingComponent.shape.normal = vec2.fromValues(1.0, 0);
-        mat4.rotateY(blockingComponent.transform, blockingComponent.transform,  i * Math.PI/2 + Math.PI/4);        
+        mat4.rotateY(blockingComponent.transform, blockingComponent.transform,  i * Math.PI/2);        
         mat4.translate(blockingComponent.transform, blockingComponent.transform, vec3.fromValues(-7.0, 0, 0));
         owner.world.registerComponent(owner, blockingComponent)
     }
@@ -277,7 +272,8 @@ function blockingPlaneInitialize(owner: Entity) {
     const blockingDome = new BlockingCollisionSystem2D.DomeCollisionComponent(owner, true);
     blockingDome.shape.radius = 5;
     mat4.translate(blockingDome.transform, blockingDome.transform, vec3.fromValues(-3, 0, 0));
-    owner.world.registerComponent(owner, blockingDome);
+    // Dont need dome now.
+    //owner.world.registerComponent(owner, blockingDome);
 }
 
 class TestPlayerInitializer extends ScriptSystem.Component
@@ -497,9 +493,68 @@ export class TestWorld extends World {
 
 
                     // Test waymark letter
-                    const letter = new AABBDrawableComponent(Aentity, 'Common/Waymarks/A.png');
-
+                    const letter = new TextureSquareDrawable(Aentity, 'Common/Waymarks/A.png');
+                    letter.transform.rotate([-1, 0, 0], Math.PI/2);
+                    letter.transform.rotate([0, 0, 1], Math.PI/4);
+                    letter.transform.move([0, 0, 3]);
                     this.registerComponent(Aentity, letter);
+                }
+
+                if (!this.isInitialized) {
+                    const background = this.createEntity();
+                    background.transform.rotate([0, 1, 0], Math.PI/4);
+
+                    const poisonBackground = new TextureSquareDrawable(background, 'Test/Poison.png')
+                    poisonBackground.uvScale = [10, 10];
+                    poisonBackground.size = 20;
+                    poisonBackground.transform.move([0, -0.1, 0])
+
+                    const shinyPoisonBackground = new TextureSquareDrawable(background, 'Test/Splatter1.png')
+                    shinyPoisonBackground.uvScale = [5, 5];
+                    shinyPoisonBackground.size = 20;
+                    shinyPoisonBackground.opacity = 0.6;
+                    shinyPoisonBackground.transform.move([0, -0.099, 0])
+
+                    class UvMotion extends ScriptSystem.Component {
+                        preUpdate(): void {
+                            
+                        }
+                        onUpdate(): void {
+                            shinyPoisonBackground.opacity = 0.6 + 0.4 * Math.sin(GlobalClock.clock.getCurrentFrameTimeMs()/2000);
+                            shinyPoisonBackground.uvOffset = [0.1 * Math.sin(GlobalClock.clock.getCurrentFrameTimeMs()/10000), 0.1 * Math.sin(GlobalClock.clock.getCurrentFrameTimeMs()/10000)];
+                        }
+                        postUpdate(): void {
+                            
+                        }
+
+                    }
+
+                    this.registerComponent(background, new UvMotion(background));
+                    this.registerComponent(background, poisonBackground);
+                    this.registerComponent(background, shinyPoisonBackground);
+                }
+
+                // Debris
+                if (!this.isInitialized)
+                {
+                    const debris = this.createEntity();
+                    debris.transform.move([-10, 0, 0]);
+                    debris.transform.rotate([0, 1, 0], Math.PI/4);
+
+                    const debrisDrawable = new SpriteSquareDrawable(debris, "Test/Debris1.png", [2, 1]);
+                    debrisDrawable.size = 2;
+
+                    class AnimateDebris extends ScriptSystem.Component {
+                        preUpdate(){}
+                        onUpdate(){
+                            const select = Math.ceil(GlobalClock.clock.getTimeMs() / 1000) % 2;
+                            debrisDrawable.selection = [ select, 0 ];
+                        }
+                        postUpdate(){}
+                    }
+
+                    this.registerComponent(debris, debrisDrawable);
+                    this.registerComponent(debris, new AnimateDebris(debris));
                 }
 
                 this.isInitialized = true;

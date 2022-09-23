@@ -8,10 +8,14 @@ export interface MetaClass {
     get metaName(): MetaName
 }
 
-export interface ComponentBase extends Serializable, MetaClass {
-    get isActive(): boolean;
-    get ownerEntity(): Entity;
-    get systemAsignedId(): Uuid | undefined;
-    set systemAsignedId(value: Uuid | undefined);
-    get systemMetaName(): MetaName;
+export abstract class ComponentBase implements Serializable, MetaClass {
+    abstract get metaName(): string;
+    abstract serialize(): Record<string, any> | undefined;
+    
+    abstract get isActive(): boolean;
+    abstract get ownerEntity(): Entity;
+    abstract get systemAsignedId(): Uuid | undefined;
+    abstract set systemAsignedId(value: Uuid | undefined);
+    abstract get systemMetaName(): MetaName;
+
 }

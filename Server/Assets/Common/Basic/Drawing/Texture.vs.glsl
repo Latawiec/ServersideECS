@@ -12,6 +12,8 @@ struct Object {
     lowp float opacity;
     lowp float size;
     sampler2D  texSampler;
+    lowp vec2 uvScale;
+    lowp vec2 uvOffset;
 };
 
 uniform Camera uCameraData;

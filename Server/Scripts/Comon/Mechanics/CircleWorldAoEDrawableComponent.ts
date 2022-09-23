@@ -14,12 +14,8 @@ export class CircleWorldAoEDrawableComponent extends DrawingSystem.Component {
         this.radius = radius;
     }
 
-    getType(): DrawingSystem.Types {
-        return DrawingSystem.Types.AOE_CircleClosed;
-    }
-
-    serialize(output: Record<string, any>): Record<string, any> {
-        let result = super.serialize(output);
+    serialize(): Record<string, any> {
+        let result = super.serialize();
 
         result.assetPaths = {
             vertexShader: 'Common/Mechanics/CircleWorldAoE.vs.glsl',

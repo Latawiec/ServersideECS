@@ -17,8 +17,8 @@ export class CharacterDrawable extends SpriteSquareDrawable {
         super(owner, CharacterDrawable.CharacterSpriteMap.get(type)!, CharacterDrawable.CharacterSpriteSize);
     }
 
-    serialize(output: Record<string, any>): Record<string, any> {
-        let result = super.serialize(output);
+    serialize(): Record<string, any> {
+        let result = super.serialize();
 
         // Sprite but with different mesh.
         result.assetPaths.mesh = 'Common/Meshes/squareVerticalBottomAligned.json'
