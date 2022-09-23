@@ -17,5 +17,6 @@ void main(void) {
     lowp vec2 selectionFloat = vec2(uObjectData.selection);
     lowp vec2 spriteUv = vUvCoord / spriteSizeFloat + selectionFloat / spriteSizeFloat;
     lowp vec4 color = texture2D(uObjectData.texSampler, spriteUv);
-    gl_FragColor = color;
+
+    gl_FragColor = vec4(color.rgb, color.a * uObjectData.opacity);
 }

@@ -46,7 +46,8 @@ class TestPlayer extends ScriptSystem.Component
 
         this._drawable = new CharacterDrawable(entity, CharacterType.RedMage);
         world.registerComponent(entity, this._drawable);
-        this._drawable.transform.scale([1.2, 1.2, 1.2]);
+        this._drawable.transform.rotate([1, 0, 0], Math.PI/4.0)
+        this._drawable.transform.scale([1, 1, 1]);
 
         this._playerInputController = new PlayerInputController(entity);
         world.registerComponent(entity, this._playerInputController);
@@ -515,13 +516,24 @@ export class TestWorld extends World {
                     shinyPoisonBackground.opacity = 0.6;
                     shinyPoisonBackground.transform.move([0, -0.099, 0])
 
+
+                    const shinyPoisonBackgroundDeep = new TextureSquareDrawable(background, 'Test/Splatter1.png')
+                    shinyPoisonBackgroundDeep.uvScale = [2, 2];
+                    shinyPoisonBackgroundDeep.opacity = 0.2;
+                    shinyPoisonBackgroundDeep.size = 20;
+                    shinyPoisonBackgroundDeep.transform.move([0, -0.099, 0])
+
                     class UvMotion extends ScriptSystem.Component {
                         preUpdate(): void {
                             
                         }
                         onUpdate(): void {
-                            shinyPoisonBackground.opacity = 0.6 + 0.4 * Math.sin(GlobalClock.clock.getCurrentFrameTimeMs()/2000);
-                            shinyPoisonBackground.uvOffset = [0.1 * Math.sin(GlobalClock.clock.getCurrentFrameTimeMs()/10000), 0.1 * Math.sin(GlobalClock.clock.getCurrentFrameTimeMs()/10000)];
+                            const time = GlobalClock.clock.getTimeMs();
+                            shinyPoisonBackground.opacity = 0.3 + 0.3 * Math.abs(Math.sin(time/2000));
+                            shinyPoisonBackground.uvOffset = [0.1 * (time/10000), 0.1 * (time/10000)];
+
+                            shinyPoisonBackgroundDeep.uvOffset = [0.05 * (time/15000), 0.03 * (time /15000)];
+
                         }
                         postUpdate(): void {
                             
@@ -532,6 +544,7 @@ export class TestWorld extends World {
                     this.registerComponent(background, new UvMotion(background));
                     this.registerComponent(background, poisonBackground);
                     this.registerComponent(background, shinyPoisonBackground);
+                    this.registerComponent(background, shinyPoisonBackgroundDeep);
                 }
 
                 // Debris
@@ -555,6 +568,40 @@ export class TestWorld extends World {
 
                     this.registerComponent(debris, debrisDrawable);
                     this.registerComponent(debris, new AnimateDebris(debris));
+                }
+
+                // Bubble
+                if (!this.isInitialized)
+                {
+                    const bubble = this.createEntity();
+                    bubble.transform.move([-11, 0, -4]);
+                    bubble.transform.rotate([0, 1, 0], Math.PI/4);
+
+                    const bubbleDrawable = new SpriteSquareDrawable(bubble, "Test/Bubble.png", [5, 1])
+                    bubbleDrawable.size = 4;
+
+                    class AnimateBubble extends ScriptSystem.Component {
+
+                        nextStart = 0;
+                        isAnimating = false;
+
+                        preUpdate(){}
+                        onUpdate(){
+                            if (!this.isAnimating && GlobalClock.clock.getTimeMs() > this.nextStart) {
+                                this.isAnimating = true;
+                                bubbleDrawable.opacity = 1.0;
+                            }
+
+                            if (this.isAnimating) {
+                                const select = Math.ceil(GlobalClock.clock.getTimeMs() / 500) % 5;
+                                bubbleDrawable.selection = [ select, 0 ];
+                            }
+                        }
+                        postUpdate(){}
+                    }
+
+                    this.registerComponent(bubble, bubbleDrawable);
+                    this.registerComponent(bubble, new AnimateBubble(bubble));
                 }
 
                 this.isInitialized = true;

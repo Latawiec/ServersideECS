@@ -17,10 +17,11 @@ export namespace DrawingSystem {
 
         private _assetsPaths: string[];
         private _ownerEntity: Entity;
-        private _isActive: boolean = true;
         private _systemAsignedId: Uuid | undefined = undefined;
         private _transform: Transform;
         
+        isActive: boolean = true;
+
         constructor(owner: Entity) {
             this._assetsPaths = [];
             this._ownerEntity = owner;
@@ -50,9 +51,6 @@ export namespace DrawingSystem {
             return result;
         }
     
-        get isActive(): boolean {
-            return this._isActive;
-        }
         get ownerEntity(): Entity {
             return this._ownerEntity;
         }
