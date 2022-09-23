@@ -45,6 +45,20 @@ export namespace DrawingSystem {
             result.type = this.getType();
             result.componentId = this.systemAsignedId;
 
+            // TODO: I don't know how to handle type recognition on the other side.
+            // Lets go with this for now...
+            result.uniformParameters = {
+                float:  {},
+                vec2:   {},
+                vec3:   {},
+                vec4:   {},
+                int:    {},
+                ivec2:  {},
+                ivec3:  {},
+                ivec4:  {},
+                mat4:   {}
+            }
+
             output.drawableComponent = result;
             return output.drawableComponent;
         }
@@ -203,13 +217,10 @@ export class DrawableAoERectangleClosed extends DrawingSystem.Component {
     serialize(output: Record<string, any>): Record<string, any> {
         let result = super.serialize(output);
 
-        result.uniformParameters = {
-            'uObjectData.transform': this.transform.worldTransform,
-            'uObjectData.width': this.width,
-            'uObjectData.height': this.height,
-
-            'uTimeData.globalTime': GlobalClock.clock.getCurrentFrameTimeMs()
-        };
+        result.uniformParameters.mat4['uObjectData.transform'] = this.transform.worldTransform;
+        result.uniformParameters.float['uObjectData.width'] = this.width;
+        result.uniformParameters.float['uObjectData.height'] = this.height;
+        result.uniformParameters.float['uTimeData.globalTime'] = GlobalClock.clock.getCurrentFrameTimeMs()
 
         return result;
     }

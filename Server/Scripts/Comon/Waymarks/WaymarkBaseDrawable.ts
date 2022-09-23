@@ -30,11 +30,9 @@ export class WaymarkBaseDrawable extends DrawingSystem.Component {
             uv: 'aUvCoord'
         }
 
-        result.uniformParameters = {
-            'uObjectData.transform': Array.from(this.transform.worldTransform),
-            'uObjectData.opacity': this.opacity,
-            'uObjectData.color': this.color
-        }
+        result.uniformParameters.mat4['uObjectData.transform'] = Array.from(this.transform.worldTransform);
+        result.uniformParameters.float['uObjectData.opacity'] = this.opacity;
+        result.uniformParameters.vec3['uObjectData.color'] = this.color;
 
         return result;
     }

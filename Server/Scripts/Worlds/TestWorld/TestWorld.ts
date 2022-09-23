@@ -21,11 +21,12 @@ import * as WebSocket from 'websocket'
 import { GlobalClock } from "@core/Base/GlobalClock";
 import { Devour, DevourPattern } from "../Abyssos/The Fifth Circle Savage/Devour";
 import { Waymark, WaymarkType } from "@scripts/Comon/Waymarks/Waymark";
+import { CharacterDrawable, CharacterType } from "@scripts/Comon/WOL/CharacterDrawable";
 
 
 class TestPlayer extends ScriptSystem.Component
 {
-    private _drawable: SpriteTexture;
+    private _drawable: CharacterDrawable;
     private _playerInputController: PlayerInputController;
     private _movement: BasicMovement;
 
@@ -42,10 +43,9 @@ class TestPlayer extends ScriptSystem.Component
         const entity = this.ownerEntity;
         const world = entity.world;
 
-        this._drawable = new SpriteTexture(entity,"Common/WOL/RedMage.png", 2, 2);
+        this._drawable = new CharacterDrawable(entity, CharacterType.RedMage);
         world.registerComponent(entity, this._drawable);
-        this._drawable.transform.scale([0.7, 0.7, 0.7]);
-        this._drawable.transform.move([0, 1, 0]);
+        this._drawable.transform.scale([1.4, 1.4, 1.4]);
 
         this._playerInputController = new PlayerInputController(entity);
         world.registerComponent(entity, this._playerInputController);
@@ -135,7 +135,7 @@ class TestPlayer extends ScriptSystem.Component
             return;
         }
 
-        let spriteSelect = [0, 0];
+        let spriteSelect: vec2 = [0, 0];
         
         if (direction[0] < 0) {
             spriteSelect = this._spriteDirectionMap.right;
@@ -153,8 +153,7 @@ class TestPlayer extends ScriptSystem.Component
             spriteSelect = this._spriteDirectionMap.top;
         }
         
-        this._drawable.selectedWidthSegment = spriteSelect[0];
-        this._drawable.selectedHeightSegment = spriteSelect[1];
+        this._drawable.selection = spriteSelect;
     }
 }
 

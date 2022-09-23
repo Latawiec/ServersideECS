@@ -56,7 +56,28 @@ class BasicMesh {
     get elementsCount(): Readonly<number> { return this._elementsCount; }
 }
 
+class BasicTexture {
+    private _texture: WebGLTexture;
+
+    constructor(glContext: WebGLRenderingContext, texturePath: string) {
+
+        this._texture = glContext.createTexture()!;
+
+        const image = pngDecode(new Uint8Array(MemoryFilesystem.fs.readFileSync(texturePath) as Buffer))
+
+        glContext.bindTexture(glContext.TEXTURE_2D, this._texture);
+        glContext.texImage2D(glContext.TEXTURE_2D, 0, glContext.RGBA, image.width, image.height, 0, glContext.RGBA, glContext.UNSIGNED_BYTE, image.data);
+        glContext.texParameteri(glContext.TEXTURE_2D, glContext.TEXTURE_MAG_FILTER, glContext.NEAREST);
+        glContext.texParameteri(glContext.TEXTURE_2D, glContext.TEXTURE_MIN_FILTER, glContext.NEAREST);
+        glContext.texParameteri(glContext.TEXTURE_2D, glContext.TEXTURE_WRAP_S, glContext.CLAMP_TO_EDGE);
+        glContext.texParameteri(glContext.TEXTURE_2D, glContext.TEXTURE_WRAP_T, glContext.CLAMP_TO_EDGE);
+    }
+
+    get glTexture(): Readonly<WebGLTexture> { return this._texture }
+}
+
 const meshCache = new Map<string, BasicMesh>();
+const textureCache = new Map<string, BasicTexture>();
 const compiledShaderCache = new Map<string, Shader>();
 
 const drawableComponentProgramCache = new Map<string, ShaderProgram>();
@@ -342,11 +363,20 @@ async function render(world: any) {
             const pixelShader = compiledShaderCache.get(pixelShaderPath)!
             
             const meshDataPath = drawableComponent.assetPaths.mesh;
-
+            
             if (!meshCache.has(meshDataPath)) {
                 const meshData = JSON.parse(MemoryFilesystem.fs.readFileSync(meshDataPath).toString());
                 const mesh = new BasicMesh(gl, Float32Array.from(meshData.vertices), Uint16Array.from(meshData.indices), Float32Array.from(meshData.uv))
                 meshCache.set(meshDataPath, mesh);
+            }
+
+            if (drawableComponent.assetPaths.textures) {
+                for (const texturePath of drawableComponent.assetPaths.textures) {
+                    if (!textureCache.has(texturePath)) {
+                        const texture = new BasicTexture(gl, texturePath);
+                        textureCache.set(texturePath, texture);
+                    }
+                }
             }
 
             if (!drawableComponentProgramCache.has(drawableComponent.componentId)) {
@@ -361,6 +391,7 @@ async function render(world: any) {
                 private _shaderProgram = shaderProgram;
                 private _mesh = mesh;
                 private _uniformAttributes : Record<string, any> = drawableComponent.uniformParameters!
+                private _textures : string[] = drawableComponent.assetPaths.textures;
                 private _vertexAttributes : Record<string, any> = drawableComponent.vertexAttributes!
 
 
@@ -401,47 +432,87 @@ async function render(world: any) {
 
                     gl.useProgram(this._shaderProgram.glShaderProgram);
 
-                    for(const key in this._uniformAttributes) {
-                        const value = this._uniformAttributes[key];
-
-                        const uniformLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, key);
-
-                        if (uniformLoc === null ){
-                            console.log('null')
+                    if (this._textures) {
+                        let index = 0;
+                        for(const texturePath of this._textures) {
+                            gl.activeTexture(gl.TEXTURE0 + index);
+                            gl.bindTexture(gl.TEXTURE_2D, textureCache.get(texturePath)!.glTexture);
+                            index++;
                         }
+                    }
+ 
+                    for(const type in this._uniformAttributes) {
+                        const typedValuesArray = this._uniformAttributes[type];
 
-                        if (Array.isArray(value)) {
-                            const array: Array<number> = value
-                            const size = array.length;
+                         for (const uniformName in typedValuesArray) {
+                            // TODO: Replace fetching locations by names with locations coming from server already. A lot of data wasted.
+                            const uniformLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, uniformName);
+                            const uniformValue = typedValuesArray[uniformName];
+                            
+                            switch(type) {
 
-                            if (size === 16) {
-                                gl.uniformMatrix4fv(
-                                    uniformLoc,
-                                    false,
-                                    array
-                                )
+                                case 'mat4':
+                                    gl.uniformMatrix4fv(
+                                        uniformLoc,
+                                        false,
+                                        uniformValue as Array<number>
+                                    )
+                                    break;
+
+                                case 'float':
+                                    gl.uniform1f(
+                                        uniformLoc,
+                                        parseFloat(uniformValue)
+                                    )
+                                    break;
+                                case 'vec2':
+                                    gl.uniform2fv(
+                                        uniformLoc,
+                                        uniformValue as Array<number>
+                                    )
+                                    break;
+                                case 'vec3':
+                                    gl.uniform3fv(
+                                        uniformLoc,
+                                        uniformValue as Array<number>
+                                    )
+                                    break;
+                                case 'vec4':
+                                    gl.uniform4fv(
+                                        uniformLoc,
+                                        uniformValue as Array<number>
+                                    )
+                                    break;
+                                
+                                case 'int':
+                                    gl.uniform1i(
+                                        uniformLoc,
+                                        parseInt(uniformValue)
+                                    )
+                                    break;
+                                case 'ivec2':
+                                    gl.uniform2iv(
+                                        uniformLoc,
+                                        Int32Array.from(uniformValue)
+                                    )
+                                    break;
+                                case 'ivec3':
+                                    gl.uniform3iv(
+                                        uniformLoc,
+                                        Int32Array.from(uniformValue)
+                                    )
+                                    break;
+                                case 'ivec4':
+                                    gl.uniform4iv(
+                                        uniformLoc,
+                                        Int32Array.from(uniformValue)
+                                    )
+                                    break;
+
+                                default:
+                                    console.error("Uniform type unknown: %s", type);
                             }
-
-                            if (size === 4) {
-                                gl.uniform4fv(
-                                    uniformLoc,
-                                    array
-                                )
-                            }
-
-                            if (size === 3) {
-                                gl.uniform3fv(
-                                    uniformLoc,
-                                    array
-                                )
-                            }
-                        } 
-                        else
-                        if (!isNaN(+value)) {
-                            gl.uniform1f(
-                                uniformLoc,
-                                parseFloat(value)
-                            )
+                            
                         }
                     }
 

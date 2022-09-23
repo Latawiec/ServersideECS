@@ -32,14 +32,11 @@ export class CircleWorldAoEDrawableComponent extends DrawingSystem.Component {
             uv: 'aUvCoord'
         }
 
-        result.uniformParameters = {
-            'uObjectData.transform':Array.from(this.transform.worldTransform),
-            'uObjectData.radius': this.radius,
-            'uObjectData.opacity': this.opacity,
-            'uObjectData.intensity': this.intensity,
-
-            'uTimeData.globalTime': GlobalClock.clock.getTimeMs()
-        };
+        result.uniformParameters.mat4['uObjectData.transform'] = Array.from(this.transform.worldTransform);
+        result.uniformParameters.float['uObjectData.radius'] = this.radius;
+        result.uniformParameters.float['uObjectData.opacity'] = this.opacity;
+        result.uniformParameters.float['uObjectData.intensity'] = this.intensity;
+        result.uniformParameters.float['uTimeData.globalTime'] = GlobalClock.clock.getTimeMs();
 
         return result;
     }
