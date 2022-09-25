@@ -8,6 +8,7 @@
     "browserify-zlib": "^0.2.0",
     "buffer": "^6.0.3",
     "constants-browserify": "^1.0.0",
+    "deepmerge": "^4.2.2",
     "fs": "^0.0.1-security",
     "gl-matrix": "^3.4.3",
     "memfs": "^3.4.7",

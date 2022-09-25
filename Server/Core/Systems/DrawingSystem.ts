@@ -11,6 +11,12 @@ import { GlobalClock } from "@core/Base/GlobalClock";
 
 export namespace DrawingSystem {
 
+    enum Blending {
+        Transparency,
+        Opaque,
+        Additive,
+    };
+
     export abstract class Component implements ComponentBase {
         // Metadata
         static staticMetaName(): MetaName { return 'DrawingSystem.Component' }
@@ -21,6 +27,7 @@ export namespace DrawingSystem {
         private _transform: Transform;
         
         isActive: boolean = true;
+        blending: Blending = Blending.Transparency;
 
         constructor(owner: Entity) {
             this._assetsPaths = [];
@@ -33,6 +40,7 @@ export namespace DrawingSystem {
             
             result.transform = this.transform.worldTransform;
             result.componentId = this.systemAsignedId;
+            result.blending = this.blending;
 
             // TODO: I don't know how to handle type recognition on the other side.
             // Lets go with this for now...

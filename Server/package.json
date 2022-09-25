@@ -2,11 +2,14 @@
   "dependencies": {
     "@types/archiver": "^5.3.1",
     "@types/gl-matrix": "^3.2.0",
+    "@types/lodash": "^4.14.185",
     "@types/node": "^17.0.23",
     "archiver": "^5.3.1",
     "express": "^4.17.3",
     "gl-matrix": "^3.4.3",
     "https": "^1.0.0",
+    "loadsh": "^0.0.4",
+    "lodash": "^4.17.21",
     "websocket": "^1.0.34",
     "ws": "^8.5.0"
   },

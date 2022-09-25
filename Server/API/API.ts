@@ -23,13 +23,18 @@ const wsServer = new WebSocket.server({
 );
 
 const world: TestWorld = new TestWorld(wsServer);
+const serializer = new WorldSerializer();
 
 app.get("/", (req, res) => {
     res.sendFile("index.html");
 })
 
 app.get("/world", (req, res) => {
-    res.send(JSON.stringify(WorldSerializer.serializeWorld(world)));
+    res.send(JSON.stringify(serializer.serializeWorld(world)));
+})
+
+app.get("/worldDiff", (req, res) => {
+    res.send(JSON.stringify(serializer.worldDiff()));
 })
 
 app.get("/asset", (req, res) => {

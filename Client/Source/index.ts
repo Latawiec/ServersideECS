@@ -8,6 +8,7 @@ import unzipper from "unzipper"
 import path from "path"
 import * as fs from "fs"
 import { MemoryFilesystem } from "./MemoryFilesystem";
+import deepmerge from "deepmerge";
 
 const {
     Readable,
@@ -226,7 +227,10 @@ async function render(world: any) {
 
     // We'll be swaping DrawRequests and asigning to currently existing names lol. Kinda makes it easier to implement.
     const newToDraw = new Map<string, DrawRequest>();
-    world.entities?.forEach((entity: any) => {
+    
+    for (const uuid in world.entities) 
+    {
+        const entity = world.entities[uuid];
 
         // grab camera
         if (entity.components.camera !== undefined) {
@@ -236,8 +240,9 @@ async function render(world: any) {
         
         // The new drawable. All controll passed over to the server.
         if (entity.components.drawableComponents !== undefined) {
-            for (const drawableComponent of entity.components.drawableComponents) {
+            for (const drawableComponentUuid in entity.components.drawableComponents) {
                 const gl = canvas.glContext;
+                const drawableComponent = entity.components.drawableComponents[drawableComponentUuid];
 
                 const vertexShaderPath = drawableComponent.assetPaths.vertexShader;
                 const pixelShaderPath = drawableComponent.assetPaths.pixelShader;
@@ -437,7 +442,7 @@ async function render(world: any) {
 
             }
         }
-    });
+    };
 
     entitiesToDraw = newToDraw;
 
@@ -453,10 +458,14 @@ async function render(world: any) {
     // requestAnimationFrame(render);
 }
 
+let world = {}
+
 ws.onmessage = function(e) {
     // console.log("Got: " + e.data);
     const worldMostLikely = JSON.parse(e.data);
-    render(worldMostLikely);
+    // world = deepmerge(world, worldMostLikely);
+    world = worldMostLikely
+    render(world);
 }
 
 // requestAnimationFrame(render);

@@ -4,19 +4,50 @@ import { DrawingSystem } from "../Systems/DrawingSystem";
 import { PlayerIdentity } from "@scripts/Comon/Player/PlayerIdentity";
 import { CameraSystem } from "@systems/CameraSystem"
 import { assert } from "console";
+import { transform, isEqual, isArray, isObject } from "lodash";
 
 export class WorldSerializer
 {
-    static serializeWorld(world: Readonly<World>): Record<string, any> {
+    private _previousWorld: Record<string, any> = {};
+    private _diff: Record<string, any> | undefined = {};
+
+    constructor() {}
+
+    /**
+     * Find difference between two objects
+     * @param  {object} origObj - Source object to compare newObj against
+     * @param  {object} newObj  - New object with potential changes
+     * @return {object} differences
+     */
+    static difference(origObj: Record<string, any>, newObj: Record<string, any>) {
+        function changes(newObj: Record<string, any>, origObj: Record<string, any>) : Record<string, any> {
+        let arrayIndexCounter = 0
+        return transform(newObj, function (result: Record<string, any>, value, key) {
+            if (!isEqual(value, origObj[key])) {
+            let resultKey = isArray(origObj) ? arrayIndexCounter++ : key
+            result[resultKey] = (isObject(value) && isObject(origObj[key])) ? changes(value, origObj[key]) : value
+            }
+        })
+        }
+        return changes(newObj, origObj)
+    }
+
+    serializeWorld(world: Readonly<World>): Record<string, any> {
         var output: Record<string, any> = {};
-        output.entities = [];
+        output.entities = {};
         const entities = world.getEntites();
 
         for(let i=0; i<entities.length; i++) {
-            output.entities.push(this.serializeEntity(entities[i]));
+            output.entities[entities[i].uuid] = WorldSerializer.serializeEntity(entities[i]);
         }
+        this._diff = WorldSerializer.difference(this._previousWorld, output);
+        this._previousWorld = output;
 
         return output;
+    }
+
+    worldDiff(): Record<string, any> {
+        return this._diff ? this._diff : {};
     }
 
     static serializableComponentsMapping = new Map<string, any>([
@@ -43,11 +74,11 @@ export class WorldSerializer
 
     static serializeDrawableComponent(output: Record<string, any>, component: Readonly<DrawingSystem.Component>) {
         if (!output.drawableComponents) {
-            output.drawableComponents = []
+            output.drawableComponents = {}
         }
         const serialized = component.serialize();
         if (serialized) {
-            (output.drawableComponents as Array<any>).push(serialized);
+            output.drawableComponents[component.systemAsignedId!] = serialized;
         }
     }
 
