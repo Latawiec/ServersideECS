@@ -4,10 +4,11 @@ import { Uuid } from "../Base/UuidGenerator"
 import { mat4 } from "gl-matrix";
 import { Transform } from "../Base/Transform";
 import { SystemBase } from "@core/Base/System";
+import { Serialization } from "@core/Serialization/WorldSnapshot";
 
 export namespace CameraSystem {
 
-    export class Component implements ComponentBase {
+    export class Component implements ComponentBase, Serialization.ISnapshot<Serialization.Camera.Snapshot> {
         // Metadata
         static staticMetaName(): MetaName { return 'CameraSystem.Component' }
 
@@ -21,6 +22,15 @@ export namespace CameraSystem {
             this._ownerEntity = owner;
             this._transform = mat4.create();
             this._projection = mat4.create();
+        }
+
+        takeSnapshot(): Serialization.Camera.Snapshot {
+            const result = new Serialization.Camera.Snapshot();
+            
+            result.transform = Array.from(this.worldTransform);
+            result.projection = Array.from(this.projection);
+
+            return result;
         }
 
         get isActive(): boolean {
@@ -61,14 +71,6 @@ export namespace CameraSystem {
 
         get worldTransform() : mat4 {
             return mat4.mul(mat4.create(), this._transform, mat4.invert(mat4.create(), this.ownerEntity.transform.worldTransform));
-        }
-
-        serialize(): Record<string, any> {
-            const result: Record<string, any> = {
-                transform: this.worldTransform,
-                projection: this.projection
-            }
-            return result;
         }
     }
 

@@ -4,7 +4,7 @@ import express from 'express'
 import * as path from 'path'
 
 import { TestWorld } from "@worlds/TestWorld/TestWorld"
-import { WorldSerializer } from "@core/Serialization/Serializer"
+import { Serializer } from "@core/Serialization/Serializer"
 
 const app = express();
 const clientOutputPath = path.resolve(__dirname + "/../../../" + "Client/build")
@@ -23,18 +23,16 @@ const wsServer = new WebSocket.server({
 );
 
 const world: TestWorld = new TestWorld(wsServer);
-const serializer = new WorldSerializer();
+const serializer = new Serializer();
 
 app.get("/", (req, res) => {
     res.sendFile("index.html");
 })
 
 app.get("/world", (req, res) => {
-    res.send(JSON.stringify(serializer.serializeWorld(world)));
-})
-
-app.get("/worldDiff", (req, res) => {
-    res.send(JSON.stringify(serializer.worldDiff()));
+    serializer.update(world);
+    const serialized = serializer.toJson();
+    res.send(serialized);
 })
 
 app.get("/asset", (req, res) => {

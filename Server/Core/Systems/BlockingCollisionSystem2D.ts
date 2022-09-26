@@ -76,11 +76,6 @@ export namespace BlockingCollisionSystem2D {
         get isBlocking() : Readonly<boolean> {
             return this._isBlocking;
         }
-
-        serialize(): undefined {
-            // Do nothing.
-            return undefined;
-        }
     }
 
     export class System extends SystemBase<Component> {

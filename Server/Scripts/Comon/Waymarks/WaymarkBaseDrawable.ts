@@ -1,6 +1,7 @@
 import { DrawingSystem } from "@core/Systems/DrawingSystem";
 import { Entity } from "@core/Base/Entity";
 import { vec3 } from "gl-matrix"
+import { Serialization } from "@core/Serialization/WorldSnapshot";
 
 export class WaymarkBaseDrawable extends DrawingSystem.Component {
 
@@ -11,23 +12,19 @@ export class WaymarkBaseDrawable extends DrawingSystem.Component {
         super(entity);
     }
 
-    serialize(): Record<string, any> {
-        let result = super.serialize();
-        
-        result.assetPaths = {
-            vertexShader: 'Common/Waymarks/Waymark.vs.glsl',
-            pixelShader: 'Common/Waymarks/Waymark.fs.glsl',
-            mesh: 'Common/Meshes/square.json'
-        }
+    takeSnapshot(): Serialization.Drawable.Snapshot {
+        const result = super.takeSnapshot();
 
-        result.vertexAttributes = {
-            vertices: 'aVertexPosition',
-            uv: 'aUvCoord'
-        }
+        result.assets.vertexShader = 'Common/Waymarks/Waymark.vs.glsl';
+        result.assets.pixelShader = 'Common/Waymarks/Waymark.fs.glsl';
+        result.assets.mesh = 'Common/Meshes/square.json';
+
+        result.vertexAttributes.vertices = 'aVertexPosition';
+        result.vertexAttributes.uv = 'aUvCoord';
 
         result.uniformParameters.mat4['uObjectData.transform'] = Array.from(this.transform.worldTransform);
         result.uniformParameters.float['uObjectData.opacity'] = this.opacity;
-        result.uniformParameters.vec3['uObjectData.color'] = this.color;
+        result.uniformParameters.vec3['uObjectData.color'] = Array.from(this.color);
 
         return result;
     }

@@ -1,6 +1,7 @@
 import { DrawingSystem } from "@core/Systems/DrawingSystem";
 import { Entity } from "@core/Base/Entity";
 import { vec2 } from "gl-matrix"
+import { Serialization } from "@core/Serialization/WorldSnapshot";
 
 export class TextureSquareDrawable extends DrawingSystem.Component {
 
@@ -16,29 +17,23 @@ export class TextureSquareDrawable extends DrawingSystem.Component {
         this.size = size;
     }
 
-    serialize(): Record<string, any> {
-        let result = super.serialize();
+    takeSnapshot(): Serialization.Drawable.Snapshot {
+        const result = super.takeSnapshot();
 
-        result.assetPaths = {
-            vertexShader: 'Common/Basic/Drawing/Texture.vs.glsl',
-            pixelShader: 'Common/Basic/Drawing/Texture.fs.glsl',
-            mesh: 'Common/Meshes/squareCentered.json',
-            textures: [
-                this.texturePath
-            ]
-        }
+        result.assets.vertexShader = 'Common/Basic/Drawing/Texture.vs.glsl';
+        result.assets.pixelShader = 'Common/Basic/Drawing/Texture.fs.glsl';
+        result.assets.mesh = 'Common/Meshes/squareCentered.json';
+        result.assets.textures[0] = this.texturePath;
 
-        result.vertexAttributes = {
-            vertices: 'aVertexPosition',
-            uv: 'aUvCoord'
-        }
+        result.vertexAttributes.vertices = 'aVertexPosition';
+        result.vertexAttributes.uv = 'aUvCoord';
 
         result.uniformParameters.mat4['uObjectData.transform'] = Array.from(this.transform.worldTransform);
         result.uniformParameters.float['uObjectData.size'] = this.size;
         result.uniformParameters.float['uObjectData.opacity'] = this.opacity;
         result.uniformParameters.int['uObjectData.texSampler'] = 0;
-        result.uniformParameters.vec2['uObjectData.uvScale'] = this.uvScale;
-        result.uniformParameters.vec2['uObjectData.uvOffset'] = this.uvOffset;
+        result.uniformParameters.vec2['uObjectData.uvScale'] = Array.from(this.uvScale);
+        result.uniformParameters.vec2['uObjectData.uvOffset'] = Array.from(this.uvOffset);
 
         return result;
     }

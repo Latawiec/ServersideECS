@@ -35,10 +35,6 @@ export namespace TriggerCollisionSystem2D {
             this._ownerEntity = owner
         }
 
-        serialize(): undefined {
-            return undefined
-        }
-
         get isActive(): Readonly<boolean> {
             return this._isActive
         }

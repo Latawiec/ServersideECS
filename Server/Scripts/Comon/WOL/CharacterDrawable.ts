@@ -2,6 +2,7 @@ import { Entity } from "@core/Base/Entity"
 import { DrawingSystem } from "@core/Systems/DrawingSystem";
 import { SpriteSquareDrawable } from "../Basic/Drawing/SpriteSquareDrawable";
 import { vec2 } from 'gl-matrix'
+import { Serialization } from "@core/Serialization/WorldSnapshot";
 
 export enum CharacterType {
     RedMage
@@ -17,11 +18,11 @@ export class CharacterDrawable extends SpriteSquareDrawable {
         super(owner, CharacterDrawable.CharacterSpriteMap.get(type)!, CharacterDrawable.CharacterSpriteSize);
     }
 
-    serialize(): Record<string, any> {
-        let result = super.serialize();
+    takeSnapshot(): Serialization.Drawable.Snapshot {
+        const result = super.takeSnapshot();
 
         // Sprite but with different mesh.
-        result.assetPaths.mesh = 'Common/Meshes/squareVerticalBottomAligned.json'
+        result.assets.mesh = 'Common/Meshes/squareVerticalBottomAligned.json';
 
         return result;
     }

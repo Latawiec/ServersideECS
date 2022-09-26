@@ -82,10 +82,6 @@ export namespace ClientConnectionSystem {
             this._connection.addListener(this._connectionListener);    
         }
 
-        serialize(): undefined {
-            return undefined
-        }
-    
         get systemMetaName(): MetaName {
             return System.staticMetaName();
         }

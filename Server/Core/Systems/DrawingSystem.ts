@@ -7,6 +7,7 @@ import { assert } from "console";
 import { vec4 } from "gl-matrix";
 import { Transform } from "../Base/Transform";
 import { GlobalClock } from "@core/Base/GlobalClock";
+import { Serialization } from "@core/Serialization/WorldSnapshot";
 
 
 export namespace DrawingSystem {
@@ -17,11 +18,10 @@ export namespace DrawingSystem {
         Additive,
     };
 
-    export abstract class Component implements ComponentBase {
+    export abstract class Component implements ComponentBase, Serialization.ISnapshot<Serialization.Drawable.Snapshot> {
         // Metadata
         static staticMetaName(): MetaName { return 'DrawingSystem.Component' }
 
-        private _assetsPaths: string[];
         private _ownerEntity: Entity;
         private _systemAsignedId: Uuid | undefined = undefined;
         private _transform: Transform;
@@ -30,31 +30,14 @@ export namespace DrawingSystem {
         blending: Blending = Blending.Transparency;
 
         constructor(owner: Entity) {
-            this._assetsPaths = [];
             this._ownerEntity = owner;
             this._transform = new Transform();
         }
 
-        serialize(): Record<string, any> {
-            let result: any = {};
-            
-            result.transform = this.transform.worldTransform;
-            result.componentId = this.systemAsignedId;
-            result.blending = this.blending;
+        takeSnapshot(): Serialization.Drawable.Snapshot {
+            const result = new Serialization.Drawable.Snapshot();
 
-            // TODO: I don't know how to handle type recognition on the other side.
-            // Lets go with this for now...
-            result.uniformParameters = {
-                float:  {},
-                vec2:   {},
-                vec3:   {},
-                vec4:   {},
-                int:    {},
-                ivec2:  {},
-                ivec3:  {},
-                ivec4:  {},
-                mat4:   {}
-            }
+            result.transform = Array.from(this.transform.worldTransform);
 
             return result;
         }
@@ -75,17 +58,9 @@ export namespace DrawingSystem {
         get systemMetaName(): string {
             return System.staticMetaName();
         }
-    
-        getAssetsPaths(): string[] {
-            return this._assetsPaths;
-        }
 
         get transform(): Transform {
             return this._transform;
-        }
-    
-        protected get assetsPaths(): string[] {
-            return this._assetsPaths;
         }
     }
 

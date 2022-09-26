@@ -1,7 +1,7 @@
 import { World } from "@core/World/World"
 import { Entity } from "@core/Base/Entity"
 import { ScriptSystem } from "@core/Systems/ScriptSystem";
-import { WorldSerializer } from "@core/Serialization/Serializer"
+import { Serializer } from "@core/Serialization/Serializer"
 import { ClientConnectionSystem } from "@core/Systems/ClientConnectionSystem";
 import { vec4tovec3 } from "@core/Common/Math/gl-extensions";
 import { BlockingCollisionSystem2D } from "@core/Systems/BlockingCollisionSystem2D";
@@ -339,12 +339,15 @@ class TestPlayerInitializer extends ScriptSystem.Component
 
 export class TestWorld extends World {
 
+    serializer = new Serializer();
+    isInitialized = false;
+
     update() {
         super.update();
-        this.clientConnectionSystem.broadcastMessage(JSON.stringify(WorldSerializer.serializeWorld(this)));
+        this.serializer.update(this);
+        this.clientConnectionSystem.broadcastMessage(this.serializer.toJson());
     }
 
-    isInitialized = false;
 
     constructor(wsServer: WebSocket.server)
     {
@@ -465,7 +468,7 @@ export class TestWorld extends World {
 
                 // Devour
                 {
-                    const devourComponent = new Devour(devour, DevourPattern.Circle, GlobalClock.clock.getTimeMs() + 5000);
+                    const devourComponent = new Devour(devour, DevourPattern.ZigZag, GlobalClock.clock.getTimeMs() + 5000);
                 }
 
                 // Waymark

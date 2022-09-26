@@ -180,6 +180,10 @@ export class World {
         return this._drawableSystem;
     }
 
+    get cameraSystem(): CameraSystem.System {
+        return this._cameraSystem;
+    }
+
     get clientConnectionSystem(): ClientConnectionSystem.System {
         return this._clientConnectionSystem;
     }
