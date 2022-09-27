@@ -46,7 +46,7 @@ class TestPlayer extends ScriptSystem.Component
 
         this._drawable = new CharacterDrawable(entity, CharacterType.RedMage);
         world.registerComponent(entity, this._drawable);
-        this._drawable.transform.rotate([1, 0, 0], Math.PI/4.0)
+        //this._drawable.transform.rotate([1, 0, 0], Math.PI/4.0)
         this._drawable.transform.scale([1, 1, 1]);
 
         this._playerInputController = new PlayerInputController(entity);
@@ -431,7 +431,21 @@ export class TestWorld extends World {
                     const viewTransform  = mat4.create();
                     cameraComponent.transform = mat4.lookAt(viewTransform, vec3.fromValues(0, 18, -18), vec3.fromValues(0, 0, 0,), vec3.fromValues(0, 1, 0));
 
+                    class RotateCam extends ScriptSystem.Component {
+                        preUpdate(): void {
+                            
+                        }
+                        onUpdate(): void {
+                            cameraComponent.transform = mat4.lookAt(viewTransform, vec3.fromValues(-18*Math.cos(GlobalClock.clock.getTimeMs()/1000), 18, 18 * Math.sin(GlobalClock.clock.getTimeMs()/1000)), vec3.fromValues(0, 0, 0,), vec3.fromValues(0, 1, 0));
+                        }
+                        postUpdate(): void {
+                            
+                        }
+                        
+                    }
+
                     cameraComponent.projection = projectionMatrix;
+                    //this.registerComponent(cameraHolder, new RotateCam(cameraHolder))
                 }
 
                 // Repeating AoE

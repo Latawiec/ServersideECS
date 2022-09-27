@@ -2,8 +2,10 @@
 attribute vec4 aVertexPosition;
 
 struct Camera {
-    mat4 view;
-    mat4 proj;
+    lowp mat4 view;
+    lowp mat4 proj;
+    lowp vec3 position;
+    lowp vec3 forward;
 };
 
 struct Object {

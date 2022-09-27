@@ -22,7 +22,7 @@ export class SpriteSquareDrawable extends DrawingSystem.Component {
 
         result.assets.vertexShader = 'Common/Basic/Drawing/Sprite.vs.glsl';
         result.assets.pixelShader = 'Common/Basic/Drawing/Sprite.fs.glsl';
-        result.assets.mesh = 'Common/Meshes/squareCentered.json';
+        result.assets.mesh = 'Common/Meshes/squareVerticalBottomAligned.json';
         result.assets.textures[0] = this.texturePath;
 
         result.vertexAttributes.vertices = 'aVertexPosition';

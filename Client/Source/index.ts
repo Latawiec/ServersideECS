@@ -408,17 +408,35 @@ async function render(world: any) {
                     // Off the grid uniforms for the camera. Need to figure out how to pass them.
                     const cameraViewLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uCameraData.view');
                     const cameraProjLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uCameraData.proj');
+                    const cameraPosLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uCameraData.position');
+                    const cameraForwardLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uCameraData.forward');
 
                     gl.uniformMatrix4fv(
                         cameraViewLoc,
                         false,
-                        camera.viewTransform
+                        Array.from(camera.viewTransform)
                     );
 
                     gl.uniformMatrix4fv(
                         cameraProjLoc,
                         false,
-                        camera.transform
+                        Array.from(camera.transform)
+                    )
+
+                    // TODO: Move it out of here.
+                    const invertedViewMatrix = mat4.invert(mat4.create(), camera.viewTransform);
+                    const cameraPosition = mat4.getTranslation(vec3.create(), invertedViewMatrix);
+                    const cameraForward = vec4.transformMat4(vec4.create(), vec4.fromValues(0, 0, -1, 0), invertedViewMatrix);
+                    const cameraForward3 = vec3.fromValues(cameraForward[0], cameraForward[1], cameraForward[2]);
+
+                    gl.uniform3fv(
+                        cameraPosLoc,
+                        Array.from(cameraPosition)
+                    )
+
+                    gl.uniform3fv(
+                        cameraForwardLoc,
+                        Array.from(cameraForward3)
                     )
                     // debugger;
                     //canvas.glContext.blendFunc(canvas.glContext.SRC_ALPHA, canvas.glContext.ONE); // Additive blending.
@@ -436,7 +454,7 @@ async function render(world: any) {
     
     // grab camera (just pick last)
     if (world.camera !== undefined) {
-        const cameraComponent = world.camera[Object.keys(world.camera)[Object.keys(world.camera).length - 1];
+        const cameraComponent = world.camera[Object.keys(world.camera)[Object.keys(world.camera).length - 1]];
         camera = new RawCamera(mat4.copy(mat4.create(), cameraComponent.transform), mat4.copy(mat4.create(), cameraComponent.projection));
     }
 

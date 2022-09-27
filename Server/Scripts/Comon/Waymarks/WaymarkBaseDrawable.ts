@@ -17,7 +17,7 @@ export class WaymarkBaseDrawable extends DrawingSystem.Component {
 
         result.assets.vertexShader = 'Common/Waymarks/Waymark.vs.glsl';
         result.assets.pixelShader = 'Common/Waymarks/Waymark.fs.glsl';
-        result.assets.mesh = 'Common/Meshes/square.json';
+        result.assets.mesh = 'Common/Meshes/squareCentered.json';
 
         result.vertexAttributes.vertices = 'aVertexPosition';
         result.vertexAttributes.uv = 'aUvCoord';
