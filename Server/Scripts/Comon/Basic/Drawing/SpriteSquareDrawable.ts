@@ -1,7 +1,7 @@
 import { Entity } from "@core/Base/Entity";
 import { DrawingSystem } from "@core/Systems/DrawingSystem";
 import { vec2 } from "gl-matrix";
-import { Serialization } from "@core/Serialization/WorldSnapshot";
+import { Serialization } from "@shared/WorldSnapshot";
 
 export class SpriteSquareDrawable extends DrawingSystem.Component {
 

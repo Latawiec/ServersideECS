@@ -4,7 +4,7 @@ import { Uuid } from "../Base/UuidGenerator"
 import { mat4 } from "gl-matrix";
 import { Transform } from "../Base/Transform";
 import { SystemBase } from "@core/Base/System";
-import { Serialization } from "@core/Serialization/WorldSnapshot";
+import { Serialization } from "@shared/WorldSnapshot";
 
 export namespace CameraSystem {
 

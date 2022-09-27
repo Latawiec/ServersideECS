@@ -1,7 +1,7 @@
 import { DrawingSystem } from "@core/Systems/DrawingSystem";
 import { Entity } from "@core/Base/Entity";
 import { vec2 } from "gl-matrix"
-import { Serialization } from "@core/Serialization/WorldSnapshot";
+import { Serialization } from "@shared/WorldSnapshot";
 
 export class TextureSquareDrawable extends DrawingSystem.Component {
 

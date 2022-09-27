@@ -1,7 +1,7 @@
 import { DrawingSystem } from "@core/Systems/DrawingSystem";
 import { Entity } from "@core/Base/Entity";
 import { vec3 } from "gl-matrix"
-import { Serialization } from "@core/Serialization/WorldSnapshot";
+import { Serialization } from "@shared/WorldSnapshot";
 
 export class WaymarkBaseDrawable extends DrawingSystem.Component {
 

@@ -7,7 +7,7 @@ import { assert } from "console";
 import { vec4 } from "gl-matrix";
 import { Transform } from "../Base/Transform";
 import { GlobalClock } from "@core/Base/GlobalClock";
-import { Serialization } from "@core/Serialization/WorldSnapshot";
+import { Serialization } from "@shared/WorldSnapshot";
 
 
 export namespace DrawingSystem {

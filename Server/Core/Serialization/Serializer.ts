@@ -1,5 +1,5 @@
 import { World } from "../World/World"
-import { Serialization } from "./WorldSnapshot"
+import { Serialization } from "@shared/WorldSnapshot"
 import { DrawingSystem } from "@core/Systems/DrawingSystem";
 import { CameraSystem } from "@core/Systems/CameraSystem";
 import { Uuid } from "@core/Base/UuidGenerator"

@@ -5,11 +5,11 @@ import * as path from 'path'
 
 import { TestWorld } from "@worlds/TestWorld/TestWorld"
 import { Serializer } from "@core/Serialization/Serializer"
+import Config from "@config/static.json"
 
 const app = express();
-const clientOutputPath = path.resolve(__dirname + "/../../../" + "Client/build")
-console.log(clientOutputPath);
-app.use(express.static(clientOutputPath));
+console.log(Config.staticDirectory);
+app.use(express.static(Config.staticDirectory));
 
 const activePort = process.env.PORT || 8000;
 const server = app.listen(activePort, () => {

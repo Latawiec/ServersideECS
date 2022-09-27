@@ -9,6 +9,7 @@ import path from "path"
 import * as fs from "fs"
 import { MemoryFilesystem } from "./MemoryFilesystem";
 import deepmerge from "deepmerge";
+import { Serialization } from "@shared/WorldSnapshot";
 
 const {
     Readable,
@@ -219,7 +220,7 @@ canvas.glContext.blendFunc(canvas.glContext.SRC_ALPHA, canvas.glContext.ONE_MINU
 //     canvas.glContext.ONE,
 //     canvas.glContext.ONE);
 
-async function render(world: any) {
+async function render(world: Readonly<Serialization.WorldSnapshot>) {
 
     if (!assetsLoaded) return;
 
@@ -228,234 +229,231 @@ async function render(world: any) {
     // We'll be swaping DrawRequests and asigning to currently existing names lol. Kinda makes it easier to implement.
     const newToDraw = new Map<string, DrawRequest>();
 
-    // The new drawable. All controll passed over to the server.
-    if (world.drawable !== undefined) {
-        for (const drawableId in world.drawable) {
-            const gl = canvas.glContext;
-            const drawableComponent = world.drawable[drawableId];
+    for (const drawableId in world.drawable) {
+        const gl = canvas.glContext;
+        const drawableComponent = world.drawable[drawableId];
 
-            const vertexShaderPath = drawableComponent.assets.vertexShader;
-            const pixelShaderPath = drawableComponent.assets.pixelShader;
+        const vertexShaderPath = drawableComponent.assets.vertexShader!;
+        const pixelShaderPath = drawableComponent.assets.pixelShader!;
 
-            if (!compiledShaderCache.has(vertexShaderPath)) {
-                const shader = new Shader(gl, ShaderType.VERTEX, MemoryFilesystem.fs.readFileSync(vertexShaderPath).toString());
-                compiledShaderCache.set(vertexShaderPath, shader);
-            }
+        if (!compiledShaderCache.has(vertexShaderPath)) {
+            const shader = new Shader(gl, ShaderType.VERTEX, MemoryFilesystem.fs.readFileSync(vertexShaderPath).toString());
+            compiledShaderCache.set(vertexShaderPath, shader);
+        }
 
-            if (!compiledShaderCache.has(pixelShaderPath)) {
-                const shader = new Shader(gl, ShaderType.PIXEL, MemoryFilesystem.fs.readFileSync(pixelShaderPath).toString());
-                compiledShaderCache.set(pixelShaderPath, shader);
-            }
+        if (!compiledShaderCache.has(pixelShaderPath)) {
+            const shader = new Shader(gl, ShaderType.PIXEL, MemoryFilesystem.fs.readFileSync(pixelShaderPath).toString());
+            compiledShaderCache.set(pixelShaderPath, shader);
+        }
 
-            const vertexShader = compiledShaderCache.get(vertexShaderPath)!
-            const pixelShader = compiledShaderCache.get(pixelShaderPath)!
-            
-            const meshDataPath = drawableComponent.assets.mesh;
-            
-            if (!meshCache.has(meshDataPath)) {
-                const meshData = JSON.parse(MemoryFilesystem.fs.readFileSync(meshDataPath).toString());
-                const mesh = new BasicMesh(gl, Float32Array.from(meshData.vertices), Uint16Array.from(meshData.indices), Float32Array.from(meshData.uv))
-                meshCache.set(meshDataPath, mesh);
-            }
+        const vertexShader = compiledShaderCache.get(vertexShaderPath)!
+        const pixelShader = compiledShaderCache.get(pixelShaderPath)!
+        
+        const meshDataPath = drawableComponent.assets.mesh!;
+        
+        if (!meshCache.has(meshDataPath)) {
+            const meshData = JSON.parse(MemoryFilesystem.fs.readFileSync(meshDataPath).toString());
+            const mesh = new BasicMesh(gl, Float32Array.from(meshData.vertices), Uint16Array.from(meshData.indices), Float32Array.from(meshData.uv))
+            meshCache.set(meshDataPath, mesh);
+        }
 
-            if (drawableComponent.assets.textures) {
-                for (const textureOffset in drawableComponent.assets.textures) {
-                    const texturePath = drawableComponent.assets.textures[textureOffset]
-                    if (!textureCache.has(texturePath)) {
-                        const texture = new BasicTexture(gl, texturePath);
-                        textureCache.set(texturePath, texture);
-                    }
+        if (drawableComponent.assets.textures) {
+            for (const textureOffset in drawableComponent.assets.textures) {
+                const texturePath = drawableComponent.assets.textures[textureOffset]
+                if (!textureCache.has(texturePath)) {
+                    const texture = new BasicTexture(gl, texturePath);
+                    textureCache.set(texturePath, texture);
                 }
             }
+        }
 
-            if (!drawableComponentProgramCache.has(drawableId)) {
-                const shaderProgram = new ShaderProgram(gl, pixelShader, vertexShader);
-                drawableComponentProgramCache.set(drawableId, shaderProgram)
-            }
+        if (!drawableComponentProgramCache.has(drawableId)) {
+            const shaderProgram = new ShaderProgram(gl, pixelShader, vertexShader);
+            drawableComponentProgramCache.set(drawableId, shaderProgram)
+        }
 
-            const mesh = meshCache.get(meshDataPath);
-            const shaderProgram = drawableComponentProgramCache.get(drawableId)!;
+        const mesh = meshCache.get(meshDataPath);
+        const shaderProgram = drawableComponentProgramCache.get(drawableId)!;
 
-            class DrawStuff implements DrawRequest {
-                private _shaderProgram = shaderProgram;
-                private _mesh = mesh;
-                private _uniformAttributes : Record<string, any> = drawableComponent.uniformParameters!
-                private _textures : string[] = drawableComponent.assets.textures;
-                private _vertexAttributes : Record<string, any> = drawableComponent.vertexAttributes!
+        class DrawStuff implements DrawRequest {
+            private _shaderProgram = shaderProgram;
+            private _mesh = mesh;
+            private _uniformAttributes : Record<string, any> = drawableComponent.uniformParameters!
+            private _textures = drawableComponent.assets.textures;
+            private _vertexAttributes : Record<string, any> = drawableComponent.vertexAttributes!
 
 
-                draw(camera: Readonly<Camera>): void {
-                    
-                    if (this._vertexAttributes.vertices === undefined ) {
-                        console.log("No vertices.")
-                    }
+            draw(camera: Readonly<Camera>): void {
+                
+                if (this._vertexAttributes.vertices === undefined ) {
+                    console.log("No vertices.")
+                }
 
-                    const vertexPositionAttribLoc = gl.getAttribLocation(this._shaderProgram.glShaderProgram, this._vertexAttributes.vertices);
+                const vertexPositionAttribLoc = gl.getAttribLocation(this._shaderProgram.glShaderProgram, this._vertexAttributes.vertices);
 
-                    gl.bindBuffer(gl.ARRAY_BUFFER, this._mesh!.glVertexBuffer);
+                gl.bindBuffer(gl.ARRAY_BUFFER, this._mesh!.glVertexBuffer);
+                gl.vertexAttribPointer(
+                    vertexPositionAttribLoc,
+                    3,
+                    gl.FLOAT,
+                    false,
+                    0,
+                    0
+                );
+                gl.enableVertexAttribArray(vertexPositionAttribLoc);
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._mesh!.glIndexBuffer);
+                
+                if (this._vertexAttributes.uv) {
+                    const uvCoordAttribLoc = gl.getAttribLocation(this._shaderProgram.glShaderProgram, this._vertexAttributes.uv);
+
+                    gl.bindBuffer(gl.ARRAY_BUFFER, this._mesh!.glUvBuffer);
                     gl.vertexAttribPointer(
-                        vertexPositionAttribLoc,
-                        3,
+                        uvCoordAttribLoc,
+                        2,
                         gl.FLOAT,
                         false,
                         0,
                         0
                     );
-                    gl.enableVertexAttribArray(vertexPositionAttribLoc);
-                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._mesh!.glIndexBuffer);
-                    
-                    if (this._vertexAttributes.uv) {
-                        const uvCoordAttribLoc = gl.getAttribLocation(this._shaderProgram.glShaderProgram, this._vertexAttributes.uv);
-
-                        gl.bindBuffer(gl.ARRAY_BUFFER, this._mesh!.glUvBuffer);
-                        gl.vertexAttribPointer(
-                            uvCoordAttribLoc,
-                            2,
-                            gl.FLOAT,
-                            false,
-                            0,
-                            0
-                        );
-                        gl.enableVertexAttribArray(uvCoordAttribLoc);
-                    }
-
-                    gl.useProgram(this._shaderProgram.glShaderProgram);
-
-                    if (this._textures) {
-
-                        for(const textureOffset in this._textures) {
-                            const texturePath = this._textures[textureOffset];
-                            gl.activeTexture(gl.TEXTURE0 + parseInt(textureOffset));
-                            gl.bindTexture(gl.TEXTURE_2D, textureCache.get(texturePath)!.glTexture);
-                        }
-                    }
-
-                    for(const type in this._uniformAttributes) {
-                        const typedValuesArray = this._uniformAttributes[type];
-
-                        for (const uniformName in typedValuesArray) {
-                            // TODO: Replace fetching locations by names with locations coming from server already. A lot of data wasted.
-                            const uniformLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, uniformName);
-                            const uniformValue = typedValuesArray[uniformName];
-                            
-                            switch(type) {
-
-                                case 'mat4':
-                                    gl.uniformMatrix4fv(
-                                        uniformLoc,
-                                        false,
-                                        uniformValue as Array<number>
-                                    )
-                                    break;
-
-                                case 'float':
-                                    gl.uniform1f(
-                                        uniformLoc,
-                                        parseFloat(uniformValue)
-                                    )
-                                    break;
-                                case 'vec2':
-                                    gl.uniform2fv(
-                                        uniformLoc,
-                                        uniformValue as Array<number>
-                                    )
-                                    break;
-                                case 'vec3':
-                                    gl.uniform3fv(
-                                        uniformLoc,
-                                        uniformValue as Array<number>
-                                    )
-                                    break;
-                                case 'vec4':
-                                    gl.uniform4fv(
-                                        uniformLoc,
-                                        uniformValue as Array<number>
-                                    )
-                                    break;
-                                
-                                case 'int':
-                                    gl.uniform1i(
-                                        uniformLoc,
-                                        parseInt(uniformValue)
-                                    )
-                                    break;
-                                case 'ivec2':
-                                    gl.uniform2iv(
-                                        uniformLoc,
-                                        Int32Array.from(uniformValue)
-                                    )
-                                    break;
-                                case 'ivec3':
-                                    gl.uniform3iv(
-                                        uniformLoc,
-                                        Int32Array.from(uniformValue)
-                                    )
-                                    break;
-                                case 'ivec4':
-                                    gl.uniform4iv(
-                                        uniformLoc,
-                                        Int32Array.from(uniformValue)
-                                    )
-                                    break;
-
-                                default:
-                                    console.error("Uniform type unknown: %s", type);
-                            }
-                            
-                        }
-                    }
-
-                    // Off the grid uniforms for the camera. Need to figure out how to pass them.
-                    const cameraViewLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uCameraData.view');
-                    const cameraProjLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uCameraData.proj');
-                    const cameraPosLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uCameraData.position');
-                    const cameraForwardLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uCameraData.forward');
-
-                    gl.uniformMatrix4fv(
-                        cameraViewLoc,
-                        false,
-                        Array.from(camera.viewTransform)
-                    );
-
-                    gl.uniformMatrix4fv(
-                        cameraProjLoc,
-                        false,
-                        Array.from(camera.transform)
-                    )
-
-                    // TODO: Move it out of here.
-                    const invertedViewMatrix = mat4.invert(mat4.create(), camera.viewTransform);
-                    const cameraPosition = mat4.getTranslation(vec3.create(), invertedViewMatrix);
-                    const cameraForward = vec4.transformMat4(vec4.create(), vec4.fromValues(0, 0, -1, 0), invertedViewMatrix);
-                    const cameraForward3 = vec3.fromValues(cameraForward[0], cameraForward[1], cameraForward[2]);
-
-                    gl.uniform3fv(
-                        cameraPosLoc,
-                        Array.from(cameraPosition)
-                    )
-
-                    gl.uniform3fv(
-                        cameraForwardLoc,
-                        Array.from(cameraForward3)
-                    )
-                    // debugger;
-                    //canvas.glContext.blendFunc(canvas.glContext.SRC_ALPHA, canvas.glContext.ONE); // Additive blending.
-                    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); // real transparency
-                    // gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
-                    gl.drawElements(gl.TRIANGLES, this._mesh!.elementsCount, gl.UNSIGNED_SHORT, 0);
+                    gl.enableVertexAttribArray(uvCoordAttribLoc);
                 }
+
+                gl.useProgram(this._shaderProgram.glShaderProgram);
+
+                if (this._textures) {
+
+                    for(const textureOffset in this._textures) {
+                        const texturePath = this._textures[textureOffset];
+                        gl.activeTexture(gl.TEXTURE0 + parseInt(textureOffset));
+                        gl.bindTexture(gl.TEXTURE_2D, textureCache.get(texturePath)!.glTexture);
+                    }
+                }
+
+                for(const type in this._uniformAttributes) {
+                    const typedValuesArray = this._uniformAttributes[type];
+
+                    for (const uniformName in typedValuesArray) {
+                        // TODO: Replace fetching locations by names with locations coming from server already. A lot of data wasted.
+                        const uniformLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, uniformName);
+                        const uniformValue = typedValuesArray[uniformName];
+                        
+                        switch(type) {
+
+                            case 'mat4':
+                                gl.uniformMatrix4fv(
+                                    uniformLoc,
+                                    false,
+                                    uniformValue as Array<number>
+                                )
+                                break;
+
+                            case 'float':
+                                gl.uniform1f(
+                                    uniformLoc,
+                                    parseFloat(uniformValue)
+                                )
+                                break;
+                            case 'vec2':
+                                gl.uniform2fv(
+                                    uniformLoc,
+                                    uniformValue as Array<number>
+                                )
+                                break;
+                            case 'vec3':
+                                gl.uniform3fv(
+                                    uniformLoc,
+                                    uniformValue as Array<number>
+                                )
+                                break;
+                            case 'vec4':
+                                gl.uniform4fv(
+                                    uniformLoc,
+                                    uniformValue as Array<number>
+                                )
+                                break;
+                            
+                            case 'int':
+                                gl.uniform1i(
+                                    uniformLoc,
+                                    parseInt(uniformValue)
+                                )
+                                break;
+                            case 'ivec2':
+                                gl.uniform2iv(
+                                    uniformLoc,
+                                    Int32Array.from(uniformValue)
+                                )
+                                break;
+                            case 'ivec3':
+                                gl.uniform3iv(
+                                    uniformLoc,
+                                    Int32Array.from(uniformValue)
+                                )
+                                break;
+                            case 'ivec4':
+                                gl.uniform4iv(
+                                    uniformLoc,
+                                    Int32Array.from(uniformValue)
+                                )
+                                break;
+
+                            default:
+                                console.error("Uniform type unknown: %s", type);
+                        }
+                        
+                    }
+                }
+
+                // Off the grid uniforms for the camera. Need to figure out how to pass them.
+                const cameraViewLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uCameraData.view');
+                const cameraProjLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uCameraData.proj');
+                const cameraPosLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uCameraData.position');
+                const cameraForwardLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uCameraData.forward');
+
+                gl.uniformMatrix4fv(
+                    cameraViewLoc,
+                    false,
+                    Array.from(camera.viewTransform)
+                );
+
+                gl.uniformMatrix4fv(
+                    cameraProjLoc,
+                    false,
+                    Array.from(camera.transform)
+                )
+
+                // TODO: Move it out of here.
+                const invertedViewMatrix = mat4.invert(mat4.create(), camera.viewTransform);
+                const cameraPosition = mat4.getTranslation(vec3.create(), invertedViewMatrix);
+                const cameraForward = vec4.transformMat4(vec4.create(), vec4.fromValues(0, 0, -1, 0), invertedViewMatrix);
+                const cameraForward3 = vec3.fromValues(cameraForward[0], cameraForward[1], cameraForward[2]);
+
+                gl.uniform3fv(
+                    cameraPosLoc,
+                    Array.from(cameraPosition)
+                )
+
+                gl.uniform3fv(
+                    cameraForwardLoc,
+                    Array.from(cameraForward3)
+                )
+                // debugger;
+                //canvas.glContext.blendFunc(canvas.glContext.SRC_ALPHA, canvas.glContext.ONE); // Additive blending.
+                gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); // real transparency
+                // gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
+                gl.drawElements(gl.TRIANGLES, this._mesh!.elementsCount, gl.UNSIGNED_SHORT, 0);
             }
-
-            const request = new DrawStuff();
-            newToDraw.set(drawableId, request);
-
         }
+
+        const request = new DrawStuff();
+        newToDraw.set(drawableId, request);
+
     }
     
     // grab camera (just pick last)
     if (world.camera !== undefined) {
         const cameraComponent = world.camera[Object.keys(world.camera)[Object.keys(world.camera).length - 1]];
-        camera = new RawCamera(mat4.copy(mat4.create(), cameraComponent.transform), mat4.copy(mat4.create(), cameraComponent.projection));
+        camera = new RawCamera(mat4.copy(mat4.create(), Float32Array.from(cameraComponent.transform)), mat4.copy(mat4.create(), Float32Array.from(cameraComponent.projection)));
     }
 
     entitiesToDraw = newToDraw;
@@ -479,7 +477,7 @@ ws.onmessage = function(e) {
     const worldMostLikely = JSON.parse(e.data);
     // world = deepmerge(world, worldMostLikely);
     world = worldMostLikely
-    render(world);
+    render(world as Serialization.WorldSnapshot);
 }
 
 // requestAnimationFrame(render);

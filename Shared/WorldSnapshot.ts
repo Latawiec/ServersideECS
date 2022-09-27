@@ -1,8 +1,14 @@
-import { Uuid } from "@core/Base/UuidGenerator"
-import { mat4 } from "gl-matrix"
-
 
 export namespace Serialization {
+
+const identityMatrix: Array<number> = [
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1
+];
+
+type Uuid = string;
 
 export interface ISnapshot<T> {
     takeSnapshot(): T;
@@ -47,7 +53,7 @@ export namespace Drawable {
             this.assets = new Assets();
             this.vertexAttributes = new VertexAttributes();
             this.uniformParameters = new UniformParameters();
-            this.transform = Array.from(mat4.create());
+            this.transform = identityMatrix;
         }
     }
 }
@@ -58,14 +64,14 @@ export namespace Camera {
         projection: Array<number>;
 
         constructor() {
-            this.transform = Array.from(mat4.create());
-            this.projection = Array.from(mat4.create());
+            this.transform = identityMatrix;
+            this.projection = identityMatrix;
         }
     }
 }
 
 export class WorldSnapshot {
-    drawable: Record<Uuid, Drawable.Snapshot> = {};
+    drawable: Record<string, Drawable.Snapshot> = {};
     camera: Record<Uuid, Camera.Snapshot> = {};
 }
 
