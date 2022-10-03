@@ -1,2 +1,8 @@
 **/node_modules/**
 **/build/**
+
+# Only push assets to the repository.
+# TODO: Git LFS
+**/*.psd
+Inspiration/*
+Server/Package/*
