@@ -48,6 +48,36 @@
 				"${workspaceFolder}\\Assets\\Worlds\\TestWorld"
 			],
 			"label": "Package TestWorld"
+		},
+		{
+			"type": "process",
+			"command": "7z.exe",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "none",
+			"args": [
+				"a",
+				"-mx0",
+				"${workspaceFolder}\\Package\\${input:worldName}.zip",
+				"${workspaceFolder}\\Assets\\Worlds\\${input:worldName}"
+			],
+			"label": "Package World"
+		}
+	],
+	"inputs": [
+		{
+		  "id": "worldName",
+		  "type": "pickString",
+		  "description": "Re/create packaged world .zip file.",
+		  "options": [
+			"TestWorld",
+			"Abyssos/The Fifth Circle Savage",
+			"Asphodelos"
+		  ]
 		}
 	]
 }
