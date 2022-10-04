@@ -1,28 +1,19 @@
-import { ComponentBase, MetaName } from "../Base/Component"
+import { ComponentBase } from "../Base/Component"
 import { Entity } from "../Base/Entity"
 import { Uuid } from "../Base/UuidGenerator"
 import { mat4 } from "gl-matrix";
 import { Transform } from "../Base/Transform";
-import { SystemBase } from "@core/Base/System";
+import { MetaName, SystemBase } from "@core/Base/System";
 import { Serialization } from "@shared/WorldSnapshot";
 
 export namespace CameraSystem {
 
-    export class Component implements ComponentBase, Serialization.ISnapshot<Serialization.Camera.Snapshot> {
+    export class Component extends ComponentBase implements Serialization.ISnapshot<Serialization.Camera.Snapshot> {
         // Metadata
         static staticMetaName(): MetaName { return 'CameraSystem.Component' }
 
-        private _ownerEntity: Entity;
-        private _isActive: boolean = true;
-        private _systemAsignedId: Uuid | undefined = undefined;
-        private _transform: mat4;
-        private _projection: mat4;
-
-        constructor(owner: Entity) {
-            this._ownerEntity = owner;
-            this._transform = mat4.create();
-            this._projection = mat4.create();
-        }
+        private _transform = mat4.create();
+        private _projection = mat4.create();
 
         takeSnapshot(): Serialization.Camera.Snapshot {
             const result = new Serialization.Camera.Snapshot();
@@ -33,18 +24,6 @@ export namespace CameraSystem {
             return result;
         }
 
-        get isActive(): boolean {
-            return this._isActive;
-        }
-        get ownerEntity(): Entity {
-            return this._ownerEntity;
-        }
-        get systemAsignedId(): Uuid | undefined {
-            return this._systemAsignedId;
-        }
-        set systemAsignedId(value: Uuid | undefined) {
-            this._systemAsignedId = value;
-        }
         get metaName(): string {
             return Component.staticMetaName();
         }
@@ -82,15 +61,5 @@ export namespace CameraSystem {
         get metaName(): MetaName {
             return System.staticMetaName();
         }
-
-        registerComponent(component: Component): Component {
-            this._registerComponent(component);
-            return component;
-        }
-        unregisterComponent(component: Component): Component {
-            this._unregisterComponent(component);
-            return component;
-        }
-
     }
 }

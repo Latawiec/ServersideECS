@@ -1,12 +1,6 @@
-import { throws } from "assert";
-import { ComponentBase, MetaName } from "../Base/Component"
-import { Entity } from "../Base/Entity";
-import { SystemBase } from "../Base/System"
-import { Uuid } from "../Base/UuidGenerator"
-import { assert } from "console";
-import { vec4 } from "gl-matrix";
+import { ComponentBase } from "../Base/Component"
+import { MetaName, SystemBase } from "../Base/System"
 import { Transform } from "../Base/Transform";
-import { GlobalClock } from "@core/Base/GlobalClock";
 import { Serialization } from "@shared/WorldSnapshot";
 
 
@@ -18,21 +12,13 @@ export namespace DrawingSystem {
         Additive,
     };
 
-    export abstract class Component implements ComponentBase, Serialization.ISnapshot<Serialization.Drawable.Snapshot> {
+    export abstract class Component extends ComponentBase implements Serialization.ISnapshot<Serialization.Drawable.Snapshot> {
         // Metadata
         static staticMetaName(): MetaName { return 'DrawingSystem.Component' }
 
-        private _ownerEntity: Entity;
-        private _systemAsignedId: Uuid | undefined = undefined;
-        private _transform: Transform;
-        
-        isActive: boolean = true;
+        transform: Transform = new Transform();
         blending: Blending = Blending.Transparency;
 
-        constructor(owner: Entity) {
-            this._ownerEntity = owner;
-            this._transform = new Transform();
-        }
 
         takeSnapshot(): Serialization.Drawable.Snapshot {
             const result = new Serialization.Drawable.Snapshot();
@@ -42,45 +28,22 @@ export namespace DrawingSystem {
             return result;
         }
     
-        get ownerEntity(): Entity {
-            return this._ownerEntity;
-        }
-        get systemAsignedId(): Uuid | undefined {
-            return this._systemAsignedId;
-        }
-        set systemAsignedId(value: Uuid | undefined) {
-            this._systemAsignedId = value;
-        }
-        get metaName(): string {
+        get metaName(): MetaName {
             return Component.staticMetaName();
         }
 
-        get systemMetaName(): string {
+        get systemMetaName(): MetaName {
             return System.staticMetaName();
-        }
-
-        get transform(): Transform {
-            return this._transform;
         }
     }
 
     export class System extends SystemBase<Component> {
         // Metaname 
-        static staticMetaName(): string { return 'DrawingSystem.System' }
+        static staticMetaName(): MetaName { return 'DrawingSystem.System' }
 
         // SystemBase implementation
-        get metaName(): string {
+        get metaName(): MetaName {
             return System.staticMetaName();
-        }
-
-        registerComponent(component: Component): Component {
-            this._registerComponent(component);
-            return component;
-        }
-
-        unregisterComponent(component: Component): Component {
-            this._unregisterComponent(component);
-            return component;
         }
 
         update() {

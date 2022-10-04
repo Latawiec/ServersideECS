@@ -7,18 +7,18 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "Debug Server",
             "runtimeArgs": [
                 "-r",
                 "ts-node/register",
                 "-r",
                 "tsconfig-paths/register"
             ],
-            "program": "${workspaceFolder}\\API\\API.ts",
+            "program": "${workspaceFolder}\\Server\\API\\API.ts",
             "outFiles": [
-                "${workspaceFolder}\\build\\**\\*.js"
+                "${workspaceFolder}\\Server\\build\\**\\*.js"
             ],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}\\Server"
         }
     ]
 }

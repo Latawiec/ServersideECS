@@ -1,6 +1,5 @@
-import { throws } from "assert";
 import { Entity } from "../Base/Entity"
-import { UuidGenerator } from "../Base/UuidGenerator"
+import { Uuid, UuidGenerator } from "../Base/UuidGenerator"
 import { ScriptSystem } from "@core/Systems/ScriptSystem";
 import { mat4 } from "gl-matrix"
 import { DrawingSystem } from "@core/Systems/DrawingSystem";
@@ -62,40 +61,40 @@ export class World {
         return true;
     }
 
-    registerComponent(owner: Entity, component: ComponentBase) {
-        const systemAsignmentMetaName = component.systemMetaName;
+    registerComponent(owner: Entity, component: ComponentBase): Uuid {
+        const systemMetaName = component.systemMetaName;
+        let registeredUuid: Uuid;
 
-        // Maybe TypeScript has better way to take care of this... But I don't know it yet.
-        switch (systemAsignmentMetaName) {
-
+        switch (systemMetaName) {
             case ScriptSystem.System.staticMetaName():
-                this._scriptSystem.registerComponent(component as ScriptSystem.Component);
+                registeredUuid = this._scriptSystem.registerComponent(component as ScriptSystem.Component);
                 break;
 
             case DrawingSystem.System.staticMetaName():
-                this._drawableSystem.registerComponent(component as DrawingSystem.Component);
+                registeredUuid = this._drawableSystem.registerComponent(component as DrawingSystem.Component);
                 break;
 
             case ClientConnectionSystem.System.staticMetaName():
-                this._clientConnectionSystem.registerComponent(component as ClientConnectionSystem.Component);
+                registeredUuid = this._clientConnectionSystem.registerComponent(component as ClientConnectionSystem.Component);
                 break;
             
             case TriggerCollisionSystem2D.System.staticMetaName():
-                this._triggerCollisionSystem2D.registerComponent(component as TriggerCollisionSystem2D.Component);
+                registeredUuid = this._triggerCollisionSystem2D.registerComponent(component as TriggerCollisionSystem2D.Component);
                 break;
 
             case BlockingCollisionSystem2D.System.staticMetaName():
-                this._blockingCollisionSystem2D.registerComponent(component as BlockingCollisionSystem2D.Component);
+                registeredUuid = this._blockingCollisionSystem2D.registerComponent(component as BlockingCollisionSystem2D.Component);
                 break;
             
             case CameraSystem.System.staticMetaName():
-                this._cameraSystem.registerComponent(component as CameraSystem.Component);
+                registeredUuid = this._cameraSystem.registerComponent(component as CameraSystem.Component);
                 break;
 
             default:
                 throw "Tried to get system that doesn't exist";
         }
-        owner.registerComponent(component);
+        owner.addComponent(component);
+        return registeredUuid;
     }
 
     unregisterComponent(component: ComponentBase) {
@@ -131,7 +130,7 @@ export class World {
             default:
                 throw "Tried to get system that doesn't exist";
         }
-        component.ownerEntity?.unregisterComponent(component);
+        component.ownerEntity?.removeComponent(component);
     }
 
     getAsset(assetPath: Readonly<string>, onSuccess: (asset: AssetManager.Asset)=>void, onError: (error: AssetManager.AssetError)=>void ): any {

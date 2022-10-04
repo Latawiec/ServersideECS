@@ -1,6 +1,6 @@
-import { ComponentBase, MetaName } from "../Base/Component"
+import { ComponentBase } from "../Base/Component"
 import { Entity } from "../Base/Entity";
-import { SystemBase } from "../Base/System";
+import { MetaName, SystemBase } from "../Base/System";
 import { Uuid } from "../Base/UuidGenerator"
 import * as WebSocket from 'websocket'
 import { throws } from "assert";
@@ -51,13 +51,9 @@ export namespace ClientConnectionSystem {
         }
     }
 
-    export class Component implements ComponentBase {
+    export class Component extends ComponentBase {
         // Metadata
         static staticMetaName(): MetaName { return 'ClientConnectionSystem.Component' }
-
-        private _ownerEntity: Entity;
-        private _isActive: boolean = true;
-        private _systemAsignedId: Uuid | undefined = undefined;
     
         private _connection: Connection;
         private _connectionListener: (message: WebSocket.Message) => void;
@@ -65,7 +61,7 @@ export namespace ClientConnectionSystem {
         private _onMessageEvent: MessageListener | undefined = undefined;
     
         constructor(owner: Entity, connection: Connection) {
-            this._ownerEntity = owner;
+            super(owner)
             this._connection = connection;
     
             var _this = this;
@@ -85,19 +81,7 @@ export namespace ClientConnectionSystem {
         get systemMetaName(): MetaName {
             return System.staticMetaName();
         }
-    
-        get isActive(): boolean {
-            return this._isActive;
-        }
-        get ownerEntity(): Entity {
-            return this._ownerEntity;
-        }
-        get systemAsignedId(): number | undefined {
-            return this._systemAsignedId;
-        }
-        set systemAsignedId(value: number | undefined) {
-            this._systemAsignedId = value;
-        }
+
         get metaName(): MetaName {
             return Component.staticMetaName();
         }
@@ -121,15 +105,6 @@ export namespace ClientConnectionSystem {
         constructor() {
             super();
             this._openConnections = new Map();        
-        }
-    
-        registerComponent(component: Component): Component {
-            this._registerComponent(component);
-            return component;
-        }
-        unregisterComponent(component: Component): Component {
-            this._unregisterComponent(component);
-            return component;
         }
     
         registerConnection(inConnection: WebSocket.connection): Connection {

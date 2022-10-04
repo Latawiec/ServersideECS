@@ -33,8 +33,6 @@ export class Waymark extends ScriptSystem.Component {
         this._baseDrawable = new WaymarkBaseDrawable(entity);
         this._baseDrawable.color = Waymark._waymarkColors.get(this._type)!;
         this._baseDrawable.transform.scale([1.16, 1.16, 1.16]);
-        entity.world.registerComponent(entity, this._baseDrawable);
-        entity.world.registerComponent(entity, this);
     }
 
     get type(): Readonly<WaymarkType> {

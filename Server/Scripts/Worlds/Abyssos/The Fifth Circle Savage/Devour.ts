@@ -98,8 +98,6 @@ export class Devour extends ScriptSystem.Component {
             const aoeCircleComponent = new CircleWorldAoE(devourBiteEntity, Devour._aoeRadius, Devour._aoeDurationMs, startTime + biteCount * Devour._aoeOffsetMs);
             aoeCircleComponent.intensity = 0.7;
 
-            world.registerComponent(devourBiteEntity, aoeCircleComponent);
-
             this._biteEntities.push(devourBiteEntity);
 
             biteCount++;

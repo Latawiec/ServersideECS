@@ -20,28 +20,13 @@ export namespace TriggerCollisionSystem2D {
         Cone
     };
 
-    export abstract class Component implements ComponentBase {
+    export abstract class Component extends ComponentBase {
         // Metadata
         static staticMetaName(): string { return 'TriggerCollisionSystem2D.Component' }
 
-        private _ownerEntity: Entity;
-        private _isActive: boolean = true;
-        private _systemAsignedId: Uuid | undefined = undefined;
         private _transform: mat4 = mat4.create();
         
         public triggerListener: TriggerListener | undefined;
-
-        constructor(owner: Entity) {
-            this._ownerEntity = owner
-        }
-
-        get isActive(): Readonly<boolean> {
-            return this._isActive
-        }
-
-        set isActive(value: Readonly<boolean>) {
-            this._isActive = value;
-        }
 
         get metaName(): Readonly<string> {
             return Component.staticMetaName();
@@ -51,19 +36,7 @@ export namespace TriggerCollisionSystem2D {
             return System.staticMetaName();
         }
 
-        get ownerEntity(): Entity {
-            return this._ownerEntity;
-        }
-
-        get systemAsignedId(): Uuid | undefined {
-            return this._systemAsignedId;
-        }
-
         abstract get type(): Readonly<Type>;
-
-        set systemAsignedId(value: Uuid | undefined) {
-            this._systemAsignedId = value;
-        }
 
         set transform(newTransform: mat4) {
             this._transform = newTransform;
@@ -85,15 +58,6 @@ export namespace TriggerCollisionSystem2D {
         // SystemBase implementation
         get metaName(): string {
             return System.staticMetaName();
-        }
-
-        registerComponent(component: Component): Component {
-            this._registerComponent(component);
-            return component;
-        }
-        unregisterComponent(component: Component): Component {
-            this._unregisterComponent(component);
-            return component;
         }
 
         update() {

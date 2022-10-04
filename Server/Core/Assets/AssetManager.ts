@@ -1,8 +1,5 @@
-import { throws } from "assert";
 import * as fs from "fs"
 import * as path from "path"
-import stream from "stream";
-import archiver from 'archiver';
 
 import Config from "@config/assets.json"
 
@@ -62,12 +59,12 @@ export class AssetManager {
     private static _assetPackagesOutputPath = Config.packageOutputDir;
 
     constructor(assetStorageRoot: Readonly<string>) {
-        if (fs.existsSync(assetStorageRoot) ) {
+        if (fs.existsSync(assetStorageRoot)) {
             this._assetStorageRoot = assetStorageRoot
         }
     }
 
-    bindAsset(assetPath: Readonly<string>) : AssetBinding {
+    bindAsset(assetPath: Readonly<string>): AssetBinding {
         if (this._assetBindingCache.has(assetPath)) {
             return this._assetBindingCache.get(assetPath)!;
         }
@@ -81,7 +78,7 @@ export class AssetManager {
         throw new Error("Requested asset does not exist: " + assetPath);
     }
 
-    getAsset(assetPath: Readonly<string>, onSuccess: (asset: Asset) => void, onError: (error: AssetError) => void ) {
+    getAsset(assetPath: Readonly<string>, onSuccess: (asset: Asset) => void, onError: (error: AssetError) => void) {
         const totalPath = path.join(this._assetStorageRoot, assetPath);
         console.log("Asset absolute path: %s", totalPath);
         fs.readFile(totalPath, (err, data) => {
@@ -98,9 +95,9 @@ export class AssetManager {
     }
 
 
-    getAllAssetsZip(onSuccess: (data: Uint8Array) => void, onError: (error: any) => void ) {
+    getAllAssetsZip(onSuccess: (data: Uint8Array) => void, onError: (error: any) => void) {
         const packagePath = path.join(AssetManager._assetPackagesOutputPath, path.basename(this._assetStorageRoot) + ".zip");
-        fs.readFile(packagePath, (err, data)=> {
+        fs.readFile(packagePath, (err, data) => {
             if (err != null) {
                 console.log(err);
                 onError(err);

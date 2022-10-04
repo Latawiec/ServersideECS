@@ -1,0 +1,68 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build Server",
+			"group": "build",
+			"type": "shell",
+			"command": "tsc.cmd",
+			"options": {
+				"cwd": "${workspaceFolder}\\Server"
+			},
+			"problemMatcher": [
+				"$tsc"
+			],
+			"detail": "Build server code."
+		},
+		{
+			"label": "Build Client",
+			"group": "build",
+			"type": "shell",
+			"command": "tsc.cmd",
+			"options": {
+				"cwd": "${workspaceFolder}\\Client"
+			},
+			"problemMatcher": [
+				"$tsc"
+			],
+			"detail": "Build client code."
+		},
+		{
+			"label": "Webpack Client",
+			"group": "build",
+			"type": "shell",
+			"command": "npx webpack",
+			"options": {
+				"cwd": "${workspaceFolder}\\Client"
+			}
+		},
+		{
+			"label": "Package World",
+			"group": "none",
+			"type": "shell",
+			"command": "7z.exe",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"args": [
+				"a",
+				"-mx0",
+				"${workspaceFolder}\\Server\\Package\\${input:worldName}.zip",
+				"${workspaceFolder}\\Server\\Assets\\Worlds\\${input:worldName}"
+			]
+		}
+	],
+
+	"inputs": [
+		{
+			"id": "worldName",
+			"type": "pickString",
+			"description": "Re/create packaged world .zip file.",
+			"options": [
+				"TestWorld",
+				"Abyssos/The Fifth Circle Savage",
+				"Asphodelos"
+			]
+		}
+	]
+}

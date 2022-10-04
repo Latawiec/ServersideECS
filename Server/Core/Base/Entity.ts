@@ -1,9 +1,10 @@
-import { MetaName, ComponentBase } from "./Component"
+import { ComponentBase } from "./Component"
 import { UuidGenerator, Uuid } from "./UuidGenerator";
 import { World } from "../World/World"
 import { throws } from "assert";
 import { Transform } from "./Transform";
 import { mat4 } from "gl-matrix"
+import { MetaName } from "./MetaName";
 
 export class Entity {
     private _world: World;
@@ -50,7 +51,7 @@ export class Entity {
         return [];
     }
 
-    registerComponent(component: ComponentBase) {
+    addComponent(component: ComponentBase) {
         if (!this._componentsMap.has(component.metaName)) 
         {
             this._componentsMap.set(component.metaName, [])
@@ -58,7 +59,7 @@ export class Entity {
         this._componentsMap.get(component.metaName)?.push(component);
     }
 
-    unregisterComponent(component: ComponentBase) {
+    removeComponent(component: ComponentBase) {
         if (this._componentsMap.has(component.metaName))
         {
             var index: number = this._componentsMap.get(component.metaName)!.indexOf(component, 0);

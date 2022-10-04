@@ -1,44 +1,18 @@
 import { ComponentBase } from "../Base/Component"
-import { Entity } from "../Base/Entity";
-import { SystemBase } from "../Base/System";
-import { Uuid } from "../Base/UuidGenerator"
+import { MetaName, SystemBase } from "../Base/System";
 
 
 export namespace ScriptSystem {
 
-    export abstract class Component implements ComponentBase {
+    export abstract class Component extends ComponentBase {
         // Metadata 
         static staticMetaName(): string { return 'ScriptSystem.Component' }
 
-        private _ownerEntity: Entity;
-        private _isActive: boolean = true;
-        private _systemAsignedId: Uuid | undefined = undefined;
-    
-        constructor(owner: Entity) {
-            this._ownerEntity = owner;
-        }
-
-        get systemMetaName(): string {
+        get systemMetaName(): MetaName {
             return System.staticMetaName();
         }
-    
-        get isActive(): boolean {
-            return this._isActive;
-        }
-        protected set isActive(value: boolean) {
-            this._isActive;
-        }
-    
-        get ownerEntity(): Entity {
-            return this._ownerEntity;
-        }
-        get systemAsignedId(): Uuid | undefined {
-            return this._systemAsignedId;
-        }
-        set systemAsignedId(value: Uuid | undefined) {
-            this._systemAsignedId = value;
-        }
-        get metaName(): string {
+
+        get metaName(): MetaName {
             return Component.staticMetaName();
         }
     
@@ -50,20 +24,11 @@ export namespace ScriptSystem {
 
     export class System extends SystemBase<Component> {
         // Metadata
-        static staticMetaName(): string { return 'ScriptSystem.System' }
+        static staticMetaName(): MetaName { return 'ScriptSystem.System' }
     
         // SystemBase implementation
-        get metaName(): string {
+        get metaName(): MetaName {
             return System.staticMetaName();
-        }
-
-        registerComponent(component: Component): Component {
-            this._registerComponent(component);
-            return component;
-        }
-        unregisterComponent(component: Component): Component {
-            this._unregisterComponent(component);
-            return component;
         }
     
         preUpdate(): void {

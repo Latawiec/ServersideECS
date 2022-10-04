@@ -20,23 +20,16 @@ export namespace BlockingCollisionSystem2D {
         Plane
     };
 
-    export abstract class Component implements ComponentBase {
+    export abstract class Component extends ComponentBase {
         // Metadata
         static staticMetaName(): string { return 'BlockingCollisionSystem2D.Component' }
 
-        private _ownerEntity: Entity;
-        private _isActive: boolean = true;
-        private _systemAsignedId: Uuid | undefined = undefined;
         private _isBlocking: boolean = false;
         private _transform: mat4 = mat4.create();
 
         constructor(owner: Entity, isStatic = false) {
-            this._ownerEntity = owner
+            super(owner)
             this._isBlocking = isStatic
-        }
-
-        get isActive(): Readonly<boolean> {
-            return this._isActive
         }
 
         get metaName(): Readonly<string> {
@@ -47,19 +40,7 @@ export namespace BlockingCollisionSystem2D {
             return System.staticMetaName();
         }
 
-        get ownerEntity(): Entity {
-            return this._ownerEntity;
-        }
-
-        get systemAsignedId(): Uuid | undefined {
-            return this._systemAsignedId;
-        }
-
         abstract get type(): Readonly<Type>;
-
-        set systemAsignedId(value: Uuid | undefined) {
-            this._systemAsignedId = value;
-        }
 
         set transform(newTransform: mat4) {
             this._transform = newTransform;
@@ -85,15 +66,6 @@ export namespace BlockingCollisionSystem2D {
         // SystemBase implementation
         get metaName(): string {
             return System.staticMetaName();
-        }
-
-        registerComponent(component: Component): Component {
-            this._registerComponent(component);
-            return component;
-        }
-        unregisterComponent(component: Component): Component {
-            this._unregisterComponent(component);
-            return component;
         }
 
         update() {

@@ -1,19 +1,31 @@
 import { Entity } from "./Entity"
+import { MetaClass, MetaName } from "./MetaName";
 import { Uuid } from "./UuidGenerator"
 
-export type MetaName = string;
-
-export interface MetaClass {
-    get metaName(): MetaName
-}
-
 export abstract class ComponentBase implements MetaClass {
-    abstract get metaName(): string;
-    
-    abstract get isActive(): boolean;
-    abstract get ownerEntity(): Entity;
-    abstract get systemAsignedId(): Uuid | undefined;
-    abstract set systemAsignedId(value: Uuid | undefined);
-    abstract get systemMetaName(): MetaName;
+    public isActive = true;
+    private _systemAsignedId: Uuid;
+    private _ownerEntity: Entity;
 
+    constructor(owner: Entity) {
+        const world = owner.world;
+        this._systemAsignedId = world.registerComponent(owner, this);
+        this._ownerEntity = owner;
+    }
+
+    unregister() {
+        const world = this._ownerEntity.world;
+        world.unregisterComponent(this);
+    }
+
+    get systemAsignedId(): Uuid {
+        return this._systemAsignedId;
+    }
+    
+    get ownerEntity(): Entity {
+        return this._ownerEntity
+    }
+
+    abstract get systemMetaName(): MetaName;
+    abstract get metaName(): string;
 }

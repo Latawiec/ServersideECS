@@ -47,10 +47,6 @@ export class CircleWorldAoE extends ScriptSystem.Component {
                 }
             }
         }
-
-        ownerEntity.world.registerComponent(ownerEntity, this._drawableComponent);
-        ownerEntity.world.registerComponent(ownerEntity, this._triggerComponent);
-        ownerEntity.world.registerComponent(ownerEntity, this);
     }
 
     preUpdate(): void {

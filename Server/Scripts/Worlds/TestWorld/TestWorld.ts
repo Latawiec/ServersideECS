@@ -25,8 +25,7 @@ import { TextureSquareDrawable } from "@scripts/Comon/Basic/Drawing/TextureSquar
 import { SpriteSquareDrawable } from "@scripts/Comon/Basic/Drawing/SpriteSquareDrawable";
 
 
-class TestPlayer extends ScriptSystem.Component
-{
+class TestPlayer extends ScriptSystem.Component {
     private _drawable: CharacterDrawable;
     private _playerInputController: PlayerInputController;
     private _movement: BasicMovement;
@@ -45,31 +44,24 @@ class TestPlayer extends ScriptSystem.Component
         const world = entity.world;
 
         this._drawable = new CharacterDrawable(entity, CharacterType.RedMage);
-        world.registerComponent(entity, this._drawable);
         //this._drawable.transform.rotate([1, 0, 0], Math.PI/4.0)
         this._drawable.transform.scale([1, 1, 1]);
 
         this._playerInputController = new PlayerInputController(entity);
-        world.registerComponent(entity, this._playerInputController);
 
         const playerIdentity = new PlayerIdentity(entity, name);
-        world.registerComponent(entity, playerIdentity);
 
         this._movement = new BasicMovement(entity);
-        world.registerComponent(entity, this._movement);
 
         const playerColliderEntity = world.createEntity();
-        
+
         const trigger = new TriggerCollisionSystem2D.CircleTriggerComponent(playerColliderEntity, 1);
-        world.registerComponent(playerColliderEntity, trigger);
         trigger.shape.radius = 0.46;
 
         const blocking = new BlockingCollisionSystem2D.CircleCollisionComponent(owner);
         blocking.shape.radius = 0.5;
-        world.registerComponent(owner, blocking);
-        
+
         const triggerDrawableComponent = new TextureSquareDrawable(playerColliderEntity, "Test/circle.png");
-        world.registerComponent(playerColliderEntity, triggerDrawableComponent);
         triggerDrawableComponent.size = blocking.shape.radius;
 
         var isCollided = false;
@@ -83,7 +75,7 @@ class TestPlayer extends ScriptSystem.Component
             }
 
             preUpdate(): void {
-                
+
             }
             onUpdate(): void {
                 const followerWorldPosition = vec4.transformMat4(
@@ -108,19 +100,16 @@ class TestPlayer extends ScriptSystem.Component
         };
 
         const triggerFollowPlayer = new Follower(playerColliderEntity, owner);
-        world.registerComponent(playerColliderEntity, triggerFollowPlayer);
 
         trigger.triggerListener = {
             onTriggered(triggededBy: Readonly<TriggerCollisionSystem2D.Component>) {
                 isCollided = true;
             }
         }
-
-        world.registerComponent(entity, this);
     }
 
     preUpdate(): void {
-        
+
     }
     onUpdate(): void {
 
@@ -132,29 +121,28 @@ class TestPlayer extends ScriptSystem.Component
         }
 
         let spriteSelect: vec2 = [0, 0];
-        
+
         if (direction[0] < 0) {
             spriteSelect = this._spriteDirectionMap.right;
         }
-        
+
         if (direction[0] > 0) {
             spriteSelect = this._spriteDirectionMap.left;
         }
-        
-        if (direction[2] < 0 ) {
+
+        if (direction[2] < 0) {
             spriteSelect = this._spriteDirectionMap.bottom;
         }
-        
+
         if (direction[2] > 0) {
             spriteSelect = this._spriteDirectionMap.top;
         }
-        
+
         this._drawable.selection = spriteSelect;
     }
 }
 
-class Platform extends ScriptSystem.Component
-{
+class Platform extends ScriptSystem.Component {
     private _drawable: TextureSquareDrawable;
 
     constructor(owner: Entity, name: string) {
@@ -164,7 +152,7 @@ class Platform extends ScriptSystem.Component
         const world = entity.world;
 
         this._drawable = new TextureSquareDrawable(entity, "/Test/Platform.png");
-        world.registerComponent(entity, this._drawable);
+
 
         const transform = this._drawable.transform;
         transform.scale([7, 7, 7]);
@@ -172,7 +160,7 @@ class Platform extends ScriptSystem.Component
     }
 
     preUpdate(): void {
-        
+
     }
     onUpdate(): void {
 
@@ -186,11 +174,9 @@ class Platform extends ScriptSystem.Component
 
 function roundAreaOfEffectInitialize(owner: Entity) {
     const aoeComponent = new TriggerCollisionSystem2D.CircleTriggerComponent(owner, 1);
-    owner.world.registerComponent(owner, aoeComponent);
     aoeComponent.shape.radius = 3;
 
     const drawableComponent = new CircleWorldAoEDrawableComponent(owner, aoeComponent.shape.radius);
-    owner.world.registerComponent(owner, drawableComponent);
 
     const transform = drawableComponent.transform;
     transform.scale([aoeComponent.shape.radius, aoeComponent.shape.radius, aoeComponent.shape.radius]);
@@ -202,32 +188,29 @@ function roundAreaOfEffectInitialize(owner: Entity) {
 
         }
         preUpdate(): void {
-            
+
         }
         onUpdate(): void {
             let dateTime = new Date();
             var ms = dateTime.getTime();
-            owner.transform.moveTo([-3+3*Math.sin(ms/1000), 0, 0]);
+            owner.transform.moveTo([-3 + 3 * Math.sin(ms / 1000), 0, 0]);
         }
         postUpdate(): void {
-            
+
         }
 
     };
 
     const motion = new SineMotionUpdate(owner);
-    owner.world.registerComponent(owner, motion);
 }
 
 function rectAreaOfEffectInitialize(owner: Entity) {
     const aoeComponent = new TriggerCollisionSystem2D.RectangleTriggerComponent(owner);
-    owner.world.registerComponent(owner, aoeComponent);
     aoeComponent.shape.width = 2;
     aoeComponent.shape.height = 1;
 
     // TODO: Bring back rectangle aoe
     // const drawableComponent = new DrawableAoERectangleClosed(owner, aoeComponent.shape.width, aoeComponent.shape.height);
-    // owner.world.registerComponent(owner, drawableComponent);
 
     // const transform = drawableComponent.transform;
     // transform.scale([aoeComponent.shape.width, 0, aoeComponent.shape.height]);
@@ -239,7 +222,7 @@ function rectAreaOfEffectInitialize(owner: Entity) {
 
     //     }
     //     preUpdate(): void {
-            
+
     //     }
     //     onUpdate(): void {
     //         let dateTime = new Date();
@@ -249,36 +232,31 @@ function rectAreaOfEffectInitialize(owner: Entity) {
     //         //owner.transform.rotation = [0, 2.0 * Math.PI * (s - Math.floor(s)), 0];
     //     }
     //     postUpdate(): void {
-            
+
     //     }
 
     // };
 
     // const motion = new SineMotionUpdate(owner);
-    // owner.world.registerComponent(owner, motion);
 
     // owner.transform.move([5, 0, 0]); 
     // owner.transform.scale([ 2, 2, 2]);
 }
 
 function blockingPlaneInitialize(owner: Entity) {
-    for (var i=0; i<4; ++i) {
+    for (var i = 0; i < 4; ++i) {
         const blockingComponent = new BlockingCollisionSystem2D.PlaneCollisionComponent(owner, true);
         blockingComponent.shape.normal = vec2.fromValues(1.0, 0);
-        mat4.rotateY(blockingComponent.transform, blockingComponent.transform,  i * Math.PI/2);        
+        mat4.rotateY(blockingComponent.transform, blockingComponent.transform, i * Math.PI / 2);
         mat4.translate(blockingComponent.transform, blockingComponent.transform, vec3.fromValues(-7.0, 0, 0));
-        owner.world.registerComponent(owner, blockingComponent)
     }
 
     const blockingDome = new BlockingCollisionSystem2D.DomeCollisionComponent(owner, true);
     blockingDome.shape.radius = 5;
     mat4.translate(blockingDome.transform, blockingDome.transform, vec3.fromValues(-3, 0, 0));
-    // Dont need dome now.
-    //owner.world.registerComponent(owner, blockingDome);
 }
 
-class TestPlayerInitializer extends ScriptSystem.Component
-{
+class TestPlayerInitializer extends ScriptSystem.Component {
     private _connection: ClientConnectionSystem.Component | undefined = undefined;
 
     constructor(owner: Entity) {
@@ -297,19 +275,19 @@ class TestPlayerInitializer extends ScriptSystem.Component
             _this.filterMessage(message);
         }
 
-        owner.transform.rotate([0, 1, 0], Math.PI/4);
+        owner.transform.rotate([0, 1, 0], Math.PI / 4);
     }
 
     preUpdate(): void {
-        
+
     }
     onUpdate(): void {
-        
+
     }
     postUpdate(): void {
-        
+
     }
-    
+
     filterMessage(message: any): any | undefined {
         const connectionRequestProp = 'connectionRequest';
         const connectionRequestPlayerNameProp = 'playerName';
@@ -333,7 +311,7 @@ class TestPlayerInitializer extends ScriptSystem.Component
         const world = entity.world;
 
         // Remove self. My work is done.
-        world.unregisterComponent(this);
+        this.unregister();
     }
 }
 
@@ -349,8 +327,7 @@ export class TestWorld extends World {
     }
 
 
-    constructor(wsServer: WebSocket.server)
-    {
+    constructor(wsServer: WebSocket.server) {
         super("D:\\Programming\\FFXIVSavagePlayground\\Server\\Assets\\Worlds\\TestWorld")
         // 
         {
@@ -381,13 +358,8 @@ export class TestWorld extends World {
                 blockingPlaneInitialize(blockPlane);
 
                 const connectionComponent = new ClientConnectionSystem.Component(playerEntity, regConnection);
-                this.registerComponent(playerEntity, connectionComponent);
-
                 const initializationComponent = new TestPlayerInitializer(playerEntity);
-                this.registerComponent(playerEntity, initializationComponent);
-
                 const platformComponent = new Platform(platform, "");
-                this.registerComponent(platform, platformComponent);
 
                 connection.on('message', (message) => {
                     // console.log('Received Message: ', message);
@@ -401,14 +373,13 @@ export class TestWorld extends World {
 
                 const cameraHolder = this.createEntity(playerEntity);
                 const cameraComponent = new CameraSystem.Component(cameraHolder);
-                this.registerComponent(cameraHolder, cameraComponent);
 
                 // Camera setup
                 {
                     const projectionMatrix = mat4.create();
                     mat4.identity(projectionMatrix);
                     const fovy = 45.0 * Math.PI / 180.0;
-                    const aspect = 1200.0/1200.0;
+                    const aspect = 1200.0 / 1200.0;
                     const near = 0.1;
                     const far = 100;
 
@@ -423,42 +394,41 @@ export class TestWorld extends World {
                     cameraComponent.projection = mat4.ortho(
                         projectionMatrix,
                         -7, 7,
-                        -7, 7, 
+                        -7, 7,
                         near,
                         far
                     );
 
-                    const viewTransform  = mat4.create();
+                    const viewTransform = mat4.create();
                     cameraComponent.transform = mat4.lookAt(viewTransform, vec3.fromValues(0, 18, -18), vec3.fromValues(0, 0, 0,), vec3.fromValues(0, 1, 0));
 
                     class RotateCam extends ScriptSystem.Component {
                         preUpdate(): void {
-                            
+
                         }
                         onUpdate(): void {
-                            cameraComponent.transform = mat4.lookAt(viewTransform, vec3.fromValues(-18*Math.cos(GlobalClock.clock.getTimeMs()/1000), 18, 18 * Math.sin(GlobalClock.clock.getTimeMs()/1000)), vec3.fromValues(0, 0, 0,), vec3.fromValues(0, 1, 0));
+                            cameraComponent.transform = mat4.lookAt(viewTransform, vec3.fromValues(-18 * Math.cos(GlobalClock.clock.getTimeMs() / 1000), 18, 18 * Math.sin(GlobalClock.clock.getTimeMs() / 1000)), vec3.fromValues(0, 0, 0,), vec3.fromValues(0, 1, 0));
                         }
                         postUpdate(): void {
-                            
+
                         }
-                        
+
                     }
 
                     cameraComponent.projection = projectionMatrix;
-                    //this.registerComponent(cameraHolder, new RotateCam(cameraHolder))
                 }
 
                 // Repeating AoE
                 {
                     class ReloadAoE extends ScriptSystem.Component {
-                        
+
                         private _circleAoe: CircleWorldAoE | undefined;
                         constructor(owner: Entity) {
-                            super (owner);
+                            super(owner);
                         }
 
                         preUpdate(): void {
-                            
+
                         }
 
                         onUpdate(): void {
@@ -469,14 +439,13 @@ export class TestWorld extends World {
                         }
 
                         postUpdate(): void {
-                            
+
                         }
                     };
 
                     if (false) {
                         const aoeRepeating = this.createEntity();
                         const reloader = new ReloadAoE(aoeRepeating);
-                        this.registerComponent(aoeRepeating, reloader);
                     }
                 }
 
@@ -486,13 +455,12 @@ export class TestWorld extends World {
                 }
 
                 // Waymark
-                if (!this.isInitialized)
-                {
+                if (!this.isInitialized) {
                     const Aentity = this.createEntity();
                     const Bentity = this.createEntity();
                     const Centity = this.createEntity();
                     const Dentity = this.createEntity();
-                    
+
                     const scale = 3.0;
                     Aentity.transform.move(vec3.fromValues(-scale, 0, +scale));
                     Bentity.transform.move(vec3.fromValues(+scale, 0, +scale));
@@ -512,15 +480,14 @@ export class TestWorld extends World {
 
                     // Test waymark letter
                     const letter = new TextureSquareDrawable(Aentity, 'Common/Waymarks/A.png');
-                    letter.transform.rotate([-1, 0, 0], Math.PI/2);
-                    letter.transform.rotate([0, 0, 1], Math.PI/4);
+                    letter.transform.rotate([-1, 0, 0], Math.PI / 2);
+                    letter.transform.rotate([0, 0, 1], Math.PI / 4);
                     letter.transform.move([0, 0, 3]);
-                    this.registerComponent(Aentity, letter);
                 }
 
                 if (!this.isInitialized) {
                     const background = this.createEntity();
-                    background.transform.rotate([0, 1, 0], Math.PI/4);
+                    background.transform.rotate([0, 1, 0], Math.PI / 4);
 
                     const poisonBackground = new TextureSquareDrawable(background, 'Test/Poison.png')
                     poisonBackground.uvScale = [10, 10];
@@ -542,57 +509,47 @@ export class TestWorld extends World {
 
                     class UvMotion extends ScriptSystem.Component {
                         preUpdate(): void {
-                            
+
                         }
                         onUpdate(): void {
                             const time = GlobalClock.clock.getTimeMs();
-                            shinyPoisonBackground.opacity = 0.3 + 0.3 * Math.abs(Math.sin(time/2000));
-                            shinyPoisonBackground.uvOffset = [0.1 * (time/10000), 0.1 * (time/10000)];
+                            shinyPoisonBackground.opacity = 0.3 + 0.3 * Math.abs(Math.sin(time / 2000));
+                            shinyPoisonBackground.uvOffset = [0.1 * (time / 10000), 0.1 * (time / 10000)];
 
-                            shinyPoisonBackgroundDeep.uvOffset = [0.05 * (time/15000), 0.03 * (time /15000)];
+                            shinyPoisonBackgroundDeep.uvOffset = [0.05 * (time / 15000), 0.03 * (time / 15000)];
 
                         }
                         postUpdate(): void {
-                            
+
                         }
 
                     }
-
-                    this.registerComponent(background, new UvMotion(background));
-                    this.registerComponent(background, poisonBackground);
-                    this.registerComponent(background, shinyPoisonBackground);
-                    this.registerComponent(background, shinyPoisonBackgroundDeep);
                 }
 
                 // Debris
-                if (!this.isInitialized)
-                {
+                if (!this.isInitialized) {
                     const debris = this.createEntity();
                     debris.transform.move([-10, 0, 0]);
-                    debris.transform.rotate([0, 1, 0], Math.PI/4);
+                    debris.transform.rotate([0, 1, 0], Math.PI / 4);
 
                     const debrisDrawable = new SpriteSquareDrawable(debris, "Test/Debris1.png", [2, 1]);
                     debrisDrawable.size = 2;
 
                     class AnimateDebris extends ScriptSystem.Component {
-                        preUpdate(){}
-                        onUpdate(){
+                        preUpdate() { }
+                        onUpdate() {
                             const select = Math.ceil(GlobalClock.clock.getTimeMs() / 1000) % 2;
-                            debrisDrawable.selection = [ select, 0 ];
+                            debrisDrawable.selection = [select, 0];
                         }
-                        postUpdate(){}
+                        postUpdate() { }
                     }
-
-                    this.registerComponent(debris, debrisDrawable);
-                    this.registerComponent(debris, new AnimateDebris(debris));
                 }
 
                 // Bubble
-                if (!this.isInitialized)
-                {
+                if (!this.isInitialized) {
                     const bubble = this.createEntity();
                     bubble.transform.move([-11, 0, -4]);
-                    bubble.transform.rotate([0, 1, 0], Math.PI/4);
+                    bubble.transform.rotate([0, 1, 0], Math.PI / 4);
 
                     const bubbleDrawable = new SpriteSquareDrawable(bubble, "Test/Bubble.png", [5, 1])
                     bubbleDrawable.size = 4;
@@ -602,8 +559,8 @@ export class TestWorld extends World {
                         nextStart = 0;
                         isAnimating = false;
 
-                        preUpdate(){}
-                        onUpdate(){
+                        preUpdate() { }
+                        onUpdate() {
                             if (!this.isAnimating && GlobalClock.clock.getTimeMs() > this.nextStart) {
                                 this.isAnimating = true;
                                 bubbleDrawable.opacity = 1.0;
@@ -611,14 +568,11 @@ export class TestWorld extends World {
 
                             if (this.isAnimating) {
                                 const select = Math.ceil(GlobalClock.clock.getTimeMs() / 500) % 5;
-                                bubbleDrawable.selection = [ select, 0 ];
+                                bubbleDrawable.selection = [select, 0];
                             }
                         }
-                        postUpdate(){}
+                        postUpdate() { }
                     }
-
-                    this.registerComponent(bubble, bubbleDrawable);
-                    this.registerComponent(bubble, new AnimateBubble(bubble));
                 }
 
                 this.isInitialized = true;
