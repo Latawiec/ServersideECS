@@ -10,6 +10,12 @@ import * as fs from "fs"
 import { MemoryFilesystem } from "./MemoryFilesystem";
 import deepmerge from "deepmerge";
 import { Serialization } from "@shared/WorldSnapshot";
+import { GameInputRequest } from "@shared/Communication/Request/GameInputRequest";
+import { ClientRequest, ClientRequestType } from "@shared/Communication/Request/ClientRequest";
+import { JoinRoomRequest } from "@shared/Communication/Request/JoinRoomRequest";
+import { CreateRoomRequest } from "@shared/Communication/Request/CreateRoomRequest";
+import { GameStartRequest } from "@shared/Communication/Request/GameStartRequest";
+import { GameConfigureRequest } from "@shared/Communication/Request/GameConfigureRequest";
 
 const {
     Readable,
@@ -165,35 +171,77 @@ ws.onopen = function() {
 }
 
 document.addEventListener('keyup', function(event) {
-    var charCode = event.key;
-    ws.send(JSON.stringify({
-        playerInput: {
-            keyReleased: charCode
-        }
-    }));
+    const type = ClientRequestType.GameInput;
+    const request = new GameInputRequest();
+    request.keyReleased = event.key;
+
+    const message = new ClientRequest();
+    message.type = type;
+    message.request = request;
+
+    ws.send(JSON.stringify(
+        message
+    ));
 });
 
 document.addEventListener('keydown', function(event) {
-    var charCode = event.key;
-    ws.send(JSON.stringify({
-        playerInput: {
-            keyPressed: charCode,
-        }
-    }));
+    const type = ClientRequestType.GameInput;
+    const request = new GameInputRequest();
+    request.keyPressed = event.key;
+
+    const message = new ClientRequest();
+    message.type = type;
+    message.request = request;
+
+    ws.send(JSON.stringify(
+        message
+    ));
 });
 
 document.getElementById('connectButton')!.onclick = () =>
 {
-    const playerNameInput = document.getElementById('playerName') as HTMLInputElement;
-    const playerName = playerNameInput.value;
+{
+    const type = ClientRequestType.CreateRoom;
+    const request = new CreateRoomRequest();
+    
+    const message = new ClientRequest();
+    message.type = type;
+    message.request = request;
 
-    const connectionRequest = {
-        connectionRequest: {
-            playerName: playerName
-        }
-    };
+    ws.send(JSON.stringify(message))
+}
+{
+    const type = ClientRequestType.JoinRoom;
+    const request = new JoinRoomRequest();
+    request.roomId = 0;
+    
+    const message = new ClientRequest();
+    message.type = type;
+    message.request = request;
+    // TODO: Hardcoded for now.
 
-    ws.send(JSON.stringify(connectionRequest));
+    ws.send(JSON.stringify(message));
+}
+{
+    const type = ClientRequestType.GameConfig;
+    const request = new GameConfigureRequest();
+    
+    const message = new ClientRequest();
+    message.type = type;
+    message.request = request;
+
+    ws.send(JSON.stringify(message))
+}
+{
+    const type = ClientRequestType.GameStart;
+    const request = new GameStartRequest();
+
+    const message = new ClientRequest();
+    message.type = type;
+    message.request = request;
+
+    ws.send(JSON.stringify(message));
+}
 }
 
 const htmlCanvas = document.getElementById('glCanvas') as HTMLCanvasElement;
@@ -479,6 +527,5 @@ ws.onmessage = function(e) {
     world = worldMostLikely
     render(world as Serialization.WorldSnapshot);
 }
-
 // requestAnimationFrame(render);
 

@@ -24,57 +24,27 @@ export class PlayerInputController extends ScriptSystem.Component {
         }
         // Assume one.
         this._connection = connectionComponents[0] as ClientConnectionSystem.Component;
-
-        
-        var _this = this;
-        this._connection.onMessage = function (message: any) {
-            _this.filterMessage(message)
-        }
+        this._connection.on('keyPressed', (key: string) => {
+            // TODO: For some reason I'm getting an array, not a string.
+            this._keyStates.set(key[0], true);
+        })
+        this._connection.on('keyReleased', (key: string) => { this._keyStates.set(key[0], false); })
     }
 
     get metaName(): string {
         return PlayerInputController.staticMetaName();
     }
 
-
     isKeyPressed(keyCode: string): boolean {
         return this._keyStates.has(keyCode) && this._keyStates.get(keyCode)!;
     }
 
     preUpdate(): void {
-        // throw new Error("Method not implemented.");
     }
 
     onUpdate(): void {
-
-
     }
+
     postUpdate(): void {
-        // throw new Error("Method not implemented.");
     }
-
-    filterMessage(message: any): any | undefined {
-        const playerInputProp = 'playerInput';
-        const keyPressedProp = 'keyPressed';
-        const keyReleasedProp = 'keyReleased';
-
-        if (message.hasOwnProperty(playerInputProp)) 
-        {
-            if (message[playerInputProp].hasOwnProperty(keyPressedProp)) {
-                const keyCode = message[playerInputProp][keyPressedProp];
-                if (!this._keyStates.has(keyCode) || this._keyStates.get(keyCode) === false) {
-                    this._keyStates.set(keyCode, true);
-                }
-            }
-
-            if (message[playerInputProp].hasOwnProperty(keyReleasedProp)){
-                const keyCode = message[playerInputProp][keyReleasedProp];
-                if (!this._keyStates.has(keyCode) || this._keyStates.get(keyCode) === true) {
-                    // Only notify if something has changed
-                    this._keyStates.set(keyCode, false)
-                }
-            }
-        }
-    }
-
 }

@@ -18,12 +18,16 @@ export namespace DrawingSystem {
 
         transform: Transform = new Transform();
         blending: Blending = Blending.Transparency;
-
+        layer: number = 255;
+        billboard: boolean = false;
 
         takeSnapshot(): Serialization.Drawable.Snapshot {
             const result = new Serialization.Drawable.Snapshot();
 
             result.transform = Array.from(this.transform.worldTransform);
+            result.blending = this.blending;
+            result.layer = this.layer;
+            result.billboard = this.billboard;
 
             return result;
         }

@@ -8,7 +8,6 @@ import { BlockingCollisionSystem2D } from "@core/Systems/BlockingCollisionSystem
 import { CircleWorldAoEDrawableComponent } from "@scripts/Comon/Mechanics/CircleWorldAoEDrawableComponent";
 
 import { PlayerInputController } from "@scripts/Comon/Player/PlayerInputController"
-import { PlayerIdentity } from "@scripts/Comon/Player/PlayerIdentity";
 import { BasicMovement } from "@scripts/Comon/Player/BasicMovement";
 import { TriggerCollisionSystem2D } from "@systems/TriggerCollisionSystem2D";
 import { CameraSystem } from "@systems/CameraSystem";
@@ -18,7 +17,7 @@ import { CircleWorldAoE } from "@scripts/Comon/Mechanics/CircleWorldAoE";
 import { vec2, vec4, mat4, vec3 } from "gl-matrix"
 import * as WebSocket from 'websocket'
 import { GlobalClock } from "@core/Base/GlobalClock";
-import { Devour, DevourPattern } from "../Abyssos/The Fifth Circle Savage/Devour";
+import { Devour, DevourPattern } from "../Abyssos/The Fifth Circle Savage/Mechanics/Devour";
 import { Waymark, WaymarkType } from "@scripts/Comon/Waymarks/Waymark";
 import { CharacterDrawable, CharacterType } from "@scripts/Comon/WOL/CharacterDrawable";
 import { TextureSquareDrawable } from "@scripts/Comon/Basic/Drawing/TextureSquareDrawable";
@@ -27,6 +26,7 @@ import { SpriteSquareDrawable } from "@scripts/Comon/Basic/Drawing/SpriteSquareD
 
 class TestPlayer extends ScriptSystem.Component {
     private _drawable: CharacterDrawable;
+    private _clientConnectionComponent: ClientConnectionSystem.Component;
     private _playerInputController: PlayerInputController;
     private _movement: BasicMovement;
 
@@ -43,13 +43,15 @@ class TestPlayer extends ScriptSystem.Component {
         const entity = this.ownerEntity;
         const world = entity.world;
 
+        owner.transform.rotate([0, 1, 0], Math.PI / 4);
+
         this._drawable = new CharacterDrawable(entity, CharacterType.RedMage);
         //this._drawable.transform.rotate([1, 0, 0], Math.PI/4.0)
         this._drawable.transform.scale([1, 1, 1]);
 
-        this._playerInputController = new PlayerInputController(entity);
+        this._clientConnectionComponent = new ClientConnectionSystem.Component(entity);
 
-        const playerIdentity = new PlayerIdentity(entity, name);
+        this._playerInputController = new PlayerInputController(entity);
 
         this._movement = new BasicMovement(entity);
 
@@ -63,6 +65,53 @@ class TestPlayer extends ScriptSystem.Component {
 
         const triggerDrawableComponent = new TextureSquareDrawable(playerColliderEntity, "Test/circle.png");
         triggerDrawableComponent.size = blocking.shape.radius;
+
+        const cameraHolder = world.createEntity(owner);
+        const cameraComponent = new CameraSystem.Component(cameraHolder);
+
+        // Camera setup
+        {
+            const projectionMatrix = mat4.create();
+            mat4.identity(projectionMatrix);
+            const fovy = 45.0 * Math.PI / 180.0;
+            const aspect = 1200.0 / 1200.0;
+            const near = 0.1;
+            const far = 100;
+
+            // cameraComponent.projection =  mat4.perspective(
+            //     projectionMatrix,
+            //     fovy,
+            //     aspect,
+            //     near,
+            //     far
+            // )
+
+            cameraComponent.projection = mat4.ortho(
+                projectionMatrix,
+                -7, 7,
+                -7, 7,
+                near,
+                far
+            );
+
+            const viewTransform = mat4.create();
+            cameraComponent.transform = mat4.lookAt(viewTransform, vec3.fromValues(0, 18, -18), vec3.fromValues(0, 0, 0,), vec3.fromValues(0, 1, 0));
+
+            class RotateCam extends ScriptSystem.Component {
+                preUpdate(): void {
+
+                }
+                onUpdate(): void {
+                    cameraComponent.transform = mat4.lookAt(viewTransform, vec3.fromValues(-18 * Math.cos(GlobalClock.clock.getTimeMs() / 1000), 18, 18 * Math.sin(GlobalClock.clock.getTimeMs() / 1000)), vec3.fromValues(0, 0, 0,), vec3.fromValues(0, 1, 0));
+                }
+                postUpdate(): void {
+
+                }
+
+            }
+
+            cameraComponent.projection = projectionMatrix;
+        }
 
         var isCollided = false;
         class Follower extends ScriptSystem.Component {
@@ -256,329 +305,197 @@ function blockingPlaneInitialize(owner: Entity) {
     mat4.translate(blockingDome.transform, blockingDome.transform, vec3.fromValues(-3, 0, 0));
 }
 
-class TestPlayerInitializer extends ScriptSystem.Component {
-    private _connection: ClientConnectionSystem.Component | undefined = undefined;
-
-    constructor(owner: Entity) {
-        super(owner);
-
-        const connectionComponents = owner.getComponentsByType(ClientConnectionSystem.Component.staticMetaName());
-        if (connectionComponents.length === 0) {
-            console.log(`%s could not be initialized. %s component required.`, TestPlayerInitializer.staticMetaName(), ClientConnectionSystem.Component.staticMetaName());
-        }
-
-        // Assume one.
-        this._connection = connectionComponents[0] as ClientConnectionSystem.Component;
-
-        var _this = this;
-        this._connection.onMessage = function (message: any) {
-            _this.filterMessage(message);
-        }
-
-        owner.transform.rotate([0, 1, 0], Math.PI / 4);
-    }
-
-    preUpdate(): void {
-
-    }
-    onUpdate(): void {
-
-    }
-    postUpdate(): void {
-
-    }
-
-    filterMessage(message: any): any | undefined {
-        const connectionRequestProp = 'connectionRequest';
-        const connectionRequestPlayerNameProp = 'playerName';
-
-        if (message.hasOwnProperty(connectionRequestProp)) {
-            const connectionRequest = message[connectionRequestProp];
-            if (connectionRequest.hasOwnProperty(connectionRequestPlayerNameProp)) {
-                console.log("Got request. Starting initialization...");
-                this.initializePlayerEntity(connectionRequest[connectionRequestPlayerNameProp]);
-            } else {
-                console.log("Requested connection with no name?")
-            }
-        }
-    }
-
-    initializePlayerEntity(name: string) {
-
-        const entity = this.ownerEntity;
-        const player = new TestPlayer(entity, name);
-
-        const world = entity.world;
-
-        // Remove self. My work is done.
-        this.unregister();
-    }
-}
-
 export class TestWorld extends World {
 
     serializer = new Serializer();
     isInitialized = false;
 
-    update() {
-        super.update();
-        this.serializer.update(this);
-        this.clientConnectionSystem.broadcastMessage(this.serializer.toJson());
-    }
-
-
-    constructor(wsServer: WebSocket.server) {
+    constructor() {
         super("D:\\Programming\\FFXIVSavagePlayground\\Server\\Assets\\Worlds\\TestWorld")
         // 
         {
-            wsServer.on('request', (req) => {
-                const connection = req.accept(null, req.origin);
-                console.log('Got a connection: ' + connection.socket.remoteAddress);
+            const platform = this.createEntity();
+            const playerEntity = this.createEntity();
+            const aoeCircle = this.createEntity();
+            const aoeRect = this.createEntity();
+            const waymark = this.createEntity();
 
-                if (this.clientConnectionSystem.hasConnection(connection.socket!.remoteAddress!)) {
-                    console.log('This connection already exists.');
-                    console.log('Will have to cover this somehow...');
-                    // return;
-                }
+            const devour = this.createEntity();
 
-                const regConnection = this.clientConnectionSystem.registerConnection(connection);
+            const blockPlane = this.createEntity();
 
-                const platform = this.createEntity();
-                const playerEntity = this.createEntity();
-                const aoeCircle = this.createEntity();
-                const aoeRect = this.createEntity();
-                const waymark = this.createEntity();
+            //roundAreaOfEffectInitialize(aoeCircle);
+            //rectAreaOfEffectInitialize(aoeRect);
+            blockingPlaneInitialize(blockPlane);
 
-                const devour = this.createEntity();
+            const platformComponent = new Platform(platform, "");
 
-                const blockPlane = this.createEntity();
+            // Repeating AoE
+            {
+                class ReloadAoE extends ScriptSystem.Component {
 
-                //roundAreaOfEffectInitialize(aoeCircle);
-                //rectAreaOfEffectInitialize(aoeRect);
-                blockingPlaneInitialize(blockPlane);
+                    private _circleAoe: CircleWorldAoE | undefined;
+                    constructor(owner: Entity) {
+                        super(owner);
+                    }
 
-                const connectionComponent = new ClientConnectionSystem.Component(playerEntity, regConnection);
-                const initializationComponent = new TestPlayerInitializer(playerEntity);
-                const platformComponent = new Platform(platform, "");
-
-                connection.on('message', (message) => {
-                    // console.log('Received Message: ', message);
-                    regConnection.receiveMessage(message);
-                })
-
-                connection.on('close', (reasonCode, desc) => {
-                    console.log('Client has disconnected');
-                    this.clientConnectionSystem.removeConnection(connection);
-                });
-
-                const cameraHolder = this.createEntity(playerEntity);
-                const cameraComponent = new CameraSystem.Component(cameraHolder);
-
-                // Camera setup
-                {
-                    const projectionMatrix = mat4.create();
-                    mat4.identity(projectionMatrix);
-                    const fovy = 45.0 * Math.PI / 180.0;
-                    const aspect = 1200.0 / 1200.0;
-                    const near = 0.1;
-                    const far = 100;
-
-                    // cameraComponent.projection =  mat4.perspective(
-                    //     projectionMatrix,
-                    //     fovy,
-                    //     aspect,
-                    //     near,
-                    //     far
-                    // )
-
-                    cameraComponent.projection = mat4.ortho(
-                        projectionMatrix,
-                        -7, 7,
-                        -7, 7,
-                        near,
-                        far
-                    );
-
-                    const viewTransform = mat4.create();
-                    cameraComponent.transform = mat4.lookAt(viewTransform, vec3.fromValues(0, 18, -18), vec3.fromValues(0, 0, 0,), vec3.fromValues(0, 1, 0));
-
-                    class RotateCam extends ScriptSystem.Component {
-                        preUpdate(): void {
-
-                        }
-                        onUpdate(): void {
-                            cameraComponent.transform = mat4.lookAt(viewTransform, vec3.fromValues(-18 * Math.cos(GlobalClock.clock.getTimeMs() / 1000), 18, 18 * Math.sin(GlobalClock.clock.getTimeMs() / 1000)), vec3.fromValues(0, 0, 0,), vec3.fromValues(0, 1, 0));
-                        }
-                        postUpdate(): void {
-
-                        }
+                    preUpdate(): void {
 
                     }
 
-                    cameraComponent.projection = projectionMatrix;
-                }
-
-                // Repeating AoE
-                {
-                    class ReloadAoE extends ScriptSystem.Component {
-
-                        private _circleAoe: CircleWorldAoE | undefined;
-                        constructor(owner: Entity) {
-                            super(owner);
+                    onUpdate(): void {
+                        if (this._circleAoe === undefined || this._circleAoe.isExploded) {
+                            this._circleAoe = new CircleWorldAoE(this.ownerEntity, 3, 5000);
+                            this.ownerEntity.transform.moveTo(mat4.getTranslation(vec3.create(), playerEntity.transform.worldTransform));
                         }
-
-                        preUpdate(): void {
-
-                        }
-
-                        onUpdate(): void {
-                            if (this._circleAoe === undefined || this._circleAoe.isExploded) {
-                                this._circleAoe = new CircleWorldAoE(this.ownerEntity, 3, 5000);
-                                this.ownerEntity.transform.moveTo(mat4.getTranslation(vec3.create(), playerEntity.transform.worldTransform));
-                            }
-                        }
-
-                        postUpdate(): void {
-
-                        }
-                    };
-
-                    if (false) {
-                        const aoeRepeating = this.createEntity();
-                        const reloader = new ReloadAoE(aoeRepeating);
                     }
-                }
 
-                // Devour
-                {
-                    const devourComponent = new Devour(devour, DevourPattern.ZigZag, GlobalClock.clock.getTimeMs() + 5000);
-                }
-
-                // Waymark
-                if (!this.isInitialized) {
-                    const Aentity = this.createEntity();
-                    const Bentity = this.createEntity();
-                    const Centity = this.createEntity();
-                    const Dentity = this.createEntity();
-
-                    const scale = 3.0;
-                    Aentity.transform.move(vec3.fromValues(-scale, 0, +scale));
-                    Bentity.transform.move(vec3.fromValues(+scale, 0, +scale));
-                    Centity.transform.move(vec3.fromValues(-scale, 0, -scale));
-                    Dentity.transform.move(vec3.fromValues(+scale, 0, -scale));
-
-                    new Waymark(Aentity, WaymarkType._A);
-                    new Waymark(Bentity, WaymarkType._B);
-                    new Waymark(Centity, WaymarkType._C);
-                    new Waymark(Dentity, WaymarkType._D);
-
-                    waymark.addChild(Aentity);
-                    waymark.addChild(Bentity);
-                    waymark.addChild(Centity);
-                    waymark.addChild(Dentity);
-
-
-                    // Test waymark letter
-                    const letter = new TextureSquareDrawable(Aentity, 'Common/Waymarks/A.png');
-                    letter.transform.rotate([-1, 0, 0], Math.PI / 2);
-                    letter.transform.rotate([0, 0, 1], Math.PI / 4);
-                    letter.transform.move([0, 0, 3]);
-                }
-
-                if (!this.isInitialized) {
-                    const background = this.createEntity();
-                    background.transform.rotate([0, 1, 0], Math.PI / 4);
-
-                    const poisonBackground = new TextureSquareDrawable(background, 'Test/Poison.png')
-                    poisonBackground.uvScale = [10, 10];
-                    poisonBackground.size = 20;
-                    poisonBackground.transform.move([0, -0.1, 0])
-
-                    const shinyPoisonBackground = new TextureSquareDrawable(background, 'Test/Splatter1.png')
-                    shinyPoisonBackground.uvScale = [5, 5];
-                    shinyPoisonBackground.size = 20;
-                    shinyPoisonBackground.opacity = 0.6;
-                    shinyPoisonBackground.transform.move([0, -0.099, 0])
-
-
-                    const shinyPoisonBackgroundDeep = new TextureSquareDrawable(background, 'Test/Splatter1.png')
-                    shinyPoisonBackgroundDeep.uvScale = [2, 2];
-                    shinyPoisonBackgroundDeep.opacity = 0.2;
-                    shinyPoisonBackgroundDeep.size = 20;
-                    shinyPoisonBackgroundDeep.transform.move([0, -0.099, 0])
-
-                    class UvMotion extends ScriptSystem.Component {
-                        preUpdate(): void {
-
-                        }
-                        onUpdate(): void {
-                            const time = GlobalClock.clock.getTimeMs();
-                            shinyPoisonBackground.opacity = 0.3 + 0.3 * Math.abs(Math.sin(time / 2000));
-                            shinyPoisonBackground.uvOffset = [0.1 * (time / 10000), 0.1 * (time / 10000)];
-
-                            shinyPoisonBackgroundDeep.uvOffset = [0.05 * (time / 15000), 0.03 * (time / 15000)];
-
-                        }
-                        postUpdate(): void {
-
-                        }
+                    postUpdate(): void {
 
                     }
+                };
+
+                if (false) {
+                    const aoeRepeating = this.createEntity();
+                    const reloader = new ReloadAoE(aoeRepeating);
                 }
+            }
 
-                // Debris
-                if (!this.isInitialized) {
-                    const debris = this.createEntity();
-                    debris.transform.move([-10, 0, 0]);
-                    debris.transform.rotate([0, 1, 0], Math.PI / 4);
+            // Devour
+            {
+                const devourComponent = new Devour(devour, DevourPattern.ZigZag, GlobalClock.clock.getTimeMs() + 5000);
+            }
 
-                    const debrisDrawable = new SpriteSquareDrawable(debris, "Test/Debris1.png", [2, 1]);
-                    debrisDrawable.size = 2;
+            // Waymark
+            if (!this.isInitialized) {
+                const Aentity = this.createEntity();
+                const Bentity = this.createEntity();
+                const Centity = this.createEntity();
+                const Dentity = this.createEntity();
 
-                    class AnimateDebris extends ScriptSystem.Component {
-                        preUpdate() { }
-                        onUpdate() {
-                            const select = Math.ceil(GlobalClock.clock.getTimeMs() / 1000) % 2;
-                            debrisDrawable.selection = [select, 0];
-                        }
-                        postUpdate() { }
+                const scale = 3.0;
+                Aentity.transform.move(vec3.fromValues(-scale, 0, +scale));
+                Bentity.transform.move(vec3.fromValues(+scale, 0, +scale));
+                Centity.transform.move(vec3.fromValues(-scale, 0, -scale));
+                Dentity.transform.move(vec3.fromValues(+scale, 0, -scale));
+
+                new Waymark(Aentity, WaymarkType._A);
+                new Waymark(Bentity, WaymarkType._B);
+                new Waymark(Centity, WaymarkType._C);
+                new Waymark(Dentity, WaymarkType._D);
+
+                waymark.addChild(Aentity);
+                waymark.addChild(Bentity);
+                waymark.addChild(Centity);
+                waymark.addChild(Dentity);
+
+
+                // Test waymark letter
+                const letter = new TextureSquareDrawable(Aentity, 'Common/Waymarks/A.png');
+                letter.transform.rotate([-1, 0, 0], Math.PI / 2);
+                letter.transform.rotate([0, 0, 1], Math.PI / 4);
+                letter.transform.move([0, 0, 3]);
+            }
+
+            if (!this.isInitialized) {
+                const background = this.createEntity();
+                background.transform.rotate([0, 1, 0], Math.PI / 4);
+
+                const poisonBackground = new TextureSquareDrawable(background, 'Test/Poison.png')
+                poisonBackground.uvScale = [10, 10];
+                poisonBackground.size = 20;
+                poisonBackground.transform.move([0, -0.1, 0])
+
+                const shinyPoisonBackground = new TextureSquareDrawable(background, 'Test/Splatter1.png')
+                shinyPoisonBackground.uvScale = [5, 5];
+                shinyPoisonBackground.size = 20;
+                shinyPoisonBackground.opacity = 0.6;
+                shinyPoisonBackground.transform.move([0, -0.099, 0])
+
+
+                const shinyPoisonBackgroundDeep = new TextureSquareDrawable(background, 'Test/Splatter1.png')
+                shinyPoisonBackgroundDeep.uvScale = [2, 2];
+                shinyPoisonBackgroundDeep.opacity = 0.2;
+                shinyPoisonBackgroundDeep.size = 20;
+                shinyPoisonBackgroundDeep.transform.move([0, -0.099, 0])
+
+                class UvMotion extends ScriptSystem.Component {
+                    preUpdate(): void {
+
                     }
-                }
+                    onUpdate(): void {
+                        const time = GlobalClock.clock.getTimeMs();
+                        shinyPoisonBackground.opacity = 0.3 + 0.3 * Math.abs(Math.sin(time / 2000));
+                        shinyPoisonBackground.uvOffset = [0.1 * (time / 10000), 0.1 * (time / 10000)];
 
-                // Bubble
-                if (!this.isInitialized) {
-                    const bubble = this.createEntity();
-                    bubble.transform.move([-11, 0, -4]);
-                    bubble.transform.rotate([0, 1, 0], Math.PI / 4);
+                        shinyPoisonBackgroundDeep.uvOffset = [0.05 * (time / 15000), 0.03 * (time / 15000)];
 
-                    const bubbleDrawable = new SpriteSquareDrawable(bubble, "Test/Bubble.png", [5, 1])
-                    bubbleDrawable.size = 4;
-
-                    class AnimateBubble extends ScriptSystem.Component {
-
-                        nextStart = 0;
-                        isAnimating = false;
-
-                        preUpdate() { }
-                        onUpdate() {
-                            if (!this.isAnimating && GlobalClock.clock.getTimeMs() > this.nextStart) {
-                                this.isAnimating = true;
-                                bubbleDrawable.opacity = 1.0;
-                            }
-
-                            if (this.isAnimating) {
-                                const select = Math.ceil(GlobalClock.clock.getTimeMs() / 500) % 5;
-                                bubbleDrawable.selection = [select, 0];
-                            }
-                        }
-                        postUpdate() { }
                     }
-                }
+                    postUpdate(): void {
 
-                this.isInitialized = true;
-            });
+                    }
+
+                }
+            }
+
+            // Debris
+            if (!this.isInitialized) {
+                const debris = this.createEntity();
+                debris.transform.move([-10, 0, 0]);
+                debris.transform.rotate([0, 1, 0], Math.PI / 4);
+
+                const debrisDrawable = new SpriteSquareDrawable(debris, "Test/Debris1.png", [2, 1]);
+                debrisDrawable.size = 2;
+
+                class AnimateDebris extends ScriptSystem.Component {
+                    preUpdate() { }
+                    onUpdate() {
+                        const select = Math.ceil(GlobalClock.clock.getTimeMs() / 1000) % 2;
+                        debrisDrawable.selection = [select, 0];
+                    }
+                    postUpdate() { }
+                }
+            }
+
+            // Bubble
+            if (!this.isInitialized) {
+                const bubble = this.createEntity();
+                bubble.transform.move([-11, 0, -4]);
+                bubble.transform.rotate([0, 1, 0], Math.PI / 4);
+
+                const bubbleDrawable = new SpriteSquareDrawable(bubble, "Test/Bubble.png", [5, 1])
+                bubbleDrawable.size = 4;
+
+                class AnimateBubble extends ScriptSystem.Component {
+
+                    nextStart = 0;
+                    isAnimating = false;
+
+                    preUpdate() { }
+                    onUpdate() {
+                        if (!this.isAnimating && GlobalClock.clock.getTimeMs() > this.nextStart) {
+                            this.isAnimating = true;
+                            bubbleDrawable.opacity = 1.0;
+                        }
+
+                        if (this.isAnimating) {
+                            const select = Math.ceil(GlobalClock.clock.getTimeMs() / 500) % 5;
+                            bubbleDrawable.selection = [select, 0];
+                        }
+                    }
+                    postUpdate() { }
+                }
+            }
+
+            this.isInitialized = true;
         }
     }
 
+    createTestPlayer(): ClientConnectionSystem.Component {
+        const playerEntity = this.createEntity();
+        new TestPlayer(playerEntity, "redMage");
 
+        // Assume it was initialized and registered properly.
+        return playerEntity.getComponentsByType(ClientConnectionSystem.Component.staticMetaName())[0] as ClientConnectionSystem.Component;
+    }
 }

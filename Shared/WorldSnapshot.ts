@@ -43,6 +43,9 @@ export namespace Drawable {
     export class Snapshot {
         // Direct properties
         transform: Array<number>;
+        blending: number;
+        layer: number;
+        billboard: boolean;
 
         // Wrapped properties
         assets: Assets;
@@ -54,6 +57,9 @@ export namespace Drawable {
             this.vertexAttributes = new VertexAttributes();
             this.uniformParameters = new UniformParameters();
             this.transform = identityMatrix;
+            this.blending = 0;
+            this.layer = 0;
+            this.billboard = false;
         }
     }
 }
@@ -70,9 +76,15 @@ export namespace Camera {
     }
 }
 
+export class ClientSpecificData {
+    camera: Camera.Snapshot | undefined
+}
+
 export class WorldSnapshot {
     drawable: Record<string, Drawable.Snapshot> = {};
+    // TODO: remove camera from here.
     camera: Record<Uuid, Camera.Snapshot> = {};
+    clientSpecificData: Record<Uuid, ClientSpecificData> = {};
 }
 
 }

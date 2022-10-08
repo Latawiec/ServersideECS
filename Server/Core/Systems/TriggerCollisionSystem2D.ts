@@ -3,9 +3,7 @@ import { vec2, vec3, vec4,  mat3, mat4 } from "gl-matrix";
 import { ComponentBase } from "../Base/Component"
 import { Entity } from "../Base/Entity";
 import { SystemBase } from "../Base/System"
-import { Uuid } from "../Base/UuidGenerator"
 import { Collisions } from "../Common/Math/Collisions";
-import { vec3tovec2 } from "../Common/Math/gl-extensions";
 import { Shapes } from "../Common/Math/Shapes"
 
 export namespace TriggerCollisionSystem2D {

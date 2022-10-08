@@ -1,10 +1,11 @@
 const path = require('path');
 const webpack = require('webpack')
+const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 
 module.exports = {
-  entry: './build/Source/index.js',
+  entry: './Source/index.ts',
   output: {
-    filename: 'index.js',
+    filename: "index.js",
     path: path.resolve(__dirname, 'build'),
   },
   resolve: {
@@ -18,10 +19,25 @@ module.exports = {
     },
     alias: {
         'gl-matrix': path.join(__dirname, './node_modules/gl-matrix/gl-matrix.js')
-    }
+    },
+    extensions: [".ts", ".tsx", ".js", ".json"],
+    plugins: [
+      new TsconfigPathsPlugin({
+        extensions: [".ts", ".tsx", ".js"]
+      })
+    ]
   },
   optimization: {
     minimize: false
+  },
+  module: {
+    rules: [
+      {
+        test: /\.ts?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/,
+      },
+    ],
   },
   plugins: [
     new webpack.ProvidePlugin({
@@ -29,6 +45,6 @@ module.exports = {
     }),
     new webpack.ProvidePlugin({
         Buffer: ['buffer', 'Buffer'],
-    }),
+    })
   ]
 };

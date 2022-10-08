@@ -6,6 +6,8 @@ import * as path from 'path'
 import { TestWorld } from "@worlds/TestWorld/TestWorld"
 import { Serializer } from "@core/Serialization/Serializer"
 import Config from "@config/static.json"
+import { GameServer } from '@core/Network/GameServer'
+import { GameRoom } from '@core/Network/GameRoom'
 
 const app = express();
 console.log(Config.staticDirectory);
@@ -22,7 +24,7 @@ const wsServer = new WebSocket.server({
 }
 );
 
-const world: TestWorld = new TestWorld(wsServer);
+const gameServer = new GameServer(wsServer);
 const serializer = new Serializer();
 
 app.get("/", (req, res) => {
@@ -30,32 +32,38 @@ app.get("/", (req, res) => {
 })
 
 app.get("/world", (req, res) => {
-    serializer.update(world);
-    const serialized = serializer.toJson();
-    res.send(serialized);
-})
+    const room = gameServer.rooms.values().next().value as GameRoom;
+    if (room.world) {
 
-app.get("/asset", (req, res) => {
-    var assetPath = req.query.path;
-    console.log("Asked for: ", req.query);
-    if (assetPath) {
-        var stringAssetPath = assetPath as string
-
-        world.getAsset(stringAssetPath,
-            (asset) => {
-                res.write(asset.Data);
-                res.send();
-            },
-            (error) => {
-                console.log("Couldn't find asset: %s", assetPath);
-                res.statusCode = 404;
-            });
+        serializer.update(room.world!);
+        const serialized = serializer.toJson();
+        res.send(serialized);
+    } else {
+        res.send("World does not exist.")
     }
 })
 
+// app.get("/asset", (req, res) => {
+//     var assetPath = req.query.path;
+//     console.log("Asked for: ", req.query);
+//     if (assetPath) {
+//         var stringAssetPath = assetPath as string
+
+//         world.getAsset(stringAssetPath,
+//             (asset) => {
+//                 res.write(asset.Data);
+//                 res.send();
+//             },
+//             (error) => {
+//                 console.log("Couldn't find asset: %s", assetPath);
+//                 res.statusCode = 404;
+//             });
+//     }
+// })
+
 app.get("/worldAssets", (req, res) => {
-    console.log("asdf")
-    world.assetManager.getAllAssetsZip(
+    const room = gameServer.rooms.values().next().value as GameRoom;
+    room.world?.assetManager.getAllAssetsZip(
     (data) => {
         res.write(data);
         res.send();
@@ -76,7 +84,7 @@ return new Promise((resolve) => {
 async function run() {
     await sleep(10);
     const start = Date.now();
-    world.update();
+    gameServer.update();
     const end = Date.now();
     // console.log("Update took: %d", end - start);
     run();
