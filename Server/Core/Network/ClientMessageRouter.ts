@@ -5,6 +5,7 @@ import { CreateRoomRequest } from "@shared/Communication/Request/CreateRoomReque
 import { GameInputRequest } from "@shared/Communication/Request/GameInputRequest";
 import { GameStartRequest } from "@shared/Communication/Request/GameStartRequest";
 import { JoinRoomRequest } from "@shared/Communication/Request/JoinRoomRequest";
+import { GamePreparationRequest } from "@shared/Communication/Request/GamePreparationRequest"
 import { ClientConnection } from "./ClientConnection";
 import { Uuid } from "@core/Base/UuidGenerator";
 import { GameConfigureRequest } from "@shared/Communication/Request/GameConfigureRequest";
@@ -41,6 +42,9 @@ export class ClientMessageRouter extends EventEmitter {
             case ClientRequestType.GameInput:
                 this.emit('gameInput', connection, request as GameInputRequest);
                 break;
+            case ClientRequestType.GamePreparation:
+                this.emit('gamePreparation', connection, request as GamePreparationRequest);
+                break;
             case ClientRequestType.GameStart:
                 this.emit('gameStart', connection, request as GameStartRequest);
             default:
@@ -61,24 +65,26 @@ export class ClientMessageRouter extends EventEmitter {
     }
 
     // Events
-    on(event: 'createRoom', cb: (connection: ClientConnection, message: CreateRoomRequest) => void): this;
-    on(event: 'joinRoom',   cb: (connection: ClientConnection, message: JoinRoomRequest) => void): this;
-    on(event: 'leaveRoom',  cb: (connection: ClientConnection, message: JoinRoomRequest) => void): this;
-    on(event: 'gameConfig', cb: (connection: ClientConnection, message: GameConfigureRequest) => void): this;
-    on(event: 'gameInput',  cb: (connection: ClientConnection, message: GameInputRequest) => void): this;
-    on(event: 'gameStart',  cb: (connection: ClientConnection, message: GameStartRequest) => void): this;
-    on(event: 'close',      cb: (connection: ClientConnection, message: CloseRequest) => void): this;
+    on(event: 'createRoom',      cb: (connection: ClientConnection, message: CreateRoomRequest) => void): this;
+    on(event: 'joinRoom',        cb: (connection: ClientConnection, message: JoinRoomRequest) => void): this;
+    on(event: 'leaveRoom',       cb: (connection: ClientConnection, message: JoinRoomRequest) => void): this;
+    on(event: 'gameConfig',      cb: (connection: ClientConnection, message: GameConfigureRequest) => void): this;
+    on(event: 'gameInput',       cb: (connection: ClientConnection, message: GameInputRequest) => void): this;
+    on(event: 'gamePreparation', cb: (connection: ClientConnection, message: GamePreparationRequest) => void): this;
+    on(event: 'gameStart',       cb: (connection: ClientConnection, message: GameStartRequest) => void): this;
+    on(event: 'close',           cb: (connection: ClientConnection, message: CloseRequest) => void): this;
     on(event: string, cb: (...args: any[]) => void): this {
         return super.on(event, cb)
     }
 
-    addListener(event: 'createRoom',    cb: (connection: ClientConnection, message: CreateRoomRequest) => void): this;
-    addListener(event: 'joinRoom',      cb: (connection: ClientConnection, message: JoinRoomRequest) => void): this;
-    addListener(event: 'leaveRoom',     cb: (connection: ClientConnection, message: JoinRoomRequest) => void): this;
-    addListener(event: 'gameConfig',    cb: (connection: ClientConnection, message: GameConfigureRequest) => void): this;
-    addListener(event: 'gameInput',     cb: (connection: ClientConnection, message: GameInputRequest) => void): this;
-    addListener(event: 'gameStart',     cb: (connection: ClientConnection, message: GameStartRequest) => void): this;
-    addListener(event: 'close',         cb: (connection: ClientConnection, message: CloseRequest) => void): this;
+    addListener(event: 'createRoom',      cb: (connection: ClientConnection, message: CreateRoomRequest) => void): this;
+    addListener(event: 'joinRoom',        cb: (connection: ClientConnection, message: JoinRoomRequest) => void): this;
+    addListener(event: 'leaveRoom',       cb: (connection: ClientConnection, message: JoinRoomRequest) => void): this;
+    addListener(event: 'gameConfig',      cb: (connection: ClientConnection, message: GameConfigureRequest) => void): this;
+    addListener(event: 'gameInput',       cb: (connection: ClientConnection, message: GameInputRequest) => void): this;
+    addListener(event: 'gamePreparation', cb: (connection: ClientConnection, message: GamePreparationRequest) => void): this;
+    addListener(event: 'gameStart',       cb: (connection: ClientConnection, message: GameStartRequest) => void): this;
+    addListener(event: 'close',           cb: (connection: ClientConnection, message: CloseRequest) => void): this;
     addListener(event: string, cb: (...args: any[])=>void): this {
         return super.addListener(event, cb);
     }

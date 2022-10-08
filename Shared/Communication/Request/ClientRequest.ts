@@ -3,6 +3,7 @@ export enum ClientRequestType {
 
     GameConfig,
     GameInput,
+    GamePreparation,
     GameStart,
 
     JoinRoom,

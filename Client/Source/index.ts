@@ -17,7 +17,9 @@ import { CreateRoomRequest } from "@shared/Communication/Request/CreateRoomReque
 import { GameStartRequest } from "@shared/Communication/Request/GameStartRequest";
 import { GameConfigureRequest } from "@shared/Communication/Request/GameConfigureRequest";
 import { ServerResponse, ServerResponseType } from "@shared/Communication/Response/ServerResponse";
-import { WorldUpdateResponse } from "@shared/Communication/Response/WorldUpdateResponse";
+import { GameUpdateResponse } from "@shared/Communication/Response/GameUpdateResponse";
+import { GamePreparationResponse } from "@shared/Communication/Response/GamePreparationResponse"
+import { GamePreparationRequest } from "@shared/Communication/Request/GamePreparationRequest"
 
 const {
     Readable,
@@ -87,7 +89,7 @@ const compiledShaderCache = new Map<string, Shader>();
 
 const drawableComponentProgramCache = new Map<string, ShaderProgram>();
 
-function fetchAssets() {
+function fetchAssets(onDone: ()=>void) {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.open( "GET", "worldAssets", true );
     xmlHttp.responseType = "arraybuffer";
@@ -117,6 +119,7 @@ function fetchAssets() {
         .promise()
         .then( () => {
             assetsLoaded = true;
+            onDone();
         })
     }
     xmlHttp.send(null);
@@ -168,8 +171,6 @@ function pngDecode(data: Readonly<Uint8Array>) : Image
 
 ws.onopen = function() {
     console.log('WebSocketClient Connected');
-    fetchAssets()
-
 }
 
 document.addEventListener('keyup', function(event) {
@@ -478,13 +479,29 @@ ws.onmessage = function(e) {
     const serverResponse = JSON.parse(e.data) as ServerResponse;
 
     switch(serverResponse.type) {
-        case ServerResponseType.WorldUpdate:
-            const response = serverResponse as WorldUpdateResponse;
-            const world = response.data;
-            if (world) {
-                render(world)
+        case ServerResponseType.GameUpdate:
+            {
+                const response = serverResponse as GameUpdateResponse;
+                const world = response.data;
+                if (world) {
+                    render(world)
+                }
+                break;
             }
-            break;
+        
+        case ServerResponseType.GamePreparation:
+            {
+                const response = serverResponse as GamePreparationResponse;
+                if (response.requiredAssetsPath) {
+                    // TODO: use path it's provided.
+                    fetchAssets(() => {
+                        const request = new GamePreparationRequest();
+                        request.assetsReady = assetsLoaded;
+                        ws.send(JSON.stringify(request));
+                    });
+                }
+                break;
+            }
     }
 }
 // requestAnimationFrame(render);

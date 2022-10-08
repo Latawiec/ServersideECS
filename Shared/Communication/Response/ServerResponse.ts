@@ -1,7 +1,8 @@
 export enum ServerResponseType {
     Unknown = 0,
 
-    WorldUpdate,
+    GamePreparation,
+    GameUpdate,
 
 }
 

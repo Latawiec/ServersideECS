@@ -108,4 +108,8 @@ export class AssetManager {
         })
     }
 
+    get assetsPackagePath() {
+        return path.join(AssetManager._assetPackagesOutputPath, path.basename(this._assetStorageRoot) + ".zip")
+    }
+
 }

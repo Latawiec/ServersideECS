@@ -4,18 +4,23 @@ import * as WebSocket from 'websocket'
 import { ClientConnection } from "./ClientConnection";
 import { ClientMessageRouter } from "./ClientMessageRouter";
 import { GameConfigureRequest } from "@shared/Communication/Request/GameConfigureRequest"
-import { WorldUpdateResponse } from "@shared/Communication/Response/WorldUpdateResponse"
+import { GameUpdateResponse } from "@shared/Communication/Response/GameUpdateResponse"
+import { GamePreparationResponse } from "@shared/Communication/Response/GamePreparationResponse"
 import { TestWorld } from "@scripts/Worlds/TestWorld/TestWorld";
 import { GameInputRequest } from "@shared/Communication/Request/GameInputRequest";
 import { ClientConnectionSystem } from "@core/Systems/ClientConnectionSystem";
 import { Serializer } from "@core/Serialization/Serializer"
+import { GamePreparationRequest } from "@shared/Communication/Request/GamePreparationRequest";
 
 export class GameRoom {
     private _world: World | undefined;
     private _isRunning: boolean = false;
+    private _isPreparing: boolean = false;
     private _gameRoomMessageRouter: ClientMessageRouter;
     private _connectionIdComponentMap: Map<Uuid, ClientConnectionSystem.Component> = new Map();
     private _serializer = new Serializer();
+
+    private _clientsPreparationStatus: Map<Uuid, boolean> = new Map();
     
     public gameMasterConnectionId: Uuid | undefined;
 
@@ -32,6 +37,7 @@ export class GameRoom {
         this._gameRoomMessageRouter.on('leaveRoom', (connection) => { this.removeConnection(connection) });
         this._gameRoomMessageRouter.on('gameStart', (connection) => { this.start(connection) });
         this._gameRoomMessageRouter.on('gameConfig', (connection, request) => { this.configure(connection, request) });
+        this._gameRoomMessageRouter.on('gamePreparation', (connection, request) => { this.preparation(connection, request)})
         this._gameRoomMessageRouter.on('gameInput', (connection, request) => { this.playerInput(connection, request) });
     }
 
@@ -47,7 +53,19 @@ export class GameRoom {
             // Starting a game without world set.
             return;
         }
-        this._isRunning = true;
+
+        if (this._isRunning) {
+            // It's already runnig.
+            return;
+        }
+
+        this._isPreparing = true;
+        this._clientsPreparationStatus.clear();
+
+        const response = new GamePreparationResponse();
+        response.requiredAssetsPath = this._world.assetManager.assetsPackagePath;
+
+        this._gameRoomMessageRouter.broadcast(JSON.stringify(response))
     }
 
     playerInput(connection: ClientConnection, request: GameInputRequest) {
@@ -64,6 +82,20 @@ export class GameRoom {
 
         if (request.keyReleased) {
             connectionComponent.emit('keyReleased', request.keyReleased);
+        }
+    }
+
+    preparation(connection: ClientConnection, request: GamePreparationRequest) {
+        debugger;
+        if (!this._isPreparing || this._isRunning) {
+            // We're not preparing the game.
+            return;
+        }
+
+        // TODO: Verify all players in game.
+        if (request.assetsReady) {
+            this._isPreparing = false;
+            this._isRunning = true;
         }
     }
 
@@ -86,7 +118,7 @@ export class GameRoom {
         if (this._isRunning) {
             this._world!.update();
             this._serializer.update(this._world!);
-            const response = new WorldUpdateResponse();
+            const response = new GameUpdateResponse();
             response.data = this._serializer.asSnapshot();
             this._gameRoomMessageRouter.broadcast(JSON.stringify(response));
         }
