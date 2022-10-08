@@ -1,5 +1,6 @@
+import { ClientRequest, ClientRequestType } from "./ClientRequest";
 
 
-export class CreateRoomRequest {
-    
+export class CreateRoomRequest implements ClientRequest {
+    type = ClientRequestType.CreateRoom;
 }

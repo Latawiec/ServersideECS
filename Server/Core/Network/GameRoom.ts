@@ -4,6 +4,7 @@ import * as WebSocket from 'websocket'
 import { ClientConnection } from "./ClientConnection";
 import { ClientMessageRouter } from "./ClientMessageRouter";
 import { GameConfigureRequest } from "@shared/Communication/Request/GameConfigureRequest"
+import { WorldUpdateResponse } from "@shared/Communication/Response/WorldUpdateResponse"
 import { TestWorld } from "@scripts/Worlds/TestWorld/TestWorld";
 import { GameInputRequest } from "@shared/Communication/Request/GameInputRequest";
 import { ClientConnectionSystem } from "@core/Systems/ClientConnectionSystem";
@@ -85,7 +86,9 @@ export class GameRoom {
         if (this._isRunning) {
             this._world!.update();
             this._serializer.update(this._world!);
-            this._gameRoomMessageRouter.broadcast(this._serializer.toJson());
+            const response = new WorldUpdateResponse();
+            response.data = this._serializer.asSnapshot();
+            this._gameRoomMessageRouter.broadcast(JSON.stringify(response));
         }
     }
 }

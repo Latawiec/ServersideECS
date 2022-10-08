@@ -41,8 +41,12 @@ export class Serializer {
     }
 
 
-    toJson(): string {
+    asJson(): string {
         return JSON.stringify(this._worldSnapshot);
+    }
+
+    asSnapshot(): Readonly<Serialization.WorldSnapshot> {
+        return this._worldSnapshot;
     }
 
 }

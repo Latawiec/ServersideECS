@@ -16,6 +16,8 @@ import { JoinRoomRequest } from "@shared/Communication/Request/JoinRoomRequest";
 import { CreateRoomRequest } from "@shared/Communication/Request/CreateRoomRequest";
 import { GameStartRequest } from "@shared/Communication/Request/GameStartRequest";
 import { GameConfigureRequest } from "@shared/Communication/Request/GameConfigureRequest";
+import { ServerResponse, ServerResponseType } from "@shared/Communication/Response/ServerResponse";
+import { WorldUpdateResponse } from "@shared/Communication/Response/WorldUpdateResponse";
 
 const {
     Readable,
@@ -171,77 +173,30 @@ ws.onopen = function() {
 }
 
 document.addEventListener('keyup', function(event) {
-    const type = ClientRequestType.GameInput;
     const request = new GameInputRequest();
     request.keyReleased = event.key;
 
-    const message = new ClientRequest();
-    message.type = type;
-    message.request = request;
-
     ws.send(JSON.stringify(
-        message
+        request
     ));
 });
 
 document.addEventListener('keydown', function(event) {
-    const type = ClientRequestType.GameInput;
     const request = new GameInputRequest();
     request.keyPressed = event.key;
 
-    const message = new ClientRequest();
-    message.type = type;
-    message.request = request;
-
     ws.send(JSON.stringify(
-        message
+        request
     ));
 });
 
-document.getElementById('connectButton')!.onclick = () =>
-{
-{
-    const type = ClientRequestType.CreateRoom;
-    const request = new CreateRoomRequest();
-    
-    const message = new ClientRequest();
-    message.type = type;
-    message.request = request;
-
-    ws.send(JSON.stringify(message))
-}
-{
-    const type = ClientRequestType.JoinRoom;
-    const request = new JoinRoomRequest();
-    request.roomId = 0;
-    
-    const message = new ClientRequest();
-    message.type = type;
-    message.request = request;
-    // TODO: Hardcoded for now.
-
-    ws.send(JSON.stringify(message));
-}
-{
-    const type = ClientRequestType.GameConfig;
-    const request = new GameConfigureRequest();
-    
-    const message = new ClientRequest();
-    message.type = type;
-    message.request = request;
-
-    ws.send(JSON.stringify(message))
-}
-{
-    const type = ClientRequestType.GameStart;
-    const request = new GameStartRequest();
-
-    const message = new ClientRequest();
-    message.type = type;
-    message.request = request;
-
-    ws.send(JSON.stringify(message));
-}
+document.getElementById('connectButton')!.onclick = () => {
+    ws.send(JSON.stringify(new CreateRoomRequest()))
+    const joinRoomRequest = new JoinRoomRequest();
+    joinRoomRequest.roomId = 0;
+    ws.send(JSON.stringify(joinRoomRequest));
+    ws.send(JSON.stringify(new GameConfigureRequest()));
+    ws.send(JSON.stringify(new GameStartRequest()));
 }
 
 const htmlCanvas = document.getElementById('glCanvas') as HTMLCanvasElement;
@@ -518,14 +473,20 @@ async function render(world: Readonly<Serialization.WorldSnapshot>) {
     // requestAnimationFrame(render);
 }
 
-let world = {}
 
 ws.onmessage = function(e) {
-    // console.log("Got: " + e.data);
-    const worldMostLikely = JSON.parse(e.data);
-    // world = deepmerge(world, worldMostLikely);
-    world = worldMostLikely
-    render(world as Serialization.WorldSnapshot);
+    const serverResponse = JSON.parse(e.data) as ServerResponse;
+
+    switch(serverResponse.type) {
+        case ServerResponseType.WorldUpdate:
+            const response = serverResponse as WorldUpdateResponse;
+            const world = response.data;
+            if (world) {
+                render(world)
+            }
+            break;
+    }
 }
 // requestAnimationFrame(render);
+
 

@@ -11,24 +11,10 @@
 			},
 			"problemMatcher": [
 				"$tsc"
-			],
-			"detail": "Build server code."
+			]
 		},
 		{
 			"label": "Build Client",
-			"group": "build",
-			"type": "shell",
-			"command": "tsc.cmd",
-			"options": {
-				"cwd": "${workspaceFolder}\\Client"
-			},
-			"problemMatcher": [
-				"$tsc"
-			],
-			"detail": "Build client code."
-		},
-		{
-			"label": "Webpack Client",
 			"group": "build",
 			"type": "shell",
 			"command": "npx webpack",

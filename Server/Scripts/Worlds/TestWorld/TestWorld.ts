@@ -15,7 +15,6 @@ import { CircleWorldAoE } from "@scripts/Comon/Mechanics/CircleWorldAoE";
 
 
 import { vec2, vec4, mat4, vec3 } from "gl-matrix"
-import * as WebSocket from 'websocket'
 import { GlobalClock } from "@core/Base/GlobalClock";
 import { Devour, DevourPattern } from "../Abyssos/The Fifth Circle Savage/Mechanics/Devour";
 import { Waymark, WaymarkType } from "@scripts/Comon/Waymarks/Waymark";

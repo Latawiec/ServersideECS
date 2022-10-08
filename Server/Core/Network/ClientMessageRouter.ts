@@ -8,6 +8,7 @@ import { JoinRoomRequest } from "@shared/Communication/Request/JoinRoomRequest";
 import { ClientConnection } from "./ClientConnection";
 import { Uuid } from "@core/Base/UuidGenerator";
 import { GameConfigureRequest } from "@shared/Communication/Request/GameConfigureRequest";
+import { LeaveRoomRequest } from "@shared/Communication/Request/LeaveRoomRequest";
 
 
 export class ClientMessageRouter extends EventEmitter {
@@ -23,27 +24,27 @@ export class ClientMessageRouter extends EventEmitter {
         connection.addListener('close', (code: number, desc: string) => { this.emitClose(connection, code, desc) });
     }
 
-    emitMessage(connection: ClientConnection, data: ClientRequest): void {
-        switch(data.type) {
+    emitMessage(connection: ClientConnection, request: ClientRequest): void {
+        switch(request.type) {
             case ClientRequestType.CreateRoom:
-                this.emit('createRoom', connection, data.request);
+                this.emit('createRoom', connection, request as CreateRoomRequest);
                 break;
             case ClientRequestType.JoinRoom:
-                this.emit('joinRoom', connection, data.request);
+                this.emit('joinRoom', connection, request as JoinRoomRequest);
                 break;
             case ClientRequestType.LeaveRoom:
-                this.emit('leaveRoom', connection, data.request);
+                this.emit('leaveRoom', connection, request as LeaveRoomRequest);
                 break;
             case ClientRequestType.GameConfig:
-                this.emit('gameConfig', connection, data.request);
+                this.emit('gameConfig', connection, request as GameConfigureRequest);
                 break;
             case ClientRequestType.GameInput:
-                this.emit('gameInput', connection, data.request);
+                this.emit('gameInput', connection, request as GameInputRequest);
                 break;
             case ClientRequestType.GameStart:
-                this.emit('gameStart', connection, data.request);
+                this.emit('gameStart', connection, request as GameStartRequest);
             default:
-                console.log(`Unhandled message: ${0}`, data.type);
+                console.log(`Unhandled message: ${0}`, request);
         }
     }
 

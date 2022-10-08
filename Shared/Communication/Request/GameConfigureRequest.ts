@@ -1,5 +1,6 @@
+import { ClientRequest, ClientRequestType } from "./ClientRequest";
 
-
-export class GameConfigureRequest {
+export class GameConfigureRequest implements ClientRequest {
+    type = ClientRequestType.GameConfig;
     
 }

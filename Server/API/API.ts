@@ -36,7 +36,7 @@ app.get("/world", (req, res) => {
     if (room.world) {
 
         serializer.update(room.world!);
-        const serialized = serializer.toJson();
+        const serialized = serializer.asJson();
         res.send(serialized);
     } else {
         res.send("World does not exist.")
