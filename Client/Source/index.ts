@@ -89,9 +89,9 @@ const compiledShaderCache = new Map<string, Shader>();
 
 const drawableComponentProgramCache = new Map<string, ShaderProgram>();
 
-function fetchAssets(onDone: ()=>void) {
+function fetchAssetPackage(packagePath: string, onDone: ()=>void) {
     var xmlHttp = new XMLHttpRequest();
-    xmlHttp.open( "GET", "worldAssets", true );
+    xmlHttp.open( "GET", "assetPackage?path=" + packagePath, true );
     xmlHttp.responseType = "arraybuffer";
     xmlHttp.onload = function() {
         var arrayBuffer = xmlHttp.response;
@@ -285,6 +285,7 @@ async function render(world: Readonly<Serialization.WorldSnapshot>) {
             private _uniformAttributes : Record<string, any> = drawableComponent.uniformParameters!
             private _textures = drawableComponent.assets.textures;
             private _vertexAttributes : Record<string, any> = drawableComponent.vertexAttributes!
+            private _billboard = drawableComponent.billboard;
 
 
             draw(camera: Readonly<Camera>): void {
@@ -414,6 +415,33 @@ async function render(world: Readonly<Serialization.WorldSnapshot>) {
                 const cameraPosLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uCameraData.position');
                 const cameraForwardLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uCameraData.forward');
 
+
+                // TODO: Move it out of here.
+                const invertedViewMatrix = mat4.invert(mat4.create(), camera.viewTransform);
+                const cameraPosition = mat4.getTranslation(vec3.create(), invertedViewMatrix);
+                const cameraForward = vec4.transformMat4(vec4.create(), vec4.fromValues(0, 0, -1, 0), invertedViewMatrix);
+                const cameraForward3 = vec3.fromValues(cameraForward[0], cameraForward[1], cameraForward[2]);
+
+                if (this._billboard) {
+                    // Off the grid uniform for transform. Just to do billboarding... Need to figure it out finally.
+                    const transformLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uObjectData.transform');
+                    // TODO: I need to either expose it more cleanly, or push basic object properties to shared struct.
+                    const objectTransform = this._uniformAttributes['mat4']['uObjectData.transform'];
+
+                    const billboard = mat4.lookAt(mat4.create(),
+                        [0, 0, 0],
+                        cameraPosition,
+                        vec3.fromValues(0, 1, 0)
+                    );
+                    
+                    const transform = mat4.mul(mat4.create(), billboard, objectTransform);
+                    gl.uniformMatrix4fv(
+                        transformLoc,
+                        false,
+                        transform
+                    );
+                }
+
                 gl.uniformMatrix4fv(
                     cameraViewLoc,
                     false,
@@ -426,11 +454,7 @@ async function render(world: Readonly<Serialization.WorldSnapshot>) {
                     Array.from(camera.transform)
                 )
 
-                // TODO: Move it out of here.
-                const invertedViewMatrix = mat4.invert(mat4.create(), camera.viewTransform);
-                const cameraPosition = mat4.getTranslation(vec3.create(), invertedViewMatrix);
-                const cameraForward = vec4.transformMat4(vec4.create(), vec4.fromValues(0, 0, -1, 0), invertedViewMatrix);
-                const cameraForward3 = vec3.fromValues(cameraForward[0], cameraForward[1], cameraForward[2]);
+
 
                 gl.uniform3fv(
                     cameraPosLoc,
@@ -494,7 +518,7 @@ ws.onmessage = function(e) {
                 const response = serverResponse as GamePreparationResponse;
                 if (response.requiredAssetsPath) {
                     // TODO: use path it's provided.
-                    fetchAssets(() => {
+                    fetchAssetPackage(response.requiredAssetsPath, () => {
                         const request = new GamePreparationRequest();
                         request.assetsReady = assetsLoaded;
                         ws.send(JSON.stringify(request));

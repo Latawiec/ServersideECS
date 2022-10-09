@@ -5,7 +5,6 @@ import { mat4 } from "gl-matrix"
 import { DrawingSystem } from "@core/Systems/DrawingSystem";
 import { ClientConnectionSystem } from "@core/Systems/ClientConnectionSystem";
 import { ComponentBase } from "../Base/Component";
-import * as AssetManager from "../Assets/AssetManager";
 import { TriggerCollisionSystem2D } from "@core/Systems/TriggerCollisionSystem2D";
 import { BlockingCollisionSystem2D } from "@core/Systems/BlockingCollisionSystem2D";
 import { CameraSystem } from "@core/Systems/CameraSystem";
@@ -21,9 +20,9 @@ export class World {
     private _triggerCollisionSystem2D: TriggerCollisionSystem2D.System;
     private _blockingCollisionSystem2D: BlockingCollisionSystem2D.System;
     private _cameraSystem: CameraSystem.System;
-    private _assetManager: AssetManager.AssetManager;
+    private _assetPackagePath: Readonly<string>;
 
-    constructor(worldAssets: Readonly<string>) {
+    constructor(assetPackagePath: Readonly<string>) {
         this._entityUuidGenerator = new UuidGenerator();
         this._scriptSystem = new ScriptSystem.System();
         this._drawableSystem = new DrawingSystem.System();
@@ -31,7 +30,7 @@ export class World {
         this._triggerCollisionSystem2D = new TriggerCollisionSystem2D.System();
         this._blockingCollisionSystem2D = new BlockingCollisionSystem2D.System();
         this._cameraSystem = new CameraSystem.System();
-        this._assetManager = new AssetManager.AssetManager(worldAssets);
+        this._assetPackagePath = assetPackagePath;
 
         this._rootNode = new Entity(this, undefined, this._entityUuidGenerator.getNext());
         this._entities = [ this._rootNode ];
@@ -133,16 +132,8 @@ export class World {
         component.ownerEntity?.removeComponent(component);
     }
 
-    getAsset(assetPath: Readonly<string>, onSuccess: (asset: AssetManager.Asset)=>void, onError: (error: AssetManager.AssetError)=>void ): any {
-        this._assetManager.getAsset(assetPath, onSuccess, onError);
-    }
-
-    bindAsset(assetPath: Readonly<string>) : AssetManager.AssetBinding {
-        return this._assetManager.bindAsset(assetPath);
-    }
-
-    get assetManager(): Readonly<AssetManager.AssetManager> {
-        return this._assetManager
+    getAssetPackagePath(): string {
+        return this._assetPackagePath;
     }
 
     getRoot(): Readonly<Entity> {

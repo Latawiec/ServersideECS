@@ -11,6 +11,7 @@ import { GameInputRequest } from "@shared/Communication/Request/GameInputRequest
 import { ClientConnectionSystem } from "@core/Systems/ClientConnectionSystem";
 import { Serializer } from "@core/Serialization/Serializer"
 import { GamePreparationRequest } from "@shared/Communication/Request/GamePreparationRequest";
+import { AbyssosTheFifthCircleSavage } from "@scripts/Worlds/Abyssos/The Fifth Circle Savage/World";
 
 export class GameRoom {
     private _world: World | undefined;
@@ -43,9 +44,9 @@ export class GameRoom {
 
     configure(connection: ClientConnection, request: GameConfigureRequest) {
         // TODO: Replace with real world initialization based on configuration.
-        const world = new TestWorld();
+        const world = new AbyssosTheFifthCircleSavage();
         this._world = world;
-        this._connectionIdComponentMap.set(connection.id, world.createTestPlayer());
+        //this._connectionIdComponentMap.set(connection.id, world.createTestPlayer());
     }
 
     start(connection: ClientConnection) {
@@ -63,7 +64,7 @@ export class GameRoom {
         this._clientsPreparationStatus.clear();
 
         const response = new GamePreparationResponse();
-        response.requiredAssetsPath = this._world.assetManager.assetsPackagePath;
+        response.requiredAssetsPath = this._world.getAssetPackagePath();
 
         this._gameRoomMessageRouter.broadcast(JSON.stringify(response))
     }
@@ -86,7 +87,6 @@ export class GameRoom {
     }
 
     preparation(connection: ClientConnection, request: GamePreparationRequest) {
-        debugger;
         if (!this._isPreparing || this._isRunning) {
             // We're not preparing the game.
             return;

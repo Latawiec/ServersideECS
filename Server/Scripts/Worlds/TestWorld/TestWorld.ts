@@ -310,7 +310,7 @@ export class TestWorld extends World {
     isInitialized = false;
 
     constructor() {
-        super("D:\\Programming\\FFXIVSavagePlayground\\Server\\Assets\\Worlds\\TestWorld")
+        super("TestWorld.zip")
         // 
         {
             const platform = this.createEntity();

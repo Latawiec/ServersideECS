@@ -24,6 +24,9 @@ export class Serializer {
                 const componentsOfType = entity.getComponentsByType(staticMetaName);
 
                 for (const component of componentsOfType) {
+                    if (!component.isActive) {
+                        continue;
+                    }
                     snapshotFunction(result, component.systemAsignedId, component);
                 }
             }

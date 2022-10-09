@@ -1,9 +1,9 @@
 import { World } from "@core/World/World";
-import Config from "@config/assets.json"
+import AssetConfig from "@config/assets.json"
 import { Environment } from "./Environment/Environment";
 
 export class AbyssosTheFifthCircleSavage extends World {
-    private static WorldAssetsPath = Config.assetsRootDir + "\\Worlds\\Abyssos\\The Fifth Circle Savage"
+    private static WorldAssetsPath = 'Abyssos\\The Fifth Circle Savage.zip';
 
     private environment: Environment;
 

@@ -2,16 +2,18 @@ import * as http from 'http'
 import * as WebSocket from 'websocket'
 import express from 'express'
 import * as path from 'path'
+import * as fs from 'fs'
 
 import { TestWorld } from "@worlds/TestWorld/TestWorld"
 import { Serializer } from "@core/Serialization/Serializer"
-import Config from "@config/static.json"
+import StaticConfig from "@config/static.json"
+import AssetsConfig from "@config/assets.json"
 import { GameServer } from '@core/Network/GameServer'
 import { GameRoom } from '@core/Network/GameRoom'
 
 const app = express();
-console.log(Config.staticDirectory);
-app.use(express.static(Config.staticDirectory));
+console.log(StaticConfig.staticDirectory);
+app.use(express.static(StaticConfig.staticDirectory));
 
 const activePort = process.env.PORT || 8000;
 const server = app.listen(activePort, () => {
@@ -43,37 +45,22 @@ app.get("/world", (req, res) => {
     }
 })
 
-// app.get("/asset", (req, res) => {
-//     var assetPath = req.query.path;
-//     console.log("Asked for: ", req.query);
-//     if (assetPath) {
-//         var stringAssetPath = assetPath as string
+app.get("/assetPackage", (req, res) => {
+    var assetPath = req.query.path;
 
-//         world.getAsset(stringAssetPath,
-//             (asset) => {
-//                 res.write(asset.Data);
-//                 res.send();
-//             },
-//             (error) => {
-//                 console.log("Couldn't find asset: %s", assetPath);
-//                 res.statusCode = 404;
-//             });
-//     }
-// })
+    if (assetPath) {
+        var stringAssetPath = assetPath as string;
+        var absoluteAssetsPath = path.join(AssetsConfig.packageOutputDir, stringAssetPath);
 
-app.get("/worldAssets", (req, res) => {
-    const room = gameServer.rooms.values().next().value as GameRoom;
-    room.world?.assetManager.getAllAssetsZip(
-    (data) => {
-        res.write(data);
-        res.send();
-    },
-    (error) => {
-        console.log("Couldn't retrieve world assets", error);
-        res.statusCode = 404;
-    });
+        fs.access(absoluteAssetsPath, (err) => {
+            if (err) {
+                res.status(404).send('Package \"' + stringAssetPath + '\" not found.');
+            } else {
+                res.sendFile(absoluteAssetsPath);
+            }
+        })
+    }
 })
-
 
 function sleep(ms: number) {
 return new Promise((resolve) => {
