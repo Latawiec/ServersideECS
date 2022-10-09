@@ -6,7 +6,7 @@ module.exports = {
   entry: './Source/index.ts',
   output: {
     filename: "index.js",
-    path: path.resolve(__dirname, 'build'),
+    path: path.resolve(__dirname, '.build'),
   },
   resolve: {
     fallback: {
