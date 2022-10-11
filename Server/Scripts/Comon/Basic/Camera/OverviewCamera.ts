@@ -6,7 +6,7 @@ import { mat4, vec3 } from "gl-matrix";
 
 export class OverviewCamera extends ScriptSystem.Component {
     private cameraComponent: CameraSystem.Component;
-    private captureSize = 7;
+    private captureSize = 30;
 
     constructor(owner: Entity) {
         super(owner);
@@ -16,7 +16,7 @@ export class OverviewCamera extends ScriptSystem.Component {
         mat4.identity(projectionMatrix);
         const fovy = 45.0 * Math.PI / 180.0;
         const aspect = 1200.0 / 1200.0;
-        const near = 0.1;
+        const near = -100;
         const far = 100;
 
         this.cameraComponent.projection = mat4.ortho(
@@ -30,7 +30,7 @@ export class OverviewCamera extends ScriptSystem.Component {
         const viewTransform = mat4.create();
         this.cameraComponent.transform = mat4.lookAt(viewTransform,
             vec3.fromValues(0, 1, -1),
-            vec3.fromValues(0, 0, 0,),
+            vec3.fromValues(0, 0, 0),
             vec3.fromValues(0, 1, 0)
         );
     }

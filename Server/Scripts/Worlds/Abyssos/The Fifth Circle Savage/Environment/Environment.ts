@@ -11,6 +11,8 @@ import { TopBridge } from "./TopBridge";
 
 export class Environment extends ScriptSystem.Component {
 
+    private static PixelsToYalmsScale = Float32Array.from([0.0397995, 0.0397995, 0.0397995]); // yalms / pixel
+
     private platform: Platform;
     private bottomBridge: BottomBridge;
     private topBridge: TopBridge;
@@ -24,12 +26,12 @@ export class Environment extends ScriptSystem.Component {
         super(owner);
         this.testCamera = new OverviewCamera(owner);
 
-        this.platform = new Platform(owner.world.createEntity(owner));
-        this.bottomBridge = new BottomBridge(owner.world.createEntity(owner));
-        this.topBridge = new TopBridge(owner.world.createEntity(owner));
-        this.mesh = new Mesh(owner.world.createEntity(owner));
-        this.pipe = new Pipe(owner.world.createEntity(owner));
-        this.debris = new Debris(owner.world.createEntity(owner));
+        this.debris = new Debris(owner, Environment.PixelsToYalmsScale);
+        this.bottomBridge = new BottomBridge(owner, Environment.PixelsToYalmsScale);
+        this.topBridge = new TopBridge(owner, Environment.PixelsToYalmsScale);
+        this.mesh = new Mesh(owner, Environment.PixelsToYalmsScale);
+        this.pipe = new Pipe(owner, Environment.PixelsToYalmsScale);
+        this.platform = new Platform(owner, Environment.PixelsToYalmsScale);
 
         this.isActive = false;
     }

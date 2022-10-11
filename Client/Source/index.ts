@@ -427,6 +427,20 @@ async function render(world: Readonly<Serialization.WorldSnapshot>) {
                     const transformLoc = gl.getUniformLocation(this._shaderProgram.glShaderProgram, 'uObjectData.transform');
                     // TODO: I need to either expose it more cleanly, or push basic object properties to shared struct.
                     const objectTransform = this._uniformAttributes['mat4']['uObjectData.transform'];
+                    const objectTransform_NoTranslation = mat4.copy(mat4.create(), objectTransform);
+
+                    const transformVec = [
+                        objectTransform_NoTranslation[12],
+                        objectTransform_NoTranslation[13],
+                        objectTransform_NoTranslation[14],
+                        objectTransform_NoTranslation[15]
+                    ]
+
+                    objectTransform_NoTranslation[12] = 0;
+                    objectTransform_NoTranslation[13] = 0;
+                    objectTransform_NoTranslation[14] = 0;
+                    objectTransform_NoTranslation[15] = 1;
+
 
                     const billboard = mat4.lookAt(mat4.create(),
                         [0, 0, 0],
@@ -434,7 +448,13 @@ async function render(world: Readonly<Serialization.WorldSnapshot>) {
                         vec3.fromValues(0, 1, 0)
                     );
                     
-                    const transform = mat4.mul(mat4.create(), billboard, objectTransform);
+                    let transform = mat4.mul(mat4.create(), billboard, objectTransform_NoTranslation);
+                    
+                    transform[12] = transformVec[0];
+                    transform[13] = transformVec[1];
+                    transform[14] = transformVec[2];
+                    transform[15] = transformVec[3];
+                    
                     gl.uniformMatrix4fv(
                         transformLoc,
                         false,

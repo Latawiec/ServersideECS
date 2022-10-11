@@ -7,18 +7,19 @@ import { DrawingLayers } from "./DrawingLayers";
 export class Platform extends ScriptSystem.Component {
     private static AssetPath = "Platform.png"
     private static Size = Float32Array.from([537, 0.0, 400]);
-    private static Scale = Float32Array.from([0.01, 0.01, 0.01]);
     private static Layer = DrawingLayers.Platform;
 
     private drawable: TextureSquareDrawable;
 
-    constructor(owner: Entity) {
-        super(owner);
+    constructor(parent: Entity, environmentScale: Float32Array) {
+        const entity = parent.world.createEntity();
+        super(entity);
         
         this.drawable = new TextureSquareDrawable(this.ownerEntity, Platform.AssetPath);
-        this.drawable.transform.scale(Platform.Size).scale(Platform.Scale);
+        this.drawable.transform.scale(Platform.Size).scale(environmentScale);
         this.drawable.layer = Platform.Layer;
         this.drawable.billboard = true;
+        this.drawable.opacity = 0.2;
         
         this.isActive = false;
     }
