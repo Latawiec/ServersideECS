@@ -19,6 +19,13 @@ export class Transform {
         return this;
     }
 
+    setTranslation(translatoin: Readonly<vec3>) : this {
+        this._transform[12] = translatoin[0];
+        this._transform[13] = translatoin[1];
+        this._transform[14] = translatoin[2];
+        return this;
+    }
+
     rotate(axis: Readonly<vec3>, rad: number) : this {
         mat4.rotate(this._transform, this._transform, rad, axis);
         return this;

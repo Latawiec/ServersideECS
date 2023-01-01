@@ -1,0 +1,1 @@
+ffmpeg -framerate 3 -start_number 50 -i dash_00%02d.png test.gif

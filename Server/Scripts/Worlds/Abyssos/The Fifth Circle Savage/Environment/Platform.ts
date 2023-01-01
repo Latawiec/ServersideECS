@@ -19,7 +19,6 @@ export class Platform extends ScriptSystem.Component {
         this.drawable.transform.scale(Platform.Size).scale(environmentScale);
         this.drawable.layer = Platform.Layer;
         this.drawable.billboard = true;
-        this.drawable.opacity = 0.2;
         
         this.isActive = false;
     }

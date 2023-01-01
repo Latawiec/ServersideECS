@@ -23,7 +23,7 @@ import { TextureSquareDrawable } from "@scripts/Comon/Basic/Drawing/TextureSquar
 import { SpriteSquareDrawable } from "@scripts/Comon/Basic/Drawing/SpriteSquareDrawable";
 
 
-class TestPlayer extends ScriptSystem.Component {
+export class TestPlayer extends ScriptSystem.Component {
     private _drawable: CharacterDrawable;
     private _clientConnectionComponent: ClientConnectionSystem.Component;
     private _playerInputController: PlayerInputController;
@@ -62,8 +62,8 @@ class TestPlayer extends ScriptSystem.Component {
         const blocking = new BlockingCollisionSystem2D.CircleCollisionComponent(owner);
         blocking.shape.radius = 0.5;
 
-        const triggerDrawableComponent = new TextureSquareDrawable(playerColliderEntity, "Test/circle.png");
-        triggerDrawableComponent.size = blocking.shape.radius;
+        //const triggerDrawableComponent = new TextureSquareDrawable(playerColliderEntity, "Test/circle.png");
+        //triggerDrawableComponent.size = blocking.shape.radius;
 
         const cameraHolder = world.createEntity(owner);
         const cameraComponent = new CameraSystem.Component(cameraHolder);

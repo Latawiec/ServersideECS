@@ -1,5 +1,5 @@
 import { Camera, PerspectiveCamera, RawCamera } from "./Rendering/Basic/Camera";
-import { Layer, Canvas, DrawRequest } from "./Rendering/Canvas";
+import { Canvas, DrawRequest } from "./Rendering/Canvas";
 import { Shader, ShaderProgram, ShaderType } from "./Rendering/Materials/ShaderProgram";
 import { mat4, vec4, vec3, vec2 } from "gl-matrix";
 import { send } from "process";
@@ -287,6 +287,7 @@ async function render(world: Readonly<Serialization.WorldSnapshot>) {
             private _vertexAttributes : Record<string, any> = drawableComponent.vertexAttributes!
             private _billboard = drawableComponent.billboard;
 
+            public zorder: number = drawableComponent.layer;
 
             draw(camera: Readonly<Camera>): void {
                 
@@ -506,8 +507,11 @@ async function render(world: Readonly<Serialization.WorldSnapshot>) {
 
     entitiesToDraw = newToDraw;
 
-    entitiesToDraw.forEach((request, name) => {
-        canvas.requestDraw(Layer.Foreground, request);
+    // TODO: Don't sort it each frame...
+    new Map([...entitiesToDraw].sort((lhs, rhs): number => {
+        return  -(rhs[1].zorder - lhs[1].zorder)
+    })).forEach((request, name) => {
+        canvas.requestDraw(request);
     });
 
     //await sleep(16);

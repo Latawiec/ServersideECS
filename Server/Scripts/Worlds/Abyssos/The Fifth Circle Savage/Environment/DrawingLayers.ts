@@ -3,14 +3,16 @@
 
 export enum DrawingLayers {
     Pool = 0,
-    PoolDebris,
     FloraBack,
     PoolEdge,
+    PoolDebris,
     FloraFront,
-    Platform,
     Pipe,
+    PoolEdgeBottom,
+    Platform,
     Telegraphs,
     Waymarks,
     Characters,
+    Carbuncle,
     Fog
 }

@@ -50,7 +50,7 @@ export class GameServer {
             // No such room available.
         }
 
-        if (!this._connectionIdRoomIdMap.has(connection.id)) {
+        if (this._connectionIdRoomIdMap.has(connection.id)) {
             // Player is already in a room.
         }
 

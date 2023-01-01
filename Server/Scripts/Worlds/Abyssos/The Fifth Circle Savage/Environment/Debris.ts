@@ -92,7 +92,7 @@ export class Debris extends ScriptSystem.Component {
 
         { size: RockSize.XL, position: [ 10, 0, -22], flipped: false },
         { size: RockSize.XL, position: [ -27, 0, 9], flipped: false },
-        { size: RockSize.XL, position: [ 1, 0, 32], flipped: true },
+        { size: RockSize.XL, position: [ 1, 0, 30], flipped: true },
     )
 
     private rocks = new Array<Rock>();

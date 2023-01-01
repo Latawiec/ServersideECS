@@ -33,19 +33,25 @@ export namespace ScriptSystem {
     
         preUpdate(): void {
             this._getComponentsMap().forEach(entry => {
-                entry.preUpdate();
+                if (entry.isActive) {
+                    entry.preUpdate();
+                }
             });
         }
     
         onUpdate(): void {
             this._getComponentsMap().forEach(entry => {
-                entry.onUpdate();
+                if (entry.isActive) {
+                    entry.onUpdate();
+                }
             });
         }
     
         postUpdate(): void {
             this._getComponentsMap().forEach(entry => {
-                entry.postUpdate();
+                if (entry.isActive) {
+                    entry.postUpdate();
+                }
             });
         }
     }

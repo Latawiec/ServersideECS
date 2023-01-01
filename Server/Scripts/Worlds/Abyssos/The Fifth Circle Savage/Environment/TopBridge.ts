@@ -6,7 +6,7 @@ import { DrawingLayers } from "./DrawingLayers";
 export class TopBridge extends ScriptSystem.Component {
     private static AssetPath = "Bridge Top.png"
     private static Size = Float32Array.from([244, 0.0, 99]);
-    private static Translation = Float32Array.from([-16, 0.0, 20]);
+    private static Translation = Float32Array.from([-16, 0.0, 19]);
     private static Layer = DrawingLayers.PoolDebris;
 
     private drawable: TextureSquareDrawable;

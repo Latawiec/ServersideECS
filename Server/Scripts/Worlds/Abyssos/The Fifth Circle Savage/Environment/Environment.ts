@@ -6,12 +6,13 @@ import { Debris } from "./Debris";
 import { Mesh } from "./Mesh";
 import { Pipe } from "./Pipe";
 import { Platform } from "./Platform"
+import { PoolEdge } from "./PoolEdge";
 import { TopBridge } from "./TopBridge";
 
 
 export class Environment extends ScriptSystem.Component {
 
-    private static PixelsToYalmsScale = Float32Array.from([0.0397995, 0.0397995, 0.0397995]); // yalms / pixel
+    public static PixelsToYalmsScale = Float32Array.from([2*0.0397995, 2*0.0397995, 2*0.0397995]); // yalms / pixel
 
     private platform: Platform;
     private bottomBridge: BottomBridge;
@@ -19,6 +20,7 @@ export class Environment extends ScriptSystem.Component {
     private mesh: Mesh;
     private pipe: Pipe;
     private debris: Debris;
+    private poolEdge: PoolEdge;
 
     private testCamera: OverviewCamera;
 
@@ -32,7 +34,8 @@ export class Environment extends ScriptSystem.Component {
         this.mesh = new Mesh(owner, Environment.PixelsToYalmsScale);
         this.pipe = new Pipe(owner, Environment.PixelsToYalmsScale);
         this.platform = new Platform(owner, Environment.PixelsToYalmsScale);
-
+        this.poolEdge = new PoolEdge(owner, Environment.PixelsToYalmsScale);
+        
         this.isActive = false;
     }
 

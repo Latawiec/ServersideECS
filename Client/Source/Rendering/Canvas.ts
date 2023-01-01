@@ -4,21 +4,15 @@ import { Shader, ShaderProgram, ShaderType } from "./Materials/ShaderProgram";
 import { GBufferTarget } from "./RenderTarget/GBufferTarget";
 import { OutputTarget } from "./RenderTarget/OutputTarget";
 
-export enum Layer {
-    Background, 
-    Layer0,
-    Layer1,
-    Foreground
-};
-
 export interface DrawRequest {
     draw(camera: Readonly<Camera>): void;
+    zorder: number;
 };
 
 export class Canvas {
     private canvas: HTMLCanvasElement;
     private gl: WebGLRenderingContext;
-    private drawRequests: Map<Layer, DrawRequest[]>;
+    private drawRequests: Array<DrawRequest>;
 
     private drawTextureProgram: DrawTextureProgram;
     private gBufferTarget: GBufferTarget;
@@ -26,7 +20,7 @@ export class Canvas {
 
     constructor (canvas: HTMLCanvasElement) {
         this.canvas = canvas;
-        this.drawRequests = new Map<Layer, DrawRequest[]>();
+        this.drawRequests = new Array();
         this.gl = canvas.getContext('webgl', 
         {
             alpha: false
@@ -41,40 +35,25 @@ export class Canvas {
         const gl = this.gl;
 
         this.gBufferTarget.bind();
-        gl.clearColor(1.0, 0.0, 0.0, 1.0);
+        gl.clearColor(49/256.0, 85/256, 0.0, 1.0);
         gl.clearDepth(1.0);
-        gl.enable(gl.DEPTH_TEST);
+        gl.disable(gl.DEPTH_TEST);
         gl.enable(gl.BLEND);
-        gl.depthFunc(gl.LEQUAL);
+        // gl.depthFunc(gl.LEQUAL);
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        if (this.drawRequests.get(Layer.Background) !== undefined && this.drawRequests.get(Layer.Background)!.length !== 0) {
-            this.drawRequests.get(Layer.Background)!.forEach(request => {
-                request.draw(camera);
-            })
-        }
-
-        if (this.drawRequests.get(Layer.Layer0) !== undefined && this.drawRequests.get(Layer.Layer0)!.length !== 0) {
-            this.drawRequests.get(Layer.Layer0)!.forEach(request => {
-                request.draw(camera);
-            })
-        }
-
-        if (this.drawRequests.get(Layer.Layer1) !== undefined && this.drawRequests.get(Layer.Layer1) !.length !== 0) {
-            this.drawRequests.get(Layer.Layer1)!.forEach(request => {
-                request.draw(camera);
-            })
-        }
-
-        if (this.drawRequests.get(Layer.Foreground) !== undefined && this.drawRequests.get(Layer.Foreground)!.length !== 0) {
-            this.drawRequests.get(Layer.Foreground)!.forEach(request => {
-                request.draw(camera);
-            })
-        }
+        let lastLayer = 0;
+        this.drawRequests.forEach(request => {
+            if (request.zorder != lastLayer) {
+                lastLayer = request.zorder;
+                this.glContext.flush();
+            }
+            request.draw(camera);
+        });
 
         this.glContext.flush();
-        this.drawRequests.clear();
+        this.drawRequests.splice(0);
 
         // Draw backbuffer to the canvas.
         this.outputTarget.bind();
@@ -85,12 +64,8 @@ export class Canvas {
         this.drawTextureProgram.draw(this.gBufferTarget.colorOutput);
     }
 
-    requestDraw(layer: Layer, request: DrawRequest): void {
-        if (!this.drawRequests.has(layer)) {
-            this.drawRequests.set(layer, []);
-        }
-
-        this.drawRequests.get(layer)?.push(request);
+    requestDraw(request: DrawRequest): void {
+        this.drawRequests.push(request);
     }
 
     get width() {

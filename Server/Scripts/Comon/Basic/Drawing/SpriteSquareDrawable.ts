@@ -11,7 +11,7 @@ export class SpriteSquareDrawable extends DrawingSystem.Component {
     spriteSize: vec2 = [1, 1]
     private _selection: vec2 = [0, 0];
 
-    constructor(owner: Entity, spritePath: string, spriteSize: vec2, size: number = 1) {
+    constructor(owner: Entity, spritePath: string = "", spriteSize: vec2 = [0, 0], size: number = 1) {
         super(owner);
         this.texturePath = spritePath;
         this.spriteSize = spriteSize;
@@ -19,6 +19,10 @@ export class SpriteSquareDrawable extends DrawingSystem.Component {
 
     takeSnapshot(): Serialization.Drawable.Snapshot {
         const result = super.takeSnapshot();
+
+        if (this.texturePath === undefined || this.texturePath === "") {
+            console.warn("No texture path set on sprite.");
+        }
 
         result.assets.vertexShader = 'Common/Basic/Drawing/Sprite.vs.glsl';
         result.assets.pixelShader = 'Common/Basic/Drawing/Sprite.fs.glsl';
