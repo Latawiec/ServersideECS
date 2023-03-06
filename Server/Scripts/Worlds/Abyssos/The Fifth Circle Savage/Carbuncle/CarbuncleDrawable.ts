@@ -12,7 +12,7 @@ enum Direction {
     DownLeft, Down,     DownRight
 }
 
-enum Sprite {
+export enum CarbuncleSprite {
     Idle = 0,
     Walk = 1,
     Dash = 2,
@@ -71,11 +71,15 @@ export class CarbuncleDrawable extends MultiSpriteSquareDrawable {
         return this._direction;
     }
 
-    set sprite(value: Sprite) {
+    set sprite(value: CarbuncleSprite) {
         this.spriteSelection = value;
     }
 
-    get sprite(): Readonly<Sprite> {
+    get sprite(): Readonly<CarbuncleSprite> {
         return this.spriteSelection;
+    }
+
+    set progress(value: number) {
+        this.selection = [value, this.selection[1]];
     }
 }
