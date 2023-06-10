@@ -47,8 +47,9 @@ export class ClientMessageRouter extends EventEmitter {
                 break;
             case ClientRequestType.GameStart:
                 this.emit('gameStart', connection, request as GameStartRequest);
+                break;
             default:
-                console.log(`Unhandled message: ${0}`, request);
+                console.log(`Unhandled message: ${request.type}`, request);
         }
     }
 

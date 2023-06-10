@@ -52,7 +52,7 @@ class CarbuncleDrawableAnimator extends ScriptSystem.Component {
 }
 
 export class AbyssosTheFifthCircleSavage extends World {
-    private static WorldAssetsPath = 'Abyssos\\The Fifth Circle Savage.zip';
+    private static WorldAssetsPath = 'Abyssos/The Fifth Circle Savage.zip';
 
     private environment: Environment;
 

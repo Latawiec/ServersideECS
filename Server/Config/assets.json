@@ -1,4 +1,4 @@
 {
-    "packageOutputDir": "D:\\Programming\\FFXIVSavagePlayground\\Server\\Package",
-    "assetsRootDir": "D:\\Programming\\FFXIVSavagePlayground\\Server\\Assets"
+    "packageOutputDir": "./Package",
+    "assetsRootDir": "./Assets"
 }

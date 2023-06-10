@@ -9,16 +9,28 @@
             "request": "launch",
             "name": "Debug Server",
             "runtimeArgs": [
+                "--nolazy",
                 "-r",
-                "ts-node/register",
+                "ts-node/register/transpile-only",
                 "-r",
                 "tsconfig-paths/register"
             ],
-            "program": "${workspaceFolder}\\Server\\API\\API.ts",
+            "skipFiles": ["<node_internals>/**", "node_modules/**"],
+            "env": {
+                "WORKSPACE": "${workspaceFolder}"
+            },
+            "program": "${workspaceFolder}/Server/API/API.ts",
             "outFiles": [
-                "${workspaceFolder}\\Server\\build\\**\\*.js"
+                "${workspaceFolder}/Server/build/**/*.js"
             ],
-            "cwd": "${workspaceFolder}\\Server"
+            "cwd": "${workspaceFolder}/Server"
+        },
+        {
+            "name": "Launch Frontend",
+            "type": "firefox",
+            "request": "attach",
+            "url": "http://localhost:8000",
+            "webRoot": "${workspaceFolder}//Client//.build"
         }
     ]
 }

@@ -46,14 +46,16 @@ app.get("/world", (req, res) => {
 })
 
 app.get("/assetPackage", (req, res) => {
+    console.log(`Asked asset Package: ${req.query.path}`)
     var assetPath = req.query.path;
 
     if (assetPath) {
         var stringAssetPath = assetPath as string;
-        var absoluteAssetsPath = path.join(AssetsConfig.packageOutputDir, stringAssetPath);
+        var absoluteAssetsPath = path.resolve(path.join(AssetsConfig.packageOutputDir, stringAssetPath));
 
         fs.access(absoluteAssetsPath, (err) => {
             if (err) {
+                console.log(`Asset Package access error ${err}`);
                 res.status(404).send('Package \"' + stringAssetPath + '\" not found.');
             } else {
                 res.sendFile(absoluteAssetsPath);

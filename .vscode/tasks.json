@@ -26,16 +26,29 @@
 			"label": "Package World",
 			"group": "none",
 			"type": "shell",
-			"command": "7z.exe",
-			"options": {
-				"cwd": "${workspaceFolder}"
+			"windows":{
+				"options": {
+					"cwd": "${workspaceFolder}"
+				},
+				"command": "7z.exe",
+				"args": [
+					"a",
+					"-mx0",
+					"${workspaceFolder}\\Server\\Package\\${input:worldName}.zip",
+					"${workspaceFolder}\\Server\\Assets\\Worlds\\${input:worldName}"
+				]
 			},
-			"args": [
-				"a",
-				"-mx0",
-				"${workspaceFolder}\\Server\\Package\\${input:worldName}.zip",
-				"${workspaceFolder}\\Server\\Assets\\Worlds\\${input:worldName}"
-			]
+			"linux": {
+				"options": {
+					"cwd": "${workspaceFolder}/Server/Assets/Worlds/${input:worldName}/.."
+				},
+				"command": "zip",
+				"args": [
+					"-r", "-0",
+					"${workspaceFolder}/Server/Package/${input:worldName}.zip",
+					"."
+				]
+			}
 		}
 	],
 
