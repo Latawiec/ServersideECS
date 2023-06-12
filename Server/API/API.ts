@@ -45,6 +45,14 @@ app.get("/world", (req, res) => {
     }
 })
 
+app.get("/joinGameRoom", (req, res) => {
+
+});
+
+app.post("/createGameRoom", (req, res) => {
+
+})
+
 app.get("/assetPackage", (req, res) => {
     console.log(`Asked asset Package: ${req.query.path}`)
     var assetPath = req.query.path;

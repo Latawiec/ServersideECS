@@ -1,11 +1,9 @@
 import * as WebSocket from 'websocket'
 import { Uuid, UuidGenerator } from "@core/Base/UuidGenerator";
-import { ClientMessageRouter } from "./ClientMessageRouter";
-import { GameRoom } from "./GameRoom";
-import { CreateRoomRequest } from "@shared/Communication/Request/CreateRoomRequest";
-import { JoinRoomRequest } from "@shared/Communication/Request/JoinRoomRequest";
+import { GameConfig } from "@shared/GameConfig/GameConfig"
 import { ConnectionManager } from "./ConnectionManager";
 import { ClientConnection } from './ClientConnection';
+import { GameRoom } from './GameRoom';
 
 
 export class GameServer {
@@ -13,13 +11,10 @@ export class GameServer {
     private _gameRooms: Map<Uuid, GameRoom>     = new Map();
 
     private _connectionIdRoomIdMap: Map<Uuid, Uuid> = new Map();
-
     private _connectionManager: ConnectionManager;
-    private _gameServerMessageRouter: ClientMessageRouter;
 
     constructor(wsServer: WebSocket.server) {
         this._connectionManager = new ConnectionManager(wsServer);
-        this._gameServerMessageRouter = new ClientMessageRouter();
         this.hookEvents();
     }
 
@@ -36,13 +31,14 @@ export class GameServer {
         this._gameServerMessageRouter.on('joinRoom', (connection, message) => { this.joinRoom(connection, message) } );
     }
 
-    createRoom(connection: ClientConnection, message: CreateRoomRequest) {
+    createRoom(config: GameConfig) : boolean {
         if (this._connectionIdRoomIdMap.has(connection.id)) {
             // This player is already in a room. Wtf?
         }
 
         const room = new GameRoom();
         this._gameRooms.set(this._gameRoomIdGenerator.getNext(), room);
+        return false;
     }
 
     joinRoom(connection: ClientConnection, message: JoinRoomRequest) {

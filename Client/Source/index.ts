@@ -261,8 +261,8 @@ async function render(world: Readonly<Serialization.WorldSnapshot>) {
             meshCache.set(meshDataPath, mesh);
         }
 
-        if (drawableComponent.assets.textures) {
-            for (const textureOffset in drawableComponent.assets.textures) {
+if (drawableComponent.assets.textures) {
+    for (const textureOffset in drawableComponent.assets.textures ?: []) {
                 const texturePath = drawableComponent.assets.textures[textureOffset]
                 if (!textureCache.has(texturePath)) {
                     const texture = new BasicTexture(gl, texturePath);

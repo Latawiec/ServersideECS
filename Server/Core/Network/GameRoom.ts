@@ -1,23 +1,15 @@
 import { Uuid } from "@core/Base/UuidGenerator";
 import { World } from "@core/World/World";
-import * as WebSocket from 'websocket'
 import { ClientConnection } from "./ClientConnection";
-import { ClientMessageRouter } from "./ClientMessageRouter";
-import { GameConfigureRequest } from "@shared/Communication/Request/GameConfigureRequest"
-import { GameUpdateResponse } from "@shared/Communication/Response/GameUpdateResponse"
-import { GamePreparationResponse } from "@shared/Communication/Response/GamePreparationResponse"
-import { TestWorld } from "@scripts/Worlds/TestWorld/TestWorld";
-import { GameInputRequest } from "@shared/Communication/Request/GameInputRequest";
 import { ClientConnectionSystem } from "@core/Systems/ClientConnectionSystem";
 import { Serializer } from "@core/Serialization/Serializer"
-import { GamePreparationRequest } from "@shared/Communication/Request/GamePreparationRequest";
 import { AbyssosTheFifthCircleSavage } from "@scripts/Worlds/Abyssos/The Fifth Circle Savage/World";
+import { GameConfig } from "@shared/GameConfig/GameConfig";
 
 export class GameRoom {
     private _world: World | undefined;
     private _isRunning: boolean = false;
     private _isPreparing: boolean = false;
-    private _gameRoomMessageRouter: ClientMessageRouter;
     private _connectionIdComponentMap: Map<Uuid, ClientConnectionSystem.Component> = new Map();
     private _serializer = new Serializer();
 
@@ -25,28 +17,14 @@ export class GameRoom {
     
     public gameMasterConnectionId: Uuid | undefined;
 
-    constructor() {
-        this._gameRoomMessageRouter = new ClientMessageRouter();
-        this.hookEvents();
+    constructor(config: GameConfig) {
+        // TODO: world creation based on Config.
+        const world = new AbyssosTheFifthCircleSavage();
+        this._world = world;
     }
 
     get world(): Readonly<World> | undefined {
         return this._world;
-    }
-
-    hookEvents() {
-        this._gameRoomMessageRouter.on('leaveRoom', (connection) => { this.removeConnection(connection) });
-        this._gameRoomMessageRouter.on('gameStart', (connection) => { this.start(connection) });
-        this._gameRoomMessageRouter.on('gameConfig', (connection, request) => { this.configure(connection, request) });
-        this._gameRoomMessageRouter.on('gamePreparation', (connection, request) => { this.preparation(connection, request)})
-        this._gameRoomMessageRouter.on('gameInput', (connection, request) => { this.playerInput(connection, request) });
-    }
-
-    configure(connection: ClientConnection, request: GameConfigureRequest) {
-        // TODO: Replace with real world initialization based on configuration.
-        const world = new AbyssosTheFifthCircleSavage();
-        this._world = world;
-        //this._connectionIdComponentMap.set(connection.id, world.createTestPlayer());
     }
 
     start(connection: ClientConnection) {

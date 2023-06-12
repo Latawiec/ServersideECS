@@ -4,42 +4,14 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { AssetStorage } from './Assets/AssetStorage';
-import { CommitedResourceStorage } from './Assets/Commited/CommitedResourceStorage'
-
-class GameCanvasHandle {
-    private canvas: HTMLCanvasElement;
-    private gl: WebGLRenderingContext;
-
-    private assetStorage: AssetStorage;
-    private commitedResourceStorage: CommitedResourceStorage;
-
-    constructor(gameCanvas: HTMLCanvasElement, assetPackagePath: string) {
-        this.canvas = gameCanvas;
-        this.gl = gameCanvas.getContext('webgl',
-            {
-                alpha: false
-            }
-        )!;
-        
-        const gl = this.gl;
-        gl.enable(gl.DEPTH_TEST);
-        gl.enable(gl.BLEND);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-        this.assetStorage = new AssetStorage();
-        this.commitedResourceStorage = new CommitedResourceStorage(gl, this.assetStorage);
-
-        this.assetStorage.downloadPackage(assetPackagePath);
-    }
-}
+import { GameRuntime } from './GameRuntime';
 
 export default defineComponent({
     name: 'GameCanvas',
     data() {
         return {
             _private: {
-                canvasHandle: {} as GameCanvasHandle
+                runtime: {} as GameRuntime
             }
         };
     },
@@ -55,8 +27,10 @@ export default defineComponent({
     },
     mounted() {
         const assetPackagePath = this.$props.assetsPackagePath;
+        const gameHostAddress = this.$props.gameHostAddress;
 
-        this.$data._private.canvasHandle = new GameCanvasHandle(this.$refs.gameCanvas as HTMLCanvasElement, assetPackagePath);
+        this.$data._private.runtime = new GameRuntime(this.$refs.gameCanvas as HTMLCanvasElement, assetPackagePath, gameHostAddress);
+        this.$data._private.runtime.initialize();
     }
 });
 
