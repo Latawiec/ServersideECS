@@ -1,5 +1,3 @@
-import * as http from 'http'
-import * as WebSocket from 'websocket'
 import express from 'express'
 import * as path from 'path'
 import * as fs from 'fs'
@@ -18,13 +16,7 @@ app.use(express.static(StaticConfig.staticDirectory));
 const activePort = process.env.PORT || 8000;
 const server = app.listen(activePort, () => {
     console.log("Application started and listening on port: " + activePort);
-})
-
-
-const wsServer = new WebSocket.server({
-    httpServer: server
-}
-);
+});
 
 const gameServer = new GameServer(wsServer);
 const serializer = new Serializer();

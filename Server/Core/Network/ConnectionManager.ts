@@ -1,6 +1,6 @@
 import { EventEmitter } from "stream";
 import { ClientConnection } from "./ClientConnection";
-import * as WebSocket from 'websocket'
+import { WebSocketServer } from "ws";
 import { Uuid, UuidGenerator } from "@core/Base/UuidGenerator";
 
 export class ConnectionManager extends EventEmitter {
@@ -9,16 +9,15 @@ export class ConnectionManager extends EventEmitter {
 
     private _wsServer;
 
-
-    constructor(webSocketServer: WebSocket.server) {
+    constructor(webSocketServer: WebSocketServer) {
         super();
         this._wsServer = webSocketServer;
 
-        this._wsServer.on('request', (request: WebSocket.request) => {
-            const connection = request.accept(null, request.origin);
+        this._wsServer.on('connection', (ws, req) => {
+            const address = req.socket.remoteAddress!;
             const connectionId = this._connectionIdGenerator.getNext();
 
-            const clientConnection = new ClientConnection(connection, connectionId);
+            const clientConnection = new ClientConnection(ws, connectionId, address);
 
             clientConnection.on('close', (code: number, desc: string) => {
                 this._connections.delete(clientConnection.id);
@@ -27,7 +26,7 @@ export class ConnectionManager extends EventEmitter {
 
             this._connections.set(connectionId, clientConnection);
             this.emit('connectionCreated', clientConnection);
-        });
+        })
     }
 
     // Events

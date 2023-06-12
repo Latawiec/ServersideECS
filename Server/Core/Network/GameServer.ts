@@ -1,4 +1,4 @@
-import * as WebSocket from 'websocket'
+import { WebSocketServer } from 'ws';
 import { Uuid, UuidGenerator } from "@core/Base/UuidGenerator";
 import { GameConfig } from "@shared/GameConfig/GameConfig"
 import { ConnectionManager } from "./ConnectionManager";
@@ -11,15 +11,20 @@ export class GameServer {
     private _gameRooms: Map<Uuid, GameRoom>     = new Map();
 
     private _connectionIdRoomIdMap: Map<Uuid, Uuid> = new Map();
+    private _websocketServer: WebSocketServer;
     private _connectionManager: ConnectionManager;
 
-    constructor(wsServer: WebSocket.server) {
-        this._connectionManager = new ConnectionManager(wsServer);
-        this.hookEvents();
+    constructor() {
+        this._websocketServer = new WebSocketServer();
+        this._connectionManager = new ConnectionManager(this._websocketServer);
     }
 
     get rooms(): Readonly<Map<Uuid, GameRoom>> {
         return this._gameRooms;
+    }
+
+    get serverAddress(): string {
+        return this._connectionManager.
     }
 
     // Event handling
